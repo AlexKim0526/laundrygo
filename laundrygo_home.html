@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>런드리고 홈 화면 개선안</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,'Helvetica Neue','Apple SD Gothic Neo',sans-serif;background:#F8F8F8;color:#111;}
+
+  /* ── 레이아웃 ── */
+  .page{max-width:1080px;margin:0 auto;padding:48px 32px 80px;}
+
+  /* ── 헤더 ── */
+  .report-header{margin-bottom:40px;}
+  .report-tag{display:inline-block;background:#E1F5EE;color:#0F6E56;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:12px;}
+  .report-title{font-size:26px;font-weight:700;color:#111;margin-bottom:6px;}
+  .report-sub{font-size:14px;color:#888;}
+  .divider{height:1px;background:#E8E8E8;margin:32px 0;}
+
+  /* ── 개요 카드 ── */
+  .overview{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:40px;}
+  .ov-card{background:#F7FFFE;border:1px solid #D6F5EC;border-radius:14px;padding:16px 18px;}
+  .ov-label{font-size:11px;color:#888;margin-bottom:5px;}
+  .ov-val{font-size:14px;font-weight:700;color:#1DB87E;line-height:1.45;}
+
+  /* ── 섹션 공통 ── */
+  .section{margin-bottom:40px;}
+  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .section-num{width:24px;height:24px;border-radius:50%;background:#1DB87E;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+  .section-title{font-size:17px;font-weight:700;color:#111;}
+  .section-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;}
+  .badge-all{background:#E8F5E9;color:#2E7D32;}
+  .badge-new{background:#F3E5F5;color:#6A1B9A;}
+
+  /* ── 포인트 카드 ── */
+  .point-list{display:flex;flex-direction:column;gap:10px;}
+  .point{background:#fff;border:1px solid #EBEBEB;border-radius:13px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;}
+  .point-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .pi-green{background:#E1F5EE;}
+  .pi-purple{background:#F3E5F5;}
+  .point-title{font-size:13px;font-weight:700;color:#111;margin-bottom:4px;}
+  .point-desc{font-size:12px;color:#666;line-height:1.65;}
+  .point-before-after{display:flex;gap:8px;margin-top:7px;flex-wrap:wrap;}
+  .tag-before{font-size:10px;background:#F5F5F5;color:#888;padding:2px 8px;border-radius:4px;}
+  .tag-after{font-size:10px;background:#E1F5EE;color:#0F6E56;padding:2px 8px;border-radius:4px;font-weight:600;}
+
+  /* ── 유저 타입 그리드 ── */
+  .user-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .user-card{border-radius:14px;padding:16px;border:1px solid #EBEBEB;}
+  .uc-sub{background:#F7FFFE;border-color:#D6F5EC;}
+  .uc-free{background:#FFF8ED;border-color:#FDDFA0;}
+  .uc-new{background:#F8F0FF;border-color:#CE93D8;}
+  .user-type{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px;}
+  .ut-sub{background:#D6F5EC;color:#0F6E56;}
+  .ut-free{background:#FDDFA0;color:#7A5A00;}
+  .ut-new{background:#E1BEF5;color:#4A148C;}
+  .diff-item{font-size:11px;color:#444;line-height:1.7;padding-left:12px;position:relative;}
+  .diff-item::before{content:"·";position:absolute;left:0;color:#1DB87E;font-weight:700;}
+
+  /* ── 기대효과 ── */
+  .effect-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .effect-card{background:#fff;border:1px solid #EBEBEB;border-radius:13px;padding:14px 16px;}
+  .effect-label{font-size:11px;color:#888;margin-bottom:5px;}
+  .effect-val{font-size:13px;font-weight:700;color:#1DB87E;line-height:1.5;}
+
+  /* ══════════════════════════════
+     화면 목업 섹션
+  ══════════════════════════════ */
+  .mockup-section{margin-bottom:40px;}
+  .mockup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start;}
+  .mockup-col{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .mockup-label{font-size:12px;font-weight:700;color:#444;text-align:center;}
+  .mockup-desc{font-size:11px;color:#888;text-align:center;line-height:1.5;}
+
+  /* 폰 프레임 */
+  .phone{width:220px;background:#fff;border-radius:32px;border:6px solid #1a1a1a;overflow:hidden;font-family:-apple-system,'Helvetica Neue',sans-serif;}
+  .sb{background:#fff;height:34px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px 3px;}
+  .sb-time{font-size:10px;font-weight:700;color:#000;}
+  .sb-right{display:flex;align-items:center;gap:3px;}
+  .screen-body{background:#f5f5f5;overflow:hidden;}
+
+  /* 공통 컴포넌트 */
+  .p-hdr{background:#fff;padding:10px 13px 8px;}
+  .p-hdr-name{font-size:10px;color:#222;}
+  .p-hdr-name b{color:#1DB87E;font-weight:700;}
+  .p-hdr-sub{font-size:8px;color:#888;margin-top:1px;}
+
+  /* 상태카드 */
+  .p-mem{background:#fff;padding:0 10px 8px;}
+  .p-mem-card{border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:4px;}
+  .p-mc-sub{background:#F7FFFE;border:1px solid #D6F5EC;}
+  .p-mc-free{background:#FFF8ED;border:1px solid #FDDFA0;}
+  .p-ml{flex:1;min-width:0;}
+  .p-plan-row{display:flex;align-items:center;gap:3px;white-space:nowrap;margin-bottom:3px;}
+  .p-plan-label{font-size:7px;color:#888;}
+  .p-plan-name{font-size:8px;font-weight:700;color:#1DB87E;}
+  .p-plan-name-amber{font-size:8px;font-weight:700;color:#B07C00;}
+  .p-days-row{display:flex;align-items:center;gap:3px;white-space:nowrap;}
+  .p-days-label{font-size:7px;color:#999;}
+  .p-day-boxes{display:flex;gap:2px;}
+  .p-day-box{width:13px;height:16px;background:#fff;border:1px solid #E0E0E0;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#222;}
+  .p-days-unit{font-size:7px;color:#666;}
+  .p-mr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+  .p-dial-row{display:flex;align-items:center;gap:3px;}
+  .p-dial-lock{width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid #D6F5EC;display:flex;align-items:center;justify-content:center;}
+  .p-dial-nums{display:flex;gap:2px;}
+  .p-dial-n{width:13px;height:16px;background:#333;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;}
+  .p-dial-guide{font-size:7px;color:#1DB87E;white-space:nowrap;}
+
+  /* 자유이용 상태 */
+  .p-free-stat{width:100%;display:flex;align-items:center;justify-content:space-between;}
+  .p-free-label{font-size:7px;color:#B07C00;margin-bottom:2px;}
+  .p-free-bar-bg{width:80px;height:4px;background:#FFE9A0;border-radius:2px;}
+  .p-free-bar{width:48px;height:4px;background:#F5C518;border-radius:2px;}
+  .p-free-text{font-size:7px;color:#888;margin-top:2px;}
+  .p-upgrade-btn{background:#F5C518;border-radius:5px;padding:3px 6px;font-size:7px;font-weight:700;color:#5A3A00;white-space:nowrap;}
+
+  /* CTA */
+  .p-cta{background:#fff;padding:0 10px 8px;}
+  .p-cta-btn{background:#1DB87E;border-radius:9px;padding:9px 10px;text-align:center;cursor:pointer;}
+  .p-cta-main{font-size:9px;font-weight:700;color:#fff;display:block;}
+  .p-cta-sub{font-size:7px;color:rgba(255,255,255,0.8);display:block;margin-top:1px;}
+  .p-cta-btn-free{background:#1DB87E;border-radius:9px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .p-cta-free-link{background:rgba(0,0,0,0.15);border-radius:5px;padding:3px 6px;display:flex;align-items:center;gap:2px;flex-shrink:0;}
+  .p-cta-free-link-txt{font-size:7px;color:#fff;font-weight:600;white-space:nowrap;}
+
+  /* 퀵메뉴 */
+  .p-quick{background:#fff;padding:7px 10px;}
+  .p-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .p-quick-btn{background:#f8f8f8;border:1px solid #EBEBEB;border-radius:8px;padding:7px 8px;display:flex;align-items:center;justify-content:space-between;}
+  .p-quick-label{font-size:8px;font-weight:600;color:#222;}
+  .p-quick-icon{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .pqi-green{background:#EDFAF4;}
+  .pqi-gray{background:#EFEFEF;}
+  .p-badge-n{background:#FF3B30;color:#fff;font-size:6px;font-weight:700;border-radius:50%;width:10px;height:10px;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;vertical-align:middle;}
+
+  .p-gap{height:5px;background:#f5f5f5;}
+
+  /* 배너 */
+  .p-banner-wrap{background:#fff;padding:8px 10px;}
+  .p-banner{background:#7A5C42;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:7px;}
+  .p-banner-img{width:34px;height:34px;background:#C9D9E8;border-radius:7px;flex-shrink:0;}
+  .p-banner-title{font-size:8px;font-weight:700;color:#fff;line-height:1.3;}
+  .p-banner-coupon{display:inline-block;background:#fff;border-radius:3px;padding:1px 4px;font-size:7px;font-weight:700;color:#C07A3A;margin-top:3px;}
+  .p-banner-arr{color:rgba(255,255,255,0.6);font-size:10px;margin-left:auto;}
+  .p-dots{display:flex;justify-content:center;gap:3px;margin-top:5px;}
+  .p-dot{width:4px;height:4px;border-radius:50%;background:#E0E0E0;}
+  .p-dot-on{background:#1DB87E;}
+  .p-storage{background:#EDFAF4;border:1px solid #C6EFE0;border-radius:8px;padding:7px 9px;display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+  .p-storage-txt{font-size:8px;font-weight:700;color:#0F6E56;}
+  .p-storage-sub{font-size:7px;color:#1DB87E;margin-top:1px;}
+
+  /* 이용현황 */
+  .p-usage{background:#fff;padding:8px 10px;}
+  .p-usage-ttl{font-size:8px;font-weight:700;color:#222;margin-bottom:6px;}
+  .p-usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .p-usage-card{background:#F7FFFE;border:1px solid #D6F5EC;border-radius:8px;padding:7px 8px;}
+  .p-usage-label{font-size:7px;color:#888;margin-bottom:2px;}
+  .p-usage-val{font-size:11px;font-weight:700;color:#1DB87E;}
+  .p-usage-unit{font-size:7px;color:#888;}
+  .p-usage-sub{font-size:7px;color:#999;margin-top:1px;}
+
+  /* 구독유도 */
+  .p-upsell{background:#fff;padding:0 10px 8px;}
+  .p-upsell-card{background:#F0FFF8;border:1.5px solid #1DB87E;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:7px;}
+  .p-upsell-icon{width:26px;height:26px;background:#E1F5EE;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .p-upsell-title{font-size:8px;font-weight:700;color:#0A3D2A;margin-bottom:2px;}
+  .p-upsell-sub{font-size:7px;color:#3B8B68;line-height:1.4;}
+  .p-upsell-arr{font-size:10px;color:#1DB87E;margin-left:auto;}
+
+  /* 구독플랜 */
+  .p-subs{background:#fff;padding:8px 10px 10px;}
+  .p-subs-ttl{font-size:8px;font-weight:700;color:#222;margin-bottom:6px;}
+  .p-plan{border-radius:9px;padding:7px 9px;margin-bottom:5px;display:flex;align-items:flex-start;gap:7px;}
+  .p-plan-best{background:#F2FBFF;border:1.5px solid #1DB87E;}
+  .p-plan-gray{background:#FAFAFA;border:1px solid #EBEBEB;}
+  .p-plan-icon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .ppi-g{background:#E1F5EE;}
+  .ppi-a{background:#FFF3DC;}
+  .p-plan-name-row{display:flex;align-items:center;gap:4px;margin-bottom:1px;}
+  .p-plan-name{font-size:8px;font-weight:700;color:#222;}
+  .p-badge-best{background:#1DB87E;color:#fff;font-size:6px;font-weight:700;padding:1px 4px;border-radius:3px;}
+  .p-badge-pop{background:#FFA940;color:#fff;font-size:6px;font-weight:700;padding:1px 4px;border-radius:3px;}
+  .p-plan-desc{font-size:7px;color:#888;margin-bottom:3px;}
+  .p-plan-pct{font-size:8px;font-weight:700;color:#1DB87E;}
+  .p-plan-price{font-size:9px;font-weight:700;color:#222;}
+  .p-plan-unit{font-size:7px;color:#888;}
+  .p-plan-arr{color:#ccc;font-size:9px;margin-left:auto;align-self:center;}
+
+  /* 신규 히어로 */
+  .p-hero-wrap{background:#fff;padding:0 10px 8px;}
+  .p-hero{background:#EEF9F4;border-radius:13px;padding:11px 11px 10px;}
+  .p-hero-tag{display:inline-block;background:#1DB87E;color:#fff;font-size:7px;font-weight:700;padding:2px 6px;border-radius:20px;margin-bottom:5px;}
+  .p-hero-title{font-size:11px;font-weight:700;color:#0A3D2A;line-height:1.3;margin-bottom:3px;}
+  .p-hero-sub{font-size:7px;color:#3B8B68;margin-bottom:8px;}
+  .p-steps{display:flex;align-items:center;gap:2px;margin-bottom:8px;}
+  .p-step{flex:1;background:#fff;border-radius:6px;padding:4px 2px;text-align:center;}
+  .p-step-num{font-size:6px;color:#1DB87E;font-weight:700;margin-bottom:1px;white-space:nowrap;}
+  .p-step-text{font-size:7px;color:#444;white-space:nowrap;}
+  .p-step-arrow{color:#ccc;font-size:7px;flex-shrink:0;}
+  .p-cta-hero{background:#1DB87E;border-radius:8px;padding:8px;text-align:center;}
+  .p-cta-hero span{font-size:9px;font-weight:700;color:#fff;}
+
+  /* AI 카드 */
+  .p-ai-wrap{background:#fff;padding:0 10px 8px;}
+  .p-ai-card{background:#F0F4FF;border:1px solid #C5D0F5;border-radius:10px;padding:7px 9px;}
+  .p-ai-top{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+  .p-ai-avatar{width:18px;height:18px;border-radius:50%;background:#3D5AFE;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .p-ai-title{font-size:8px;font-weight:700;color:#1A237E;}
+  .p-ai-chips{display:flex;gap:3px;margin-bottom:5px;flex-wrap:wrap;}
+  .p-ai-chip{background:#fff;border:1px solid #C5D0F5;border-radius:20px;padding:2px 5px;font-size:7px;color:#3D5AFE;font-weight:500;white-space:nowrap;}
+  .p-ai-input-row{display:flex;align-items:center;gap:4px;}
+  .p-ai-input{flex:1;background:#fff;border:1px solid #C5D0F5;border-radius:20px;padding:4px 8px;font-size:7px;color:#999;}
+  .p-ai-send{width:18px;height:18px;background:#3D5AFE;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+  /* GNB */
+  .p-bnav{background:#fff;border-top:1px solid #EBEBEB;display:flex;padding:6px 0 12px;}
+  .p-nav-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .p-nav-lbl{font-size:7px;color:#999;}
+  .p-nav-lbl-on{font-size:7px;color:#1DB87E;font-weight:600;}
+
+  /* ── 반응형 ── */
+  @media(max-width:760px){
+    .mockup-grid{grid-template-columns:1fr;}
+    .overview{grid-template-columns:1fr;}
+    .user-grid{grid-template-columns:1fr;}
+    .effect-grid{grid-template-columns:1fr 1fr;}
+    .phone{width:260px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 헤더 -->
+  <div class="report-header">
+    <div class="report-tag">홈 화면 개선안</div>
+    <div class="report-title">런드리고 홈 화면 개선안</div>
+    <div class="report-sub">기존 홈 · 수거신청 화면 통합 및 유저 세그먼트별 개인화 설계</div>
+  </div>
+
+  <!-- 개요 -->
+  <div class="overview">
+    <div class="ov-card">
+      <div class="ov-label">기존 화면 구조</div>
+      <div class="ov-val">홈 + 수거신청<br>2개 화면 분리</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">개선 후 구조</div>
+      <div class="ov-val">통합 홈 1개<br>세그먼트별 분기</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">유저 세그먼트</div>
+      <div class="ov-val">구독 / 자유이용<br>/ 신규 3종</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 1. 최종 개선안 화면 목업 (2번 위치로 이동) -->
+  <div class="mockup-section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">최종 개선안 — 세그먼트별 홈 화면</div>
+    </div>
+
+    <div class="mockup-grid">
+
+      <!-- ① 구독 유저 -->
+      <div class="mockup-col">
+        <div class="mockup-label">① 구독 유저</div>
+        <div class="phone">
+          <div class="sb">
+            <span class="sb-time">11:24</span>
+            <div class="sb-right">
+              <svg width="12" height="9" viewBox="0 0 16 12"><rect x="0" y="5" width="2.5" height="7" rx="1" fill="#000"/><rect x="4" y="3" width="2.5" height="9" rx="1" fill="#000"/><rect x="8" y="1" width="2.5" height="11" rx="1" fill="#000"/><rect x="12" y="0" width="2.5" height="12" rx="1" fill="#000"/></svg>
+              <svg width="16" height="9" viewBox="0 0 20 12"><text x="0" y="10" font-size="9" font-weight="700" fill="#000">5G</text></svg>
+              <svg width="20" height="9" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2.5" fill="none" stroke="#000" stroke-width="1"/><rect x="22" y="3.5" width="2.5" height="5" rx="1.2" fill="#000"/><rect x="1" y="2" width="19" height="8" rx="1.5" fill="#1DB87E"/></svg>
+            </div>
+          </div>
+          <div class="screen-body">
+            <div class="p-hdr">
+              <div class="p-hdr-name"><b>김다예</b>님 반가워요!</div>
+              <div class="p-hdr-sub">가장 가까운 세탁소, 런드리고입니다.</div>
+            </div>
+            <div class="p-mem">
+              <div class="p-mem-card p-mc-sub">
+                <div class="p-ml">
+                  <div class="p-plan-row"><span class="p-plan-label">가입한 요금제</span><span class="p-plan-name">런드리고X 베이직</span></div>
+                </div>
+                <div class="p-mr">
+                  <div class="p-dial-row"><div class="p-dial-lock"><svg width="8" height="8" viewBox="0 0 24 24" fill="#1DB87E"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div><div class="p-dial-nums"><div class="p-dial-n">4</div><div class="p-dial-n">7</div><div class="p-dial-n">7</div></div></div>
+                  <span class="p-dial-guide">다이얼키 사용 안내 ›</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-cta"><div class="p-cta-btn"><span class="p-cta-main">오늘 밤 수거 신청하기</span><span class="p-cta-sub">밤 10시까지 신청 시 지정일 배송완료</span></div></div>
+            <div class="p-quick"><div class="p-quick-grid"><div class="p-quick-btn"><span class="p-quick-label">가격표</span><div class="p-quick-icon pqi-green"><svg width="10" height="10" viewBox="0 0 24 24" fill="#1DB87E"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div></div><div class="p-quick-btn"><span class="p-quick-label">쉬운가이드<span class="p-badge-n">N</span></span><div class="p-quick-icon pqi-gray"><svg width="10" height="10" viewBox="0 0 24 24" fill="#888"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg></div></div></div></div>
+            <div class="p-gap"></div>
+            <div class="p-usage">
+              <div class="p-usage-ttl">이번 달 이용 현황</div>
+              <div class="p-usage-grid">
+                <div class="p-usage-card"><div class="p-usage-label">이번 달 수거</div><div class="p-usage-val">3<span class="p-usage-unit"> 회</span></div><div class="p-usage-sub">지난달 대비 +1회</div></div>
+                <div class="p-usage-card"><div class="p-usage-label">절약한 세탁비</div><div class="p-usage-val" style="font-size:9px;">18,400<span class="p-usage-unit"> 원</span></div><div class="p-usage-sub">구독 혜택 적용</div></div>
+              </div>
+            </div>
+            <div class="p-gap"></div>
+            <div class="p-banner-wrap">
+              <div class="p-banner"><div class="p-banner-img"></div><div><div class="p-banner-title">봄옷 꺼내기 전<br>꼭 맡겨야 하는 3가지</div><div class="p-banner-coupon">쿠폰 100% 당첨</div></div><span class="p-banner-arr">›</span></div>
+              <div class="p-dots"><div class="p-dot p-dot-on"></div><div class="p-dot"></div><div class="p-dot"></div></div>
+              <div class="p-storage"><div><div class="p-storage-txt">올 봄엔 이불까지 보관하세요</div><div class="p-storage-sub">침구류까지 확대 ›</div></div><svg width="28" height="24" viewBox="0 0 48 40"><rect x="4" y="18" width="40" height="14" rx="4" fill="#F5D5B8"/><rect x="4" y="10" width="40" height="10" rx="4" fill="#EDBA94"/><rect x="4" y="3" width="40" height="9" rx="4" fill="#E5A070"/></svg></div>
+            </div>
+            <div class="p-bnav">
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB87E"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="p-nav-lbl-on">홈</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="p-nav-lbl">이용내역</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="p-nav-lbl">스토어</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg><span class="p-nav-lbl">MY</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-desc">구독 가치 체감 중심<br>이용 현황 카드 추가</div>
+      </div>
+
+      <!-- ② 자유이용 유저 -->
+      <div class="mockup-col">
+        <div class="mockup-label">② 자유이용 유저</div>
+        <div class="phone">
+          <div class="sb">
+            <span class="sb-time">11:24</span>
+            <div class="sb-right">
+              <svg width="12" height="9" viewBox="0 0 16 12"><rect x="0" y="5" width="2.5" height="7" rx="1" fill="#000"/><rect x="4" y="3" width="2.5" height="9" rx="1" fill="#000"/><rect x="8" y="1" width="2.5" height="11" rx="1" fill="#000"/><rect x="12" y="0" width="2.5" height="12" rx="1" fill="#000"/></svg>
+              <svg width="16" height="9" viewBox="0 0 20 12"><text x="0" y="10" font-size="9" font-weight="700" fill="#000">5G</text></svg>
+              <svg width="20" height="9" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2.5" fill="none" stroke="#000" stroke-width="1"/><rect x="22" y="3.5" width="2.5" height="5" rx="1.2" fill="#000"/><rect x="1" y="2" width="19" height="8" rx="1.5" fill="#1DB87E"/></svg>
+            </div>
+          </div>
+          <div class="screen-body">
+            <div class="p-hdr">
+              <div class="p-hdr-name"><b>김다예</b>님 반가워요!</div>
+              <div class="p-hdr-sub">가장 가까운 세탁소, 런드리고입니다.</div>
+            </div>
+            <div class="p-mem">
+              <div class="p-mem-card p-mc-free">
+                <div class="p-free-stat">
+                  <div><div class="p-free-label">자유이용 중 · 이번 달 이용</div><div class="p-free-bar-bg"><div class="p-free-bar"></div></div><div class="p-free-text">3회 이용 · 건당 요금 적용 중</div></div>
+                  <div class="p-upgrade-btn">구독 전환 ›</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-cta">
+              <div class="p-cta-btn-free">
+                <div><span class="p-cta-main">오늘 밤 수거 신청하기</span><span class="p-cta-sub" style="display:block;font-size:7px;color:rgba(255,255,255,0.8);margin-top:1px;">밤 10시까지 신청 시 지정일 배송완료</span></div>
+                <div class="p-cta-free-link"><svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg><span class="p-cta-free-link-txt">가격표</span></div>
+              </div>
+            </div>
+            <div class="p-upsell">
+              <div class="p-upsell-card">
+                <div class="p-upsell-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="#1DB87E"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>
+                <div style="flex:1;"><div class="p-upsell-title">구독하면 최대 50% 저렴해요</div><div class="p-upsell-sub">지금 3회 이용 · 구독 시 <b style="color:#1DB87E;">18,400원</b> 절약 가능</div></div>
+                <span class="p-upsell-arr">›</span>
+              </div>
+            </div>
+            <div class="p-quick"><div class="p-quick-grid"><div class="p-quick-btn"><span class="p-quick-label">가격표</span><div class="p-quick-icon pqi-green"><svg width="10" height="10" viewBox="0 0 24 24" fill="#1DB87E"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div></div><div class="p-quick-btn"><span class="p-quick-label">쉬운가이드<span class="p-badge-n">N</span></span><div class="p-quick-icon pqi-gray"><svg width="10" height="10" viewBox="0 0 24 24" fill="#888"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg></div></div></div></div>
+            <div class="p-gap"></div>
+            <div class="p-banner-wrap">
+              <div class="p-banner"><div class="p-banner-img"></div><div><div class="p-banner-title">봄옷 꺼내기 전<br>꼭 맡겨야 하는 3가지</div><div class="p-banner-coupon">쿠폰 100% 당첨</div></div><span class="p-banner-arr">›</span></div>
+              <div class="p-dots"><div class="p-dot p-dot-on"></div><div class="p-dot"></div><div class="p-dot"></div></div>
+              <div class="p-storage"><div><div class="p-storage-txt">올 봄엔 이불까지 보관하세요</div><div class="p-storage-sub">침구류까지 확대 ›</div></div><svg width="28" height="24" viewBox="0 0 48 40"><rect x="4" y="18" width="40" height="14" rx="4" fill="#F5D5B8"/><rect x="4" y="10" width="40" height="10" rx="4" fill="#EDBA94"/><rect x="4" y="3" width="40" height="9" rx="4" fill="#E5A070"/></svg></div>
+            </div>
+            <div class="p-gap"></div>
+            <div class="p-subs">
+              <div class="p-subs-ttl">구독으로 세탁비 무제한 할인</div>
+              <div class="p-plan p-plan-best"><div class="p-plan-icon ppi-g"><svg width="12" height="12" viewBox="0 0 24 24" fill="#1DB87E"><path d="M4 6l4-4 4 4-4 4zm8 0l4-4 4 4-4 4zM4 18l4-4 4 4-4 4zm8 0l4-4 4 4-4 4z"/></svg></div><div style="flex:1;"><div class="p-plan-name-row"><span class="p-plan-name">런드리고X</span><span class="p-badge-best">BEST</span></div><div class="p-plan-desc">세탁을 한 번에 끝내고 싶다면</div><div><span class="p-plan-pct">~50%</span> <span class="p-plan-price">39,500원</span><span class="p-plan-unit">/4주</span></div></div><span class="p-plan-arr">›</span></div>
+              <div class="p-plan p-plan-gray"><div class="p-plan-icon ppi-a"><svg width="12" height="12" viewBox="0 0 24 24" fill="#BA7517"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div style="flex:1;"><div class="p-plan-name-row"><span class="p-plan-name">드라이온리</span><span class="p-badge-pop">12만명의 선택</span></div><div class="p-plan-desc">드라이 세탁비 지출이 많다면</div><div><span class="p-plan-pct">42%</span> <span class="p-plan-price">39,500원</span><span class="p-plan-unit">/4주</span></div></div><span class="p-plan-arr">›</span></div>
+            </div>
+            <div class="p-bnav">
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB87E"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="p-nav-lbl-on">홈</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="p-nav-lbl">이용내역</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="p-nav-lbl">스토어</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg><span class="p-nav-lbl">MY</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-desc">이용 데이터 기반 전환 유도<br>구독 절약 금액 개인화</div>
+      </div>
+
+      <!-- ③ 신규 유저 -->
+      <div class="mockup-col">
+        <div class="mockup-label">③ 신규 유저</div>
+        <div class="phone">
+          <div class="sb">
+            <span class="sb-time">11:44</span>
+            <div class="sb-right">
+              <svg width="12" height="9" viewBox="0 0 16 12"><rect x="0" y="5" width="2.5" height="7" rx="1" fill="#000"/><rect x="4" y="3" width="2.5" height="9" rx="1" fill="#000"/><rect x="8" y="1" width="2.5" height="11" rx="1" fill="#000"/><rect x="12" y="0" width="2.5" height="12" rx="1" fill="#000"/></svg>
+              <svg width="16" height="9" viewBox="0 0 20 12"><text x="0" y="10" font-size="9" font-weight="700" fill="#000">5G</text></svg>
+              <svg width="20" height="9" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2.5" fill="none" stroke="#000" stroke-width="1"/><rect x="22" y="3.5" width="2.5" height="5" rx="1.2" fill="#000"/><rect x="1" y="2" width="19" height="8" rx="1.5" fill="#1DB87E"/></svg>
+            </div>
+          </div>
+          <div class="screen-body">
+            <div class="p-hdr">
+              <div class="p-hdr-name">반가워요! <b>런드리고</b>입니다.</div>
+              <div class="p-hdr-sub">집 앞에서 맡기고, 깨끗하게 돌려받으세요</div>
+            </div>
+            <div class="p-hero-wrap">
+              <div class="p-hero">
+                <div class="p-hero-tag">첫 수거 무료 쿠폰 지급</div>
+                <div class="p-hero-title">세탁 걱정,<br>이제 런드리고에 맡기세요</div>
+                <div class="p-hero-sub">밤 10시까지 신청 → 지정일 문 앞 배송</div>
+                <div class="p-steps">
+                  <div class="p-step"><div class="p-step-num">STEP 1</div><div class="p-step-text">수거 신청</div></div>
+                  <span class="p-step-arrow">›</span>
+                  <div class="p-step"><div class="p-step-num">STEP 2</div><div class="p-step-text">문 앞 수거</div></div>
+                  <span class="p-step-arrow">›</span>
+                  <div class="p-step"><div class="p-step-num">STEP 3</div><div class="p-step-text">세탁 완료</div></div>
+                  <span class="p-step-arrow">›</span>
+                  <div class="p-step"><div class="p-step-num">STEP 4</div><div class="p-step-text">문 앞 배달</div></div>
+                </div>
+                <div class="p-cta-hero"><span>첫 수거신청 하기</span></div>
+              </div>
+            </div>
+            <div class="p-gap"></div>
+            <div class="p-ai-wrap">
+              <div class="p-ai-card">
+                <div class="p-ai-top"><div class="p-ai-avatar"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div><div style="font-size:8px;font-weight:700;color:#3D5AFE;letter-spacing:-0.2px;">Laundrygo AI</div><div class="p-ai-title" style="margin-top:1px;">수거 전 궁금한 거 다 물어보세요</div></div></div>
+                <div class="p-ai-chips"><div class="p-ai-chip">수거 신청 방법</div><div class="p-ai-chip">세탁 가능 품목</div><div class="p-ai-chip">가격 안내</div></div>
+                <div class="p-ai-input-row"><div class="p-ai-input">직접 질문 입력하기</div><div class="p-ai-send"><svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div></div>
+              </div>
+            </div>
+            <div class="p-gap"></div>
+            <div class="p-quick"><div class="p-quick-grid"><div class="p-quick-btn"><span class="p-quick-label">가격표</span><div class="p-quick-icon pqi-green"><svg width="10" height="10" viewBox="0 0 24 24" fill="#1DB87E"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div></div><div class="p-quick-btn"><span class="p-quick-label">쉬운가이드<span class="p-badge-n">N</span></span><div class="p-quick-icon pqi-gray"><svg width="10" height="10" viewBox="0 0 24 24" fill="#888"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg></div></div></div></div>
+            <div class="p-gap"></div>
+            <div class="p-subs">
+              <div class="p-subs-ttl">구독으로 최대 50% 할인</div>
+              <div class="p-plan p-plan-best"><div class="p-plan-icon ppi-g"><svg width="12" height="12" viewBox="0 0 24 24" fill="#1DB87E"><path d="M4 6l4-4 4 4-4 4zm8 0l4-4 4 4-4 4zM4 18l4-4 4 4-4 4zm8 0l4-4 4 4-4 4z"/></svg></div><div style="flex:1;"><div class="p-plan-name-row"><span class="p-plan-name">런드리고X</span><span class="p-badge-best">BEST</span></div><div class="p-plan-desc">세탁을 한 번에 끝내고 싶다면</div><div><span class="p-plan-pct">~50%</span> <span class="p-plan-price">39,500원</span><span class="p-plan-unit">/4주</span></div></div><span class="p-plan-arr">›</span></div>
+              <div class="p-plan p-plan-gray"><div class="p-plan-icon ppi-a"><svg width="12" height="12" viewBox="0 0 24 24" fill="#BA7517"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div><div style="flex:1;"><div class="p-plan-name-row"><span class="p-plan-name">드라이온리</span></div><div class="p-plan-desc">드라이 세탁비 지출이 많다면</div><div><span class="p-plan-pct">42%</span> <span class="p-plan-price">39,500원</span><span class="p-plan-unit">/4주</span></div></div><span class="p-plan-arr">›</span></div>
+            </div>
+            <div class="p-bnav">
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB87E"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="p-nav-lbl-on">홈</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="p-nav-lbl">이용내역</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="p-nav-lbl">스토어</span></div>
+              <div class="p-nav-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="#bbb"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg><span class="p-nav-lbl">MY</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-desc">서비스 가치 전달 + AI Agent<br>이탈 방어 및 첫 전환 유도</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 2. 핵심 구조 변경 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">핵심 구조 변경</div>
+      <span class="section-badge badge-all">전체 공통</span>
+    </div>
+    <div class="point-list">
+      <div class="point">
+        <div class="point-icon pi-green">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB87E"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </div>
+        <div>
+          <div class="point-title">홈 화면을 기본 랜딩으로 전환</div>
+          <div class="point-desc">앱 실행 시 수거신청 화면으로 랜딩되던 구조를 홈 기본 랜딩으로 변경. 수거 CTA를 홈 상단에 배치해 탭 이동 없이 핵심 액션에 바로 도달.</div>
+          <div class="point-before-after">
+            <span class="tag-before">AS-IS: 수거신청 탭 랜딩</span>
+            <span class="tag-after">TO-BE: 홈 화면 랜딩</span>
+          </div>
+        </div>
+      </div>
+      <div class="point">
+        <div class="point-icon pi-green">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB87E"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+        </div>
+        <div>
+          <div class="point-title">GNB 탭 구조 개편</div>
+          <div class="point-desc">수거신청 탭을 홈 CTA로 흡수하고 이용내역 탭 신설. 홈 / 이용내역 / 스토어 / MY 4탭 구조로 정리.</div>
+          <div class="point-before-after">
+            <span class="tag-before">AS-IS: 홈·스토어·수거신청·MY</span>
+            <span class="tag-after">TO-BE: 홈·이용내역·스토어·MY</span>
+          </div>
+          <div style="margin-top:7px;font-size:11px;color:#888;">※ 스토어 탭은 추후 fade-out 및 프리퀀시 상시 메뉴 등으로 교체 검토</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 3. 유저 세그먼트별 개인화 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">유저 세그먼트별 화면 개인화</div>
+    </div>
+    <div class="user-grid">
+      <div class="user-card uc-sub">
+        <span class="user-type ut-sub">구독 유저</span>
+        <div class="diff-item">요금제명 + 이용 일수 + 다이얼키 상태 카드 유지</div>
+        <div class="diff-item">이번 달 수거 횟수 · 절약 금액 현황 카드 추가</div>
+        <div class="diff-item">구독 플랜 카드 제거 (이미 가입)</div>
+        <div class="diff-item">수거 CTA 풀버튼 유지</div>
+      </div>
+      <div class="user-card uc-free">
+        <span class="user-type ut-free">자유이용 유저</span>
+        <div class="diff-item">이용 횟수 프로그레스바 + 구독 전환 버튼 노출</div>
+        <div class="diff-item">CTA에 가격표 바로가기 링크 추가</div>
+        <div class="diff-item">이용 데이터 기반 구독 절약 금액 개인화 메시지</div>
+        <div class="diff-item">하단 구독 플랜 카드로 전환 유도</div>
+      </div>
+      <div class="user-card uc-new">
+        <span class="user-type ut-new">신규 유저</span>
+        <div class="diff-item">첫 수거 무료 쿠폰 배지 노출</div>
+        <div class="diff-item">STEP 1→4 서비스 플로우 시각화</div>
+        <div class="diff-item">Laundrygo AI 인라인 카드 (입력창 + 퀵칩)</div>
+        <div class="diff-item">하단 구독 플랜으로 자연스러운 노출</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 4. Laundrygo AI Agent -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">Laundrygo AI Agent 홈 통합</div>
+      <span class="section-badge badge-new">신규 유저 대상</span>
+    </div>
+    <div class="point-list">
+      <div class="point">
+        <div class="point-icon pi-purple">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#7B1FA2"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div>
+          <div class="point-title">히어로 카드 바로 아래 인라인 배치</div>
+          <div class="point-desc">"수거신청 하기" CTA 이후 망설이는 유저가 스크롤 시 AI 카드가 바로 노출. FAB 버튼 방식 대비 발견율 높음.</div>
+        </div>
+      </div>
+      <div class="point">
+        <div class="point-icon pi-purple">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#7B1FA2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </div>
+        <div>
+          <div class="point-title">퀵칩 3개 + 직접 입력창 제공</div>
+          <div class="point-desc">1:1 문의 데이터 기반 FAQ를 칩으로 배치해 타이핑 없이 바로 답변 획득. 입력 장벽을 낮춰 이탈 전 궁금증 해소 유도.</div>
+          <div class="point-before-after">
+            <span class="tag-before">AS-IS: 1:1 문의 → 대기 → 이탈</span>
+            <span class="tag-after">TO-BE: AI 즉시 답변 → 전환</span>
+          </div>
+        </div>
+      </div>
+      <div class="point">
+        <div class="point-icon pi-purple">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#7B1FA2"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+        </div>
+        <div>
+          <div class="point-title">후킹 문구: "수거 전 궁금한 거 다 물어보세요"</div>
+          <div class="point-desc">신규 유저의 심리("모르는데 어쩌지")를 직접 겨냥. 24시간 즉시 답변 포지셔닝으로 기존 1:1 문의 채널 대체.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 5. 기대 효과 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">기대 효과</div>
+    </div>
+    <div class="effect-grid">
+      <div class="effect-card"><div class="effect-label">수거 신청 접근성</div><div class="effect-val">탭 이동 제거<br>1-tap 도달</div></div>
+      <div class="effect-card"><div class="effect-label">신규 유저 이탈 방어</div><div class="effect-val">AI 즉시 답변으로<br>1:1 문의 대체</div></div>
+      <div class="effect-card"><div class="effect-label">자유이용 → 구독 전환</div><div class="effect-val">이용 데이터 기반<br>개인화 전환 유도</div></div>
+      <div class="effect-card"><div class="effect-label">구독 유저 리텐션</div><div class="effect-val">절약 금액 가시화로<br>구독 가치 체감</div></div>
+      <div class="effect-card"><div class="effect-label">정보 구조 개선</div><div class="effect-val">GNB 4탭 정리<br>이용내역 접근성 개선</div></div>
+      <div class="effect-card"><div class="effect-label">운영 효율</div><div class="effect-val">AI Agent 도입으로<br>CS 문의량 감소</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
