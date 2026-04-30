@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>런드리고 챗봇 대화 분석 리포트</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #f5f6f8;
+  color: #1a1d24;
+  line-height: 1.55;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 60px; }
+header {
+  background: linear-gradient(135deg,#0f172a 0%, #1e3a8a 100%);
+  color: white;
+  border-radius: 18px;
+  padding: 32px 32px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(15,23,42,0.12);
+}
+header .eyebrow { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
+header h1 { margin: 6px 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+header p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+.kpi { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px 16px; }
+.kpi .label { font-size: 11px; opacity: 0.75; letter-spacing: 1px; text-transform: uppercase; }
+.kpi .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+.kpi .sub { font-size: 11px; opacity: 0.7; }
+
+section { background: white; border-radius: 16px; padding: 24px 26px; margin-bottom: 18px; box-shadow: 0 2px 12px rgba(15,23,42,0.04); }
+section h2 { margin: 0 0 4px; font-size: 18px; letter-spacing: -0.3px; }
+section h2 .num { display: inline-block; width: 26px; height: 26px; border-radius: 8px; background: #1e3a8a; color: white; text-align: center; line-height: 26px; font-size: 13px; margin-right: 8px; vertical-align: 2px; }
+section .lede { color: #5b6270; font-size: 13px; margin: 0 0 18px; }
+
+.grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; align-items: start; }
+.chart-box { position: relative; height: 320px; }
+.chart-box.tall { height: 380px; }
+
+table.cat { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.cat th, table.cat td { padding: 9px 10px; border-bottom: 1px solid #ecedf0; text-align: right; }
+table.cat th { font-size: 11px; color: #6b7180; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; background: #f8f9fb; }
+table.cat td:first-child, table.cat th:first-child { text-align: left; }
+table.cat tr.hi td { background: #fff7ed; }
+.pill { display:inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.pill.warn { background: #fee2e2; color: #b91c1c; }
+.pill.ok { background: #dcfce7; color: #166534; }
+.pill.mid { background: #fef3c7; color: #92400e; }
+
+.queries { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.query-chip { background: #f1f3f7; border-radius: 10px; padding: 10px 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+.query-chip .cnt { font-weight: 700; color: #1e3a8a; }
+
+.insight { background: #f8fafc; border-left: 4px solid #1e3a8a; padding: 14px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+.insight strong { color: #0f172a; }
+.insight.warn { border-color: #dc2626; background: #fef2f2; }
+.insight.warn strong { color: #b91c1c; }
+.insight.tip { border-color: #16a34a; background: #f0fdf4; }
+.insight.tip strong { color: #166534; }
+
+.reco { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 10px; }
+.reco-card { border: 1px solid #ecedf0; border-radius: 12px; padding: 16px; }
+.reco-card h4 { margin: 0 0 6px; font-size: 14px; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+.reco-card .tag { font-size: 10px; padding: 2px 7px; border-radius: 5px; background: #1e3a8a; color: white; font-weight: 600; letter-spacing: 0.5px; }
+.reco-card p { margin: 0; font-size: 13px; color: #41474f; }
+.reco-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: #41474f; }
+.reco-card ul li { margin-bottom: 3px; }
+
+.data-need { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.data-need .card { background: #f8fafc; border-radius: 12px; padding: 14px 16px; border: 1px solid #e7ebf2; }
+.data-need .card h5 { margin: 0 0 6px; font-size: 13px; color: #1e3a8a; }
+.data-need .card p { margin: 0; font-size: 12.5px; color: #41474f; }
+
+.method { background: #fafbfc; border-radius: 12px; padding: 14px 18px; font-size: 12.5px; color: #5b6270; margin-top: 14px; }
+.method b { color: #1a1d24; }
+
+@media (max-width: 880px) {
+  .kpi-row, .grid-2, .queries, .reco, .data-need { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">LaundryGo · AI Chatbot Analytics</div>
+  <h1>챗봇 대화 데이터 분석 리포트</h1>
+  <p>고객 질문 유형 분류 · 1:1 문의 이탈 분석 · 챗봇 고도화 인사이트</p>
+  <div class="kpi-row">
+    <div class="kpi"><div class="label">총 대화방</div><div class="value">856</div><div class="sub">고유 세션 수</div></div>
+    <div class="kpi"><div class="label">고객 메시지</div><div class="value">1,397</div><div class="sub">AI 응답 1,203건</div></div>
+    <div class="kpi"><div class="label">1:1 문의 이동</div><div class="value">179</div><div class="sub">전체 대화의 20.9%</div></div>
+    <div class="kpi"><div class="label">평균 대화 길이</div><div class="value">3.0턴</div><div class="sub">최대 48턴</div></div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">1</span>고객 질문 유형 분류</h2>
+  <p class="lede">고객 메시지의 키워드 패턴으로 11개 유형을 도출했어요. 대화방 단위로 가장 빈번한 유형을 대표 카테고리로 지정했어요.</p>
+  <div class="grid-2">
+    <div class="chart-box tall"><canvas id="catBar"></canvas></div>
+    <table class="cat" id="catTable"></table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span>유형별 1:1 문의 이동률</h2>
+  <p class="lede">전체 평균은 20.9%. 빨간 점선보다 위에 있는 카테고리가 챗봇 답변에 만족하지 못해 상담 채널로 이탈하는 비율이 높은 영역이에요.</p>
+  <div class="chart-box tall"><canvas id="rateBar"></canvas></div>
+  <div style="margin-top:18px;">
+    <div class="insight warn"><strong>처리 상태/진행 확인 (이탈률 33.3%)</strong> — "언제 도착하나요", "이용내역 확인이 안돼요" 같은 <b>주문별 실시간 상태 조회</b>가 필요한 질문에서 챗봇이 일반 안내만 제공해 이탈이 가장 큽니다.</div>
+    <div class="insight warn"><strong>수거/배송 (이탈률 24.3%, 절대량 최대)</strong> — "수거 안 해가고 돈 나감", "오수거", "수거 시간 변경" 등 개별 케이스 처리 요청이 많아 정형화된 답변으로는 한계가 있어요. 1:1 이탈 절대 건수가 가장 많은 영역(54건)입니다.</div>
+    <div class="insight warn"><strong>결제/환불 (이탈률 22.9%)</strong> — "포인트가 안 들어왔다", "할부", "세탁비 환불 방법" 등 계정/거래내역 기반 답변이 필요해 일반 정책 안내로는 부족합니다.</div>
+    <div class="insight tip"><strong>세탁 결과/손상 (이탈률 7.4%, 낮음)</strong> — 실제로는 강한 보상 요구가 많은 영역이지만, 챗봇이 "앱 내 [문의하기] 사진 첨부" 경로로 우회 안내해 1:1 이동이 낮게 집계됨. 실질 만족도는 별도 측정이 필요해요.</div>
+    <div class="insight tip"><strong>이용 방법/서비스 안내 (이탈률 9.7%)</strong> — FAQ성 정보 제공이 잘 작동하는 영역. 이 베이스라인을 다른 카테고리에도 확장하는 것이 목표예요.</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">3</span>가장 자주 들어오는 질문 TOP 15</h2>
+  <p class="lede">버튼 클릭 형태의 짧은 질의 + 자유 입력. 상위 10개가 전체 메시지의 약 16%를 차지해요. 빠른 응답 슬롯과 자동 안내문을 정교화할 여지가 큽니다.</p>
+  <div class="queries" id="queryList"></div>
+</section>
+
+<section>
+  <h2><span class="num">4</span>챗봇 고도화 — 우선순위 권장사항</h2>
+  <p class="lede">이탈률 × 트래픽 영향도 기준 우선순위. P1이 가장 시급해요.</p>
+  <div class="reco">
+    <div class="reco-card">
+      <h4><span class="tag">P1</span>주문 상태 실시간 조회 연동</h4>
+      <p>"언제 도착해?", "지금 어디?", "이용내역" 류 질의에 사용자별 주문 데이터를 직접 호출해 답변하도록 연동.</p>
+      <ul>
+        <li>대상: 처리 상태(33.3% 이탈), 수거/배송 일부</li>
+        <li>예상 효과: 두 카테고리 1:1 이탈 30~50% 감소</li>
+      </ul>
+    </div>
+    <div class="reco-card">
+      <h4><span class="tag">P1</span>예외 케이스 처리 워크플로우</h4>
+      <p>"수거 안 해감", "오수거", "일부만 배송" 등 표준 안내가 무력한 케이스에 자동 보상/재수거 신청 흐름 연결.</p>
+      <ul>
+        <li>대상: 수거/배송 222 대화 중 24.3%가 이탈</li>
+        <li>구조화된 보상 신청 폼 + 사진 첨부 자동화</li>
+      </ul>
+    </div>
+    <div class="reco-card">
+      <h4><span class="tag">P2</span>계정·결제 내역 기반 응답</h4>
+      <p>포인트 잔액, 결제 내역, 쿠폰 적용 가능 여부 등을 인증된 사용자에게 직접 표시.</p>
+      <ul>
+        <li>대상: 결제/환불 96건, 22.9% 이탈</li>
+        <li>"왜 포인트가 없죠?" 류는 데이터 조회 1회로 해결</li>
+      </ul>
+    </div>
+    <div class="reco-card">
+      <h4><span class="tag">P2</span>구독 해지 자동화 우회 차단</h4>
+      <p>"해지/취소" 의도가 명확하면 챗봇 내에서 즉시 해지 → 결제일/잔여혜택 안내 → 진행. 현재는 1:1 유도가 잦음.</p>
+      <ul>
+        <li>대상: 구독/요금제 138건, 18.8% 이탈</li>
+        <li>해지 사유 수집(설문)으로 retention 인사이트 확보</li>
+      </ul>
+    </div>
+    <div class="reco-card">
+      <h4><span class="tag">P3</span>품목·소재 판정기 강화</h4>
+      <p>"○○ 세탁 가능한가요?" 류에 품목/소재 DB 기반으로 즉시 가/불가 + 이유 + 대안 제시.</p>
+      <ul>
+        <li>대상: 세탁불가/품목 100건, 20% 이탈</li>
+        <li>이미지 업로드 → 소재 추정(비전 모델) 적용 검토</li>
+      </ul>
+    </div>
+    <div class="reco-card">
+      <h4><span class="tag">P3</span>"기타" 137건 재분류·재학습</h4>
+      <p>인사·짧은 응답·우회 표현이 다수. 의도 분류기를 LLM 임베딩 기반으로 재학습해 분류 사각지대 제거.</p>
+      <ul>
+        <li>"좋은 아침이야" 같은 잡담 vs 추가 질문 구분</li>
+        <li>"극세사 토퍼 얼만가요?" 등 가격 의도 별도 카테고리화</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">5</span>분석/고도화에 추가로 필요한 데이터</h2>
+  <p class="lede">현재 데이터로는 의도와 결과만 추정할 수 있어요. 아래 항목이 함께 수집되면 분석 정확도와 자동화 범위가 크게 늘어나요.</p>
+  <div class="data-need">
+    <div class="card"><h5>1. AI 응답 만족도 (👍/👎)</h5><p>현재 점수(1/5/N) 컬럼이 거의 비어 있음(2건). 매 답변마다 만족도를 수집해야 어떤 답변이 실패했는지 정확히 알 수 있어요.</p></div>
+    <div class="card"><h5>2. 사용자 의도 라벨</h5><p>키워드 매칭은 노이즈가 많음. 운영자가 200~500건만 골든셋으로 라벨링하면 분류기 정확도 80%+ 확보 가능.</p></div>
+    <div class="card"><h5>3. 1:1 이동 후 처리 결과</h5><p>이동 후 어떤 카테고리로 종결됐는지(환불/재수거/단순안내 등). 어떤 케이스가 정말 사람 손이 필요한지 구분돼요.</p></div>
+    <div class="card"><h5>4. 사용자 메타정보</h5><p>구독 여부, 가입일, 이용횟수, 지역. "신규 유저는 이용방법 질문이 많고, 장기 유저는 손상/보상이 많다" 류 코호트 분석 가능.</p></div>
+    <div class="card"><h5>5. 주문/세탁 진행 데이터 연동</h5><p>대화 시점의 해당 사용자 주문 상태. "언제 도착?" 질의가 들어왔을 때 챗봇이 즉답할 수 있는 핵심 자원.</p></div>
+    <div class="card"><h5>6. 응답 지연 시간(latency)</h5><p>AI 응답 시간이 느린 영역에서 이탈률이 높을 수 있음. 메시지별 처리 시간 기록 필요.</p></div>
+    <div class="card"><h5>7. 답변 내 링크 클릭률</h5><p>현재 답변엔 [자세히 보기] 링크가 많음. 클릭률이 낮은 안내문은 본문에 핵심을 직접 노출하도록 개선해야 함.</p></div>
+    <div class="card"><h5>8. 재방문/연속 대화 식별자</h5><p>같은 사용자가 여러 대화방에서 동일 질문을 반복한다면 이전 답변 실패 신호. 사용자 키 기반 시계열 추적 필요.</p></div>
+    <div class="card"><h5>9. 운영자 검수 정답</h5><p>실제 1:1 상담사가 보낸 답변과 챗봇 답변의 diff 데이터. 가장 강력한 학습 시그널이에요.</p></div>
+  </div>
+  <div class="method">
+    <b>분석 방법</b> · 키워드 사전 기반으로 메시지를 11개 카테고리에 매핑 → 대화방 단위로 가장 빈번한 카테고리를 대표 카테고리로 지정 → 1:1 이동률 계산. 데이터: <code>챗봇대화내용.csv</code> (총 2,600행, 대화방 856개, 고객 메시지 1,397건, 2026-04-30 기준).
+  </div>
+</section>
+
+</div>
+
+<script>
+const DATA = {
+  categories: [
+    {name:"수거/배송", convs:222, ones:54, rate:24.3, color:"#1e40af"},
+    {name:"구독/요금제 관리", convs:138, ones:26, rate:18.8, color:"#2563eb"},
+    {name:"기타", convs:137, ones:28, rate:20.4, color:"#94a3b8"},
+    {name:"세탁불가/품목 문의", convs:100, ones:20, rate:20.0, color:"#3b82f6"},
+    {name:"결제/환불", convs:96, ones:22, rate:22.9, color:"#1e3a8a"},
+    {name:"이용 방법/서비스 안내", convs:62, ones:6, rate:9.7, color:"#60a5fa"},
+    {name:"처리 상태/진행 확인", convs:51, ones:17, rate:33.3, color:"#dc2626"},
+    {name:"세탁 결과/품질/손상", convs:27, ones:2, rate:7.4, color:"#7c3aed"},
+    {name:"상담/고객센터 요청", convs:19, ones:4, rate:21.1, color:"#0891b2"},
+    {name:"앱/시스템 오류", convs:3, ones:0, rate:0.0, color:"#a16207"},
+    {name:"불만/항의", convs:1, ones:0, rate:0.0, color:"#475569"}
+  ],
+  topQueries: [
+    ["세탁 요금 확인하기",74],["세탁물 내놓는 법",46],["개별클리닝 vs 생활빨래 차이",28],
+    ["세탁 불가 품목 확인하기",24],["환불",18],["구독취소",12],["해지",12],
+    ["런드렛 비밀번호",8],["구독해지",7],["구독 취소",6],["수거신청 취소",4],
+    ["헌옷수거",4],["탈퇴",4],["헌옷",4],["비밀번호",4]
+  ],
+  overallRate: 20.9
+};
+
+new Chart(document.getElementById('catBar'), {
+  type: 'bar',
+  data: {
+    labels: DATA.categories.map(c=>c.name),
+    datasets: [{
+      label: '대화방 수',
+      data: DATA.categories.map(c=>c.convs),
+      backgroundColor: DATA.categories.map(c=>c.color),
+      borderRadius: 6
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: {display:false}, tooltip: { callbacks: { label: (ctx)=> ctx.parsed.x + '개 대화방' } } },
+    scales: {
+      x: { grid:{color:'#eef0f4'}, title:{display:true, text:'대화방 수', font:{size:11}, color:'#6b7180'} },
+      y: { grid:{display:false}, ticks:{font:{size:12}} }
+    }
+  }
+});
+
+const totalConvs = DATA.categories.reduce(function(s,c){return s+c.convs;},0);
+const tbl = document.getElementById('catTable');
+tbl.innerHTML = '<thead><tr><th>카테고리</th><th>대화수</th><th>비중</th><th>1:1이동</th><th>이동률</th></tr></thead><tbody>' +
+  DATA.categories.map(function(c){
+    var pct = (c.convs/totalConvs*100).toFixed(1);
+    var cls = c.rate >= DATA.overallRate ? 'hi' : '';
+    var pillCls = c.rate >= 25 ? 'warn' : c.rate >= DATA.overallRate ? 'mid' : 'ok';
+    return '<tr class="'+cls+'"><td>'+c.name+'</td><td>'+c.convs+'</td><td>'+pct+'%</td><td>'+c.ones+'</td><td><span class="pill '+pillCls+'">'+c.rate+'%</span></td></tr>';
+  }).join('') + '</tbody>';
+
+const refPlugin = {
+  id: 'refLine',
+  afterDraw: function(chart) {
+    const ctx = chart.ctx, chartArea = chart.chartArea, scales = chart.scales;
+    const y = scales.y.getPixelForValue(DATA.overallRate);
+    ctx.save();
+    ctx.strokeStyle = '#dc2626';
+    ctx.setLineDash([6,4]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y);
+    ctx.lineTo(chartArea.right, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#dc2626';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('전체 평균 ' + DATA.overallRate + '%', chartArea.right - 90, y - 6);
+    ctx.restore();
+  }
+};
+
+const sortedByRate = DATA.categories.slice().sort(function(a,b){return b.rate-a.rate;});
+new Chart(document.getElementById('rateBar'), {
+  type: 'bar',
+  data: {
+    labels: sortedByRate.map(function(c){return c.name;}),
+    datasets: [{
+      label: '1:1 이동률(%)',
+      data: sortedByRate.map(function(c){return c.rate;}),
+      backgroundColor: sortedByRate.map(function(c){ return c.rate>=25 ? '#dc2626' : c.rate>=DATA.overallRate ? '#f59e0b' : '#16a34a'; }),
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: {display:false}, tooltip: {callbacks:{label:function(ctx){ return ctx.parsed.y + '% (' + sortedByRate[ctx.dataIndex].ones + '건/' + sortedByRate[ctx.dataIndex].convs + '건)'; }}}},
+    scales: {
+      y: { beginAtZero:true, max:40, grid:{color:'#eef0f4'}, title:{display:true, text:'1:1 문의 이동률(%)'}},
+      x: { grid:{display:false}, ticks:{font:{size:11}, maxRotation:25, minRotation:25}}
+    }
+  },
+  plugins: [refPlugin]
+});
+
+const ql = document.getElementById('queryList');
+ql.innerHTML = DATA.topQueries.map(function(q){return '<div class="query-chip"><span>'+q[0]+'</span><span class="cnt">'+q[1]+'</span></div>';}).join('');
+</script>
+</body>
+</html>
