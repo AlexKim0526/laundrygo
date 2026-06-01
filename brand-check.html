@@ -63,7 +63,7 @@
 
   /* Hover preview */
   #hoverPreview { display: none; position: fixed; z-index: 400; pointer-events: none; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); }
-  #hoverPreview img { width: 380px; height: 380px; object-fit: contain; background: #111; display: block; }
+  #hoverPreview img { width: 760px; height: 760px; object-fit: contain; background: #111; display: block; }
   /* Lightbox */
   #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; align-items: center; justify-content: center; flex-direction: column; }
   #lightbox.open { display: flex; }
@@ -81,7 +81,7 @@
 <body>
 
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.3</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.4</span></h1>
   <div id="stats">
     <div class="stat-card">
       <div class="label">📦 품목 인식률</div>
@@ -377,7 +377,7 @@ init();
 
 function movePreview(e) {
   const pv = document.getElementById('hoverPreview');
-  const pw = 400, ph = 400;
+  const pw = 780, ph = 780;
   let x = e.clientX + 20;
   let y = e.clientY - ph / 2;
   if (x + pw > window.innerWidth - 8) x = e.clientX - pw - 20;
