@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>브랜드 인식 체크</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6fa; color: #222; }
+  #header { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e0e0e0; padding: 12px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  #header h1 { font-size: 17px; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
+  #stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .stat-card { background: #f0f4ff; border-radius: 10px; padding: 8px 14px; flex: 1; min-width: 160px; }
+  .stat-card .label { font-size: 11px; color: #666; margin-bottom: 2px; }
+  .stat-card .value { font-size: 18px; font-weight: 700; color: #3b5bdb; }
+  .stat-card .sub { font-size: 11px; color: #888; margin-top: 1px; }
+  .stat-card.brand .value { color: #e67700; }
+  .stat-card.brand { background: #fff8e1; }
+  .stat-card.unknown { background: #f3f0ff; }
+  .stat-card.unknown .value { color: #7048e8; }
+  #controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #controls label { font-size: 12px; color: #555; }
+  #userInput { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size: 13px; width: 120px; }
+  #pageInfo { font-size: 12px; color: #666; }
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; }
+  #prevBtn, #nextBtn { background: #3b5bdb; color: #fff; }
+  #prevBtn:disabled, #nextBtn:disabled { background: #ccc; cursor: default; }
+  #exportBtn { background: #2f9e44; color: #fff; }
+  #importBtn { background: #e67700; color: #fff; }
+  #jumpInput { width: 60px; border: 1px solid #ccc; border-radius: 6px; padding: 4px 6px; font-size: 12px; text-align: center; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 16px; }
+  .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border: 2px solid transparent; transition: border-color 0.15s; }
+  .card.checked-ok { border-color: #40c057; }
+  .card.checked-fail { border-color: #fa5252; }
+  .card.checked-unknown { border-color: #7950f2; }
+  .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; display: block; }
+  .card-body { padding: 10px 12px; }
+  .card-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-name { font-size: 13px; font-weight: 700; color: #222; }
+  .card-brand { font-size: 12px; color: #555; background: #f0f0f0; border-radius: 4px; padding: 2px 6px; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-id { font-size: 10px; color: #bbb; margin-bottom: 6px; }
+  .check-row { display: flex; gap: 6px; }
+  .check-btn { flex: 1; padding: 6px 4px; border-radius: 7px; font-size: 11px; font-weight: 600; border: 2px solid transparent; transition: all 0.15s; background: #f5f5f5; color: #555; cursor: pointer; }
+  .check-btn:hover { filter: brightness(0.95); }
+  .check-btn.active-ok { background: #40c057; color: #fff; border-color: #2f9e44; }
+  .check-btn.active-fail { background: #fa5252; color: #fff; border-color: #e03131; }
+  .check-btn.active-unknown { background: #7950f2; color: #fff; border-color: #6741d9; }
+  .card-user { font-size: 10px; color: #888; margin-top: 4px; }
+  #toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
+  #toast.show { opacity: 1; }
+  #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  #modal.open { display: flex; }
+  #modalBox { background: #fff; border-radius: 14px; padding: 24px; max-width: 440px; width: 90%; }
+  #modalBox h2 { font-size: 16px; margin-bottom: 10px; }
+  #modalBox p { font-size: 13px; color: #555; margin-bottom: 12px; line-height: 1.6; }
+  #modalBox textarea { width: 100%; height: 120px; border: 1px solid #ccc; border-radius: 8px; padding: 8px; font-size: 12px; font-family: monospace; resize: vertical; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .modal-btns button { flex: 1; padding: 8px; }
+  #importOkBtn { background: #3b5bdb; color: #fff; }
+  #importCancelBtn { background: #eee; color: #333; }
+  .section-label { font-size: 11px; color: #666; margin-bottom: 5px; padding-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🔍 브랜드 인식 체크</h1>
+  <div id="stats">
+    <div class="stat-card">
+      <div class="label">📦 품목 인식률</div>
+      <div class="value" id="nameRate">-</div>
+      <div class="sub" id="nameSub">체크 필요</div>
+    </div>
+    <div class="stat-card brand">
+      <div class="label">🏷️ 브랜드 인식률</div>
+      <div class="value" id="brandRate">-</div>
+      <div class="sub" id="brandSub">체크 필요</div>
+    </div>
+    <div class="stat-card unknown">
+      <div class="label">🚫 이미지 확인불가</div>
+      <div class="value" id="unknownCount">-</div>
+      <div class="sub" id="unknownSub">품목 / 브랜드</div>
+    </div>
+    <div class="stat-card" style="background:#e8f5e9;">
+      <div class="label">✅ 전체 진행</div>
+      <div class="value" style="color:#2e7d32;" id="totalChecked">0</div>
+      <div class="sub" id="totalSub">건 체크 완료</div>
+    </div>
+  </div>
+  <div id="controls">
+    <label>작업자:</label>
+    <input id="userInput" type="text" placeholder="이름 입력" />
+    <select id="filterSelect">
+      <option value="all">전체</option>
+      <option value="unchecked">미체크</option>
+      <option value="ok">정상 인식</option>
+      <option value="fail">오인식</option>
+      <option value="unknown">확인불가</option>
+    </select>
+    <select id="pageSizeSelect">
+      <option value="20">20개</option>
+      <option value="50" selected>50개</option>
+      <option value="100">100개</option>
+    </select>
+    <button id="prevBtn">◀ 이전</button>
+    <span id="pageInfo">-</span>
+    <button id="nextBtn">다음 ▶</button>
+    <input id="jumpInput" type="number" min="1" placeholder="페이지" title="페이지 번호 입력 후 Enter"/>
+    <button id="exportBtn">📤 내보내기</button>
+    <button id="importBtn">📥 병합 가져오기</button>
+  </div>
+</div>
+
+<div id="grid"></div>
+<div id="toast"></div>
+
+<div id="modal">
+  <div id="modalBox">
+    <h2>📥 결과 병합 가져오기</h2>
+    <p>다른 작업자가 내보낸 JSON 텍스트를 붙여넣으세요.<br>기존 내용과 병합됩니다. (충돌 시 가져온 데이터 우선)</p>
+    <textarea id="importText" placeholder='{"results": {...}, "user": "이름", ...}'></textarea>
+    <div class="modal-btns">
+      <button id="importOkBtn">병합하기</button>
+      <button id="importCancelBtn">취소</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'brand_check_results_v1';
+const USER_KEY = 'brand_check_user';
+
+let allData = [];
+let results = {};
+let currentPage = 1;
+let pageSize = 50;
+let filterMode = 'all';
+let filteredIds = [];
+
+function loadResults() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) results = JSON.parse(s); } catch(e) { results = {}; }
+}
+function saveResults() { localStorage.setItem(STORAGE_KEY, JSON.stringify(results)); }
+
+function updateStats() {
+  const checked = Object.values(results);
+  const nameChecked = checked.filter(r => r.nameOk !== null && r.nameOk !== undefined && !r.nameUnknown).length;
+  const nameOk = checked.filter(r => r.nameOk === true && !r.nameUnknown).length;
+  const brandChecked = checked.filter(r => r.brandOk !== null && r.brandOk !== undefined && !r.brandUnknown).length;
+  const brandOk = checked.filter(r => r.brandOk === true && !r.brandUnknown).length;
+  const nameUnknown = checked.filter(r => r.nameUnknown).length;
+  const brandUnknown = checked.filter(r => r.brandUnknown).length;
+
+  document.getElementById('nameRate').textContent = nameChecked > 0 ? (nameOk/nameChecked*100).toFixed(1)+'%' : '-';
+  document.getElementById('nameSub').textContent = '정상 '+nameOk+' / 체크 '+nameChecked+'건';
+  document.getElementById('brandRate').textContent = brandChecked > 0 ? (brandOk/brandChecked*100).toFixed(1)+'%' : '-';
+  document.getElementById('brandSub').textContent = '정상 '+brandOk+' / 체크 '+brandChecked+'건';
+  document.getElementById('unknownCount').textContent = (nameUnknown+brandUnknown).toLocaleString();
+  document.getElementById('unknownSub').textContent = '품목불가 '+nameUnknown+' / 브랜드불가 '+brandUnknown;
+  document.getElementById('totalChecked').textContent = checked.length.toLocaleString();
+  document.getElementById('totalSub').textContent = '/ '+(allData.length.toLocaleString())+'건';
+}
+
+function getFilteredIds() {
+  return allData.filter(row => {
+    const r = results[row.id];
+    if (filterMode === 'all') return true;
+    if (filterMode === 'unchecked') return !r || (r.nameOk === null && r.brandOk === null && !r.nameUnknown && !r.brandUnknown);
+    if (filterMode === 'ok') return r && r.nameOk === true && r.brandOk === true;
+    if (filterMode === 'fail') return r && (r.nameOk === false || r.brandOk === false);
+    if (filterMode === 'unknown') return r && (r.nameUnknown || r.brandUnknown);
+    return true;
+  }).map(row => row.id);
+}
+
+function getCardClass(r) {
+  if (!r) return 'card';
+  const allChecked = (r.nameOk !== null || r.nameUnknown) && (r.brandOk !== null || r.brandUnknown);
+  if (!allChecked) return 'card';
+  if (r.nameUnknown || r.brandUnknown) return 'card checked-unknown';
+  if (r.nameOk === true && r.brandOk === true) return 'card checked-ok';
+  return 'card checked-fail';
+}
+
+function btnClass(type, val, r) {
+  if (!r) return 'check-btn';
+  if (type === 'name') {
+    if (val === 'ok' && r.nameOk === true && !r.nameUnknown) return 'check-btn active-ok';
+    if (val === 'fail' && r.nameOk === false && !r.nameUnknown) return 'check-btn active-fail';
+    if (val === 'unknown' && r.nameUnknown) return 'check-btn active-unknown';
+  } else {
+    if (val === 'ok' && r.brandOk === true && !r.brandUnknown) return 'check-btn active-ok';
+    if (val === 'fail' && r.brandOk === false && !r.brandUnknown) return 'check-btn active-fail';
+    if (val === 'unknown' && r.brandUnknown) return 'check-btn active-unknown';
+  }
+  return 'check-btn';
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderPage() {
+  filteredIds = getFilteredIds();
+  const totalPages = Math.max(1, Math.ceil(filteredIds.length / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage-1)*pageSize;
+  const pageIds = filteredIds.slice(start, start+pageSize);
+
+  document.getElementById('pageInfo').textContent = currentPage+' / '+totalPages+' 페이지 ('+filteredIds.length.toLocaleString()+'건)';
+  document.getElementById('prevBtn').disabled = currentPage <= 1;
+  document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  pageIds.forEach(id => {
+    const row = allData[id];
+    const r = results[id] || null;
+    const userInfo = r ? '<div class="card-user">👤 '+esc(r.user||'?')+' · '+new Date(r.ts).toLocaleDateString('ko-KR')+'</div>' : '';
+    const card = document.createElement('div');
+    card.className = getCardClass(r);
+    card.innerHTML =
+      '<img class="card-img" src="'+esc(row.img_url||'')+'" loading="lazy" onerror="this.style.objectFit=\'contain\';this.style.padding=\'20px\';this.src=\'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22200%22 height%3D%22100%22%3E%3Ctext y%3D%2250%25%22 x%3D%2250%25%22 text-anchor%3D%22middle%22 dominant-baseline%3D%22middle%22 font-size%3D%2213%22 fill%3D%22%23aaa%22%3E이미지 없음%3C/text%3E%3C/svg%3E\'" />' +
+      '<div class="card-body">' +
+        '<div class="card-id">#'+(id+1)+'</div>' +
+        '<div class="card-meta"><div class="card-name">'+esc(row.name)+'</div><div class="card-brand">'+esc(row.brand)+'</div></div>' +
+        '<div class="section-label">📦 품목 인식</div>' +
+        '<div class="check-row" style="margin-bottom:8px;">' +
+          '<button class="'+btnClass('name','ok',r)+'" data-id="'+id+'" data-type="name" data-val="ok">✅ 정상</button>' +
+          '<button class="'+btnClass('name','fail',r)+'" data-id="'+id+'" data-type="name" data-val="fail">❌ 오인식</button>' +
+          '<button class="'+btnClass('name','unknown',r)+'" data-id="'+id+'" data-type="name" data-val="unknown">🚫 확인불가</button>' +
+        '</div>' +
+        '<div class="section-label">🏷️ 브랜드 인식</div>' +
+        '<div class="check-row">' +
+          '<button class="'+btnClass('brand','ok',r)+'" data-id="'+id+'" data-type="brand" data-val="ok">✅ 정상</button>' +
+          '<button class="'+btnClass('brand','fail',r)+'" data-id="'+id+'" data-type="brand" data-val="fail">❌ 오인식</button>' +
+          '<button class="'+btnClass('brand','unknown',r)+'" data-id="'+id+'" data-type="brand" data-val="unknown">🚫 확인불가</button>' +
+        '</div>' +
+        userInfo +
+      '</div>';
+    grid.appendChild(card);
+  });
+
+  updateStats();
+}
+
+document.getElementById('grid').addEventListener('click', e => {
+  const btn = e.target.closest('.check-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.id);
+  const type = btn.dataset.type;
+  const val = btn.dataset.val;
+  const user = document.getElementById('userInput').value.trim() || '익명';
+
+  if (!results[id]) results[id] = { nameOk: null, brandOk: null, nameUnknown: false, brandUnknown: false, user, ts: Date.now() };
+  results[id].user = user; results[id].ts = Date.now();
+
+  if (type === 'name') {
+    if (val === 'ok') { results[id].nameOk = true; results[id].nameUnknown = false; }
+    else if (val === 'fail') { results[id].nameOk = false; results[id].nameUnknown = false; }
+    else { results[id].nameUnknown = true; results[id].nameOk = null; }
+  } else {
+    if (val === 'ok') { results[id].brandOk = true; results[id].brandUnknown = false; }
+    else if (val === 'fail') { results[id].brandOk = false; results[id].brandUnknown = false; }
+    else { results[id].brandUnknown = true; results[id].brandOk = null; }
+  }
+
+  saveResults();
+  const r = results[id];
+  const card = btn.closest('.card');
+  card.className = getCardClass(r);
+  card.querySelectorAll('.check-btn').forEach(b => { b.className = btnClass(b.dataset.type, b.dataset.val, r); });
+  let ud = card.querySelector('.card-user');
+  if (!ud) { ud = document.createElement('div'); ud.className='card-user'; card.querySelector('.card-body').appendChild(ud); }
+  ud.textContent = '👤 '+(r.user||'?')+' · '+new Date(r.ts).toLocaleDateString('ko-KR');
+  updateStats();
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => { currentPage--; renderPage(); window.scrollTo(0,0); });
+document.getElementById('nextBtn').addEventListener('click', () => { currentPage++; renderPage(); window.scrollTo(0,0); });
+document.getElementById('jumpInput').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const p = parseInt(e.target.value);
+  const tp = Math.ceil(filteredIds.length/pageSize);
+  if (p>=1 && p<=tp) { currentPage=p; renderPage(); window.scrollTo(0,0); }
+  e.target.value='';
+});
+document.getElementById('filterSelect').addEventListener('change', e => { filterMode=e.target.value; currentPage=1; renderPage(); });
+document.getElementById('pageSizeSelect').addEventListener('change', e => { pageSize=parseInt(e.target.value); currentPage=1; renderPage(); });
+document.getElementById('userInput').addEventListener('change', e => { localStorage.setItem(USER_KEY, e.target.value); });
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const user = document.getElementById('userInput').value.trim()||'익명';
+  const payload = { version:1, user, exportedAt:new Date().toISOString(), results };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'brand-check_'+user+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('내보내기 완료!');
+});
+
+document.getElementById('importBtn').addEventListener('click', () => { document.getElementById('modal').classList.add('open'); });
+document.getElementById('importCancelBtn').addEventListener('click', () => { document.getElementById('modal').classList.remove('open'); });
+document.getElementById('importOkBtn').addEventListener('click', () => {
+  try {
+    const payload = JSON.parse(document.getElementById('importText').value.trim());
+    const imported = payload.results || payload;
+    let count = 0;
+    Object.entries(imported).forEach(([id,val]) => { results[id]=val; count++; });
+    saveResults();
+    document.getElementById('modal').classList.remove('open');
+    document.getElementById('importText').value='';
+    renderPage();
+    showToast(count.toLocaleString()+'건 병합 완료!');
+  } catch(e) { alert('JSON 형식 오류: '+e.message); }
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function init() {
+  loadResults();
+  const savedUser = localStorage.getItem(USER_KEY);
+  if (savedUser) document.getElementById('userInput').value = savedUser;
+  document.getElementById('grid').innerHTML = '<div style="padding:60px;text-align:center;color:#888;grid-column:1/-1;font-size:15px;">⏳ 데이터 로딩 중... (58,677건)</div>';
+  try {
+    const res = await fetch('brand-check-data.json');
+    allData = await res.json();
+    renderPage();
+  } catch(e) {
+    document.getElementById('grid').innerHTML = '<div style="padding:60px;text-align:center;color:#e03131;grid-column:1/-1;line-height:2;">⚠️ 데이터 파일을 불러올 수 없습니다.<br><small>brand-check-data.json 파일이 같은 폴더에 있어야 합니다.<br>로컬 파일의 경우 웹서버로 실행하거나 VS Code Live Server를 사용하세요.</small></div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
