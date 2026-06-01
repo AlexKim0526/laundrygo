@@ -81,7 +81,7 @@
 <body>
 
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.2</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.3</span></h1>
   <div id="stats">
     <div class="stat-card">
       <div class="label">📦 품목 인식률</div>
@@ -254,6 +254,25 @@ function renderPage() {
         '</div>' +
         userInfo +
       '</div>';
+    // Attach hover preview to image
+    const cardImg = card.querySelector('.card-img');
+    if (cardImg) {
+      cardImg.addEventListener('mouseenter', function(e) {
+        const src = this.getAttribute('src') || '';
+        if (!src || src.startsWith('data:')) return;
+        const pv = document.getElementById('hoverPreview');
+        const pvImg = document.getElementById('hoverPreviewImg');
+        pvImg.src = src;
+        pv.style.display = 'block';
+        movePreview(e);
+      });
+      cardImg.addEventListener('mousemove', movePreview);
+      cardImg.addEventListener('mouseleave', function() {
+        const pv = document.getElementById('hoverPreview');
+        pv.style.display = 'none';
+        document.getElementById('hoverPreviewImg').src = '';
+      });
+    }
     grid.appendChild(card);
   });
 
@@ -355,42 +374,17 @@ async function init() {
 init();
 
 
-// Hover preview
-const hoverPreview = document.getElementById('hoverPreview');
-const hoverPreviewImg = document.getElementById('hoverPreviewImg');
-let hoverTimer = null;
 
-document.getElementById('grid').addEventListener('mouseover', e => {
-  const img = e.target.closest('.card-img');
-  if (!img || !img.src || img.src.includes('data:image')) return;
-  hoverTimer = setTimeout(() => {
-    hoverPreviewImg.src = img.src;
-    hoverPreview.style.display = 'block';
-    positionPreview(e);
-  }, 120);
-});
-
-document.getElementById('grid').addEventListener('mousemove', e => {
-  if (hoverPreview.style.display === 'block') positionPreview(e);
-});
-
-document.getElementById('grid').addEventListener('mouseout', e => {
-  const img = e.target.closest('.card-img');
-  if (!img) return;
-  clearTimeout(hoverTimer);
-  hoverPreview.style.display = 'none';
-  hoverPreviewImg.src = '';
-});
-
-function positionPreview(e) {
-  const pw = 384, ph = 384;
-  let x = e.clientX + 16;
+function movePreview(e) {
+  const pv = document.getElementById('hoverPreview');
+  const pw = 400, ph = 400;
+  let x = e.clientX + 20;
   let y = e.clientY - ph / 2;
-  if (x + pw > window.innerWidth - 10) x = e.clientX - pw - 16;
-  if (y < 10) y = 10;
-  if (y + ph > window.innerHeight - 10) y = window.innerHeight - ph - 10;
-  hoverPreview.style.left = x + 'px';
-  hoverPreview.style.top = y + 'px';
+  if (x + pw > window.innerWidth - 8) x = e.clientX - pw - 20;
+  if (y < 8) y = 8;
+  if (y + ph > window.innerHeight - 8) y = window.innerHeight - ph - 8;
+  pv.style.left = x + 'px';
+  pv.style.top = y + 'px';
 }
 
 // Lightbox
