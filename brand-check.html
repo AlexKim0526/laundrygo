@@ -33,8 +33,7 @@
   .card.checked-ok { border-color: #40c057; }
   .card.checked-fail { border-color: #fa5252; }
   .card.checked-unknown { border-color: #7950f2; }
-  .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; display: block; cursor: zoom-in; transition: transform 0.2s, box-shadow 0.2s; }
-  .card-img:hover { transform: scale(1.04); box-shadow: 0 4px 20px rgba(0,0,0,0.18); position: relative; z-index: 2; }
+  .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; display: block; cursor: zoom-in; }
   .card-body { padding: 10px 12px; }
   .card-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
   .card-name { font-size: 13px; font-weight: 700; color: #222; }
@@ -61,6 +60,10 @@
   #importCancelBtn { background: #eee; color: #333; }
   .section-label { font-size: 11px; color: #666; margin-bottom: 5px; padding-top: 4px; }
 
+
+  /* Hover preview */
+  #hoverPreview { display: none; position: fixed; z-index: 400; pointer-events: none; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); }
+  #hoverPreview img { width: 380px; height: 380px; object-fit: contain; background: #111; display: block; }
   /* Lightbox */
   #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; align-items: center; justify-content: center; flex-direction: column; }
   #lightbox.open { display: flex; }
@@ -351,6 +354,45 @@ async function init() {
 
 init();
 
+
+// Hover preview
+const hoverPreview = document.getElementById('hoverPreview');
+const hoverPreviewImg = document.getElementById('hoverPreviewImg');
+let hoverTimer = null;
+
+document.getElementById('grid').addEventListener('mouseover', e => {
+  const img = e.target.closest('.card-img');
+  if (!img || !img.src || img.src.includes('data:image')) return;
+  hoverTimer = setTimeout(() => {
+    hoverPreviewImg.src = img.src;
+    hoverPreview.style.display = 'block';
+    positionPreview(e);
+  }, 120);
+});
+
+document.getElementById('grid').addEventListener('mousemove', e => {
+  if (hoverPreview.style.display === 'block') positionPreview(e);
+});
+
+document.getElementById('grid').addEventListener('mouseout', e => {
+  const img = e.target.closest('.card-img');
+  if (!img) return;
+  clearTimeout(hoverTimer);
+  hoverPreview.style.display = 'none';
+  hoverPreviewImg.src = '';
+});
+
+function positionPreview(e) {
+  const pw = 384, ph = 384;
+  let x = e.clientX + 16;
+  let y = e.clientY - ph / 2;
+  if (x + pw > window.innerWidth - 10) x = e.clientX - pw - 16;
+  if (y < 10) y = 10;
+  if (y + ph > window.innerHeight - 10) y = window.innerHeight - ph - 10;
+  hoverPreview.style.left = x + 'px';
+  hoverPreview.style.top = y + 'px';
+}
+
 // Lightbox
 let lbCurrentIdx = 0;
 let lbPageIds = [];
@@ -411,6 +453,7 @@ document.getElementById('grid').addEventListener('click', e => {
 
 </script>
 
+<div id="hoverPreview"><img id="hoverPreviewImg" src="" /></div>
 <div id="lightbox">
   <button id="lightboxClose">✕</button>
   <img id="lightboxImg" src="" alt="" />
