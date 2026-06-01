@@ -33,7 +33,8 @@
   .card.checked-ok { border-color: #40c057; }
   .card.checked-fail { border-color: #fa5252; }
   .card.checked-unknown { border-color: #7950f2; }
-  .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; display: block; }
+  .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; display: block; cursor: zoom-in; transition: transform 0.2s, box-shadow 0.2s; }
+  .card-img:hover { transform: scale(1.04); box-shadow: 0 4px 20px rgba(0,0,0,0.18); position: relative; z-index: 2; }
   .card-body { padding: 10px 12px; }
   .card-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
   .card-name { font-size: 13px; font-weight: 700; color: #222; }
@@ -59,6 +60,19 @@
   #importOkBtn { background: #3b5bdb; color: #fff; }
   #importCancelBtn { background: #eee; color: #333; }
   .section-label { font-size: 11px; color: #666; margin-bottom: 5px; padding-top: 4px; }
+
+  /* Lightbox */
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; align-items: center; justify-content: center; flex-direction: column; }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+  #lightboxMeta { color: #fff; margin-top: 14px; font-size: 14px; text-align: center; line-height: 1.8; }
+  #lightboxMeta .lb-name { font-weight: 700; font-size: 16px; }
+  #lightboxMeta .lb-brand { color: #ffd43b; }
+  #lightboxClose { position: absolute; top: 18px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; background: none; border: none; line-height: 1; opacity: 0.8; }
+  #lightboxClose:hover { opacity: 1; }
+  #lightboxNav { display: flex; gap: 12px; margin-top: 12px; }
+  #lightboxNav button { background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 8px; padding: 7px 18px; font-size: 13px; cursor: pointer; }
+  #lightboxNav button:hover { background: rgba(255,255,255,0.28); }
 </style>
 </head>
 <body>
@@ -336,6 +350,80 @@ async function init() {
 }
 
 init();
+
+// Lightbox
+let lbCurrentIdx = 0;
+let lbPageIds = [];
+
+function openLightbox(id) {
+  const row = allData[id];
+  document.getElementById('lightboxImg').src = row.img_url || '';
+  document.getElementById('lbName').textContent = '📦 ' + (row.name || '-');
+  document.getElementById('lbBrand').textContent = '🏷️ ' + (row.brand || '-');
+  document.getElementById('lbId').textContent = '#' + (id + 1);
+  lbCurrentIdx = lbPageIds.indexOf(id);
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e => { if (e.target === document.getElementById('lightbox')) closeLightbox(); });
+
+document.getElementById('lbPrev').addEventListener('click', e => {
+  e.stopPropagation();
+  if (lbCurrentIdx > 0) { lbCurrentIdx--; openLightboxByIdx(lbCurrentIdx); }
+});
+document.getElementById('lbNext').addEventListener('click', e => {
+  e.stopPropagation();
+  if (lbCurrentIdx < lbPageIds.length - 1) { lbCurrentIdx++; openLightboxByIdx(lbCurrentIdx); }
+});
+
+function openLightboxByIdx(idx) {
+  const id = lbPageIds[idx];
+  const row = allData[id];
+  document.getElementById('lightboxImg').src = row.img_url || '';
+  document.getElementById('lbName').textContent = '📦 ' + (row.name || '-');
+  document.getElementById('lbBrand').textContent = '🏷️ ' + (row.brand || '-');
+  document.getElementById('lbId').textContent = '#' + (id + 1);
+  lbCurrentIdx = idx;
+}
+
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight' && lbCurrentIdx < lbPageIds.length-1) { lbCurrentIdx++; openLightboxByIdx(lbCurrentIdx); }
+  if (e.key === 'ArrowLeft' && lbCurrentIdx > 0) { lbCurrentIdx--; openLightboxByIdx(lbCurrentIdx); }
+});
+
+document.getElementById('grid').addEventListener('click', e => {
+  const img = e.target.closest('.card-img');
+  if (img) {
+    const card = img.closest('.card');
+    const btn = card.querySelector('.check-btn');
+    const id = parseInt(btn.dataset.id);
+    lbPageIds = [...document.querySelectorAll('.card .check-btn')].map(b => parseInt(b.dataset.id)).filter((v,i,a) => a.indexOf(v)===i);
+    openLightbox(id);
+    return;
+  }
+});
+
 </script>
+
+<div id="lightbox">
+  <button id="lightboxClose">✕</button>
+  <img id="lightboxImg" src="" alt="" />
+  <div id="lightboxMeta">
+    <div class="lb-name" id="lbName"></div>
+    <div class="lb-brand" id="lbBrand"></div>
+    <div style="color:#aaa;font-size:12px;" id="lbId"></div>
+  </div>
+  <div id="lightboxNav">
+    <button id="lbPrev">◀ 이전</button>
+    <button id="lbNext">다음 ▶</button>
+  </div>
+</div>
+
 </body>
 </html>
