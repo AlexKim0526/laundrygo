@@ -160,7 +160,7 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
 
 <!-- Header -->
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.3</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.4</span></h1>
   <div id="stats">
     <div class="stat-card brand">
       <div class="label">🏷️ 브랜드 인식률</div>
@@ -529,7 +529,10 @@ async function analyzeBrand(imgUrl, row) {
     const conf = res.confidence === 'high' ? '🟢 높음' : res.confidence === 'medium' ? '🟡 보통' : '🔴 낮음';
     let html = '';
     if (res.brand_visible && res.identified_brand) {
-      html += '<div class="ba-brand">🏷️ ' + esc(res.identified_brand) + '</div>';
+      const matchLabel = res.match === true
+        ? '<span style="color:#40c057;font-size:12px;margin-left:8px;">✅ 기록 브랜드와 일치</span>'
+        : '<span style="color:#fa5252;font-size:12px;margin-left:8px;">❌ 기록 브랜드와 불일치</span>';
+      html += '<div class="ba-brand">🏷️ ' + esc(res.identified_brand) + matchLabel + '</div>';
       html += '<div style="color:#ccc;font-size:13px;">신뢰도: ' + conf + '</div>';
     } else {
       html += '<div style="color:#888;">🚫 브랜드 로고/텍스트 식별 불가</div>';
@@ -700,7 +703,15 @@ async function analyzeForBatch(row) {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'url', url: row.img_url } },
-          { type: 'text', text: '이 세탁물 이미지에서 브랜드 로고나 텍스트가 보이는지 확인하세요.\n반드시 아래 JSON만 응답하세요:\n{"brand_visible":true/false,"identified_brand":"브랜드명 또는 null"}' }
+          { type: 'text', text: `이 세탁물 이미지를 분석하세요. 기록된 브랜드명: "${row.brand}"
+
+이미지에서 브랜드 로고나 텍스트를 찾아 아래 기준으로 판단하세요:
+- brand_visible: 브랜드 로고/텍스트가 이미지에 보이면 true
+- match: 보이는 브랜드가 기록된 브랜드와 같은 브랜드면 true (한글/영문 표기 차이 무관. 예: 아디다스=ADIDAS=Adidas)
+- identified_brand: 이미지에서 인식한 브랜드명 (없으면 null)
+
+반드시 JSON만 응답:
+{"brand_visible":true/false,"match":true/false,"identified_brand":"브랜드명 또는 null"}` }
         ]
       }]
     })
@@ -782,12 +793,12 @@ async function runBatch() {
           // 확인불가 (로고/텍스트 없음)
           results[id].brandUnknown = true;
           results[id].brandOk      = null;
-        } else if (brandMatch(res.identified_brand, row.brand)) {
-          // 정상 (한글↔영문 포함 일치)
+        } else if (res.match === true || brandMatch(res.identified_brand, row.brand)) {
+          // 정상 (Claude 판단 또는 로컬 사전 일치)
           results[id].brandOk      = true;
           results[id].brandUnknown = false;
         } else {
-          // 오인식 (다른 브랜드 인식)
+          // 오인식
           results[id].brandOk      = false;
           results[id].brandUnknown = false;
           results[id].aiDetected   = res.identified_brand;
