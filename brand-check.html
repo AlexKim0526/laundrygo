@@ -107,6 +107,23 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
 .modal-btns button { flex: 1; padding: 8px; }
 #importOkBtn { background: #3b5bdb; color: #fff; }
 #importCancelBtn { background: #eee; color: #333; }
+
+  /* Batch processing */
+  #batchBar { background: #0f172a; color: #e2e8f0; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #1e293b; }
+  #batchBar label { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+  #batchCount { width: 80px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; color: #fff; font-size: 12px; text-align: center; }
+  #batchConcurrency { width: 60px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; color: #fff; font-size: 12px; text-align: center; }
+  #batchStartBtn { background: #6366f1; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  #batchStartBtn:hover { background: #4f46e5; }
+  #batchStartBtn:disabled { background: #334155; color: #64748b; cursor: default; }
+  #batchPauseBtn { background: #f59e0b; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; display: none; }
+  #batchStopBtn  { background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: none; }
+  #batchProgress { flex: 1; min-width: 200px; }
+  #batchProgressBar { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+  #batchProgressFill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 3px; width: 0%; transition: width 0.3s; }
+  #batchStatusText { font-size: 11px; color: #94a3b8; }
+  #batchErrCount { font-size: 11px; color: #f87171; margin-left: 8px; }
+  #batchStrategySelect { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 8px; color: #fff; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -120,9 +137,30 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
   <span style="margin-left:auto;color:#555;font-size:11px;">이미지 클릭 시 Claude Vision으로 브랜드 분석</span>
 </div>
 
+<div id="batchBar">
+  <span style="font-size:13px;font-weight:600;color:#a5b4fc;">🤖 자동 체크</span>
+  <label>처리 건수:</label>
+  <input id="batchCount" type="number" value="5000" min="1" max="58677" />
+  <label>동시 요청:</label>
+  <input id="batchConcurrency" type="number" value="3" min="1" max="10" />
+  <label>시작 위치:</label>
+  <select id="batchStrategySelect">
+    <option value="unchecked">미체크 항목부터</option>
+    <option value="first">처음부터</option>
+  </select>
+  <button id="batchStartBtn">▶ 자동 체크 시작</button>
+  <button id="batchPauseBtn">⏸ 일시정지</button>
+  <button id="batchStopBtn">⏹ 중지</button>
+  <div id="batchProgress">
+    <div id="batchProgressBar"><div id="batchProgressFill"></div></div>
+    <span id="batchStatusText">대기 중</span>
+    <span id="batchErrCount"></span>
+  </div>
+</div>
+
 <!-- Header -->
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.0</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.1</span></h1>
   <div id="stats">
     <div class="stat-card">
       <div class="label">📦 품목 인식률</div>
@@ -598,11 +636,186 @@ document.getElementById('apiKeySave').addEventListener('click', () => {
 });
 
 // ── Toast ─────────────────────────────────────────────────
-function showToast(msg) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), duration || 2500);
 }
+
+
+// ── Batch Auto Check ─────────────────────────────────────
+let batchRunning = false;
+let batchPaused  = false;
+let batchStop    = false;
+let batchErrors  = 0;
+
+function brandMatch(identified, defined) {
+  if (!identified || !defined) return false;
+  const a = identified.toLowerCase().replace(/[\s\-_\.]/g, '');
+  const b = defined.toLowerCase().replace(/[\s\-_\.]/g, '');
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+async function analyzeForBatch(row) {
+  const apiKey = localStorage.getItem(API_KEY_STORAGE);
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'url', url: row.img_url } },
+          { type: 'text', text: '이 세탁물 이미지에서 브랜드 로고나 텍스트가 보이는지 확인하세요.\n반드시 아래 JSON만 응답하세요:\n{"brand_visible":true/false,"identified_brand":"브랜드명 또는 null"}' }
+        ]
+      }]
+    })
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const data = await resp.json();
+  const text = data.content[0].text.trim();
+  const match = text.match(/\{[\s\S]*?\}/);
+  if (!match) throw new Error('parse error');
+  return JSON.parse(match[0]);
+}
+
+async function runBatch() {
+  const apiKey = localStorage.getItem(API_KEY_STORAGE);
+  if (!apiKey) { alert('상단에 Anthropic API 키를 먼저 입력해주세요.'); return; }
+
+  const count       = parseInt(document.getElementById('batchCount').value) || 5000;
+  const concurrency = Math.min(parseInt(document.getElementById('batchConcurrency').value) || 3, 10);
+  const strategy    = document.getElementById('batchStrategySelect').value;
+  const userName    = document.getElementById('userInput').value.trim() || 'AI자동체크';
+
+  // Build target list
+  let targets = allData.filter(row => row.img_url);
+  if (strategy === 'unchecked') {
+    targets = targets.filter(row => !results[row.id] ||
+      (results[row.id].nameOk === null && results[row.id].brandOk === null &&
+       !results[row.id].nameUnknown && !results[row.id].brandUnknown));
+  }
+  targets = targets.slice(0, count);
+
+  if (targets.length === 0) { showToast('처리할 항목이 없습니다.'); return; }
+
+  batchRunning = true;
+  batchPaused  = false;
+  batchStop    = false;
+  batchErrors  = 0;
+
+  document.getElementById('batchStartBtn').disabled = true;
+  document.getElementById('batchPauseBtn').style.display = 'inline-block';
+  document.getElementById('batchStopBtn').style.display  = 'inline-block';
+
+  let done = 0;
+  const total = targets.length;
+
+  function updateBatchUI() {
+    const pct = (done / total * 100).toFixed(1);
+    document.getElementById('batchProgressFill').style.width = pct + '%';
+    document.getElementById('batchStatusText').textContent =
+      (batchPaused ? '⏸ 일시정지 ' : '처리 중 ') + done + ' / ' + total + '건 (' + pct + '%)';
+    document.getElementById('batchErrCount').textContent =
+      batchErrors > 0 ? '오류: ' + batchErrors + '건' : '';
+    updateStats();
+    // Re-render current page to reflect new checks
+    renderPage();
+  }
+
+  // Process with concurrency pool
+  let idx = 0;
+  async function worker() {
+    while (idx < targets.length && !batchStop) {
+      // Wait if paused
+      while (batchPaused && !batchStop) {
+        await new Promise(r => setTimeout(r, 300));
+      }
+      if (batchStop) break;
+
+      const row = targets[idx++];
+      if (!row.img_url) { done++; updateBatchUI(); continue; }
+
+      try {
+        const res = await analyzeForBatch(row);
+
+        const id = row.id;
+        if (!results[id]) results[id] = { nameOk: null, brandOk: null, nameUnknown: false, brandUnknown: false, user: userName, ts: Date.now() };
+        results[id].user = userName;
+        results[id].ts   = Date.now();
+
+        if (!res.brand_visible || !res.identified_brand) {
+          // 확인불가
+          results[id].nameUnknown  = true;
+          results[id].brandUnknown = true;
+          results[id].nameOk       = null;
+          results[id].brandOk      = null;
+        } else if (brandMatch(res.identified_brand, row.brand)) {
+          // 정상
+          results[id].nameOk       = true;
+          results[id].brandOk      = true;
+          results[id].nameUnknown  = false;
+          results[id].brandUnknown = false;
+        } else {
+          // 오인식
+          results[id].nameOk       = true;  // 품목은 판단하기 어려우니 브랜드만 오인식 처리
+          results[id].brandOk      = false;
+          results[id].nameUnknown  = false;
+          results[id].brandUnknown = false;
+          results[id].aiDetected   = res.identified_brand; // 참고용 저장
+        }
+
+      } catch(e) {
+        batchErrors++;
+        // 잠시 대기 후 계속 (rate limit 등)
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      done++;
+      if (done % 5 === 0) saveResults(); // 5건마다 저장
+      updateBatchUI();
+    }
+  }
+
+  // Launch workers
+  const workers = Array.from({ length: concurrency }, () => worker());
+  await Promise.all(workers);
+
+  saveResults();
+  batchRunning = false;
+  document.getElementById('batchStartBtn').disabled = false;
+  document.getElementById('batchPauseBtn').style.display = 'none';
+  document.getElementById('batchStopBtn').style.display  = 'none';
+
+  if (batchStop) {
+    document.getElementById('batchStatusText').textContent = '⏹ 중지됨 (' + done + '/' + total + '건 처리)';
+    showToast('자동 체크가 중지되었습니다. (' + done + '건 처리)');
+  } else {
+    document.getElementById('batchStatusText').textContent = '✅ 완료! ' + total + '건 처리 (오류: ' + batchErrors + '건)';
+    document.getElementById('batchProgressFill').style.width = '100%';
+    showToast('🎉 자동 체크 완료! ' + total.toLocaleString() + '건 처리되었습니다.', 6000);
+  }
+  renderPage();
+  updateStats();
+}
+
+document.getElementById('batchStartBtn').addEventListener('click', runBatch);
+document.getElementById('batchPauseBtn').addEventListener('click', () => {
+  batchPaused = !batchPaused;
+  document.getElementById('batchPauseBtn').textContent = batchPaused ? '▶ 재개' : '⏸ 일시정지';
+});
+document.getElementById('batchStopBtn').addEventListener('click', () => {
+  batchStop = true;
+  batchPaused = false;
+});
+
 
 // ── Init ──────────────────────────────────────────────────
 async function init() {
