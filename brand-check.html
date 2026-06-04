@@ -105,7 +105,7 @@
   <span style="margin-left:auto;color:#666;font-size:11px;">이미지 클릭 시 브랜드 AI 분석 (Claude Vision)</span>
 </div>
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.5</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.6</span></h1>
   <div id="stats">
     <div class="stat-card">
       <div class="label">📦 품목 인식률</div>
@@ -288,6 +288,10 @@ function renderPage() {
     // Attach hover preview to image
     const cardImg = card.querySelector('.card-img');
     if (cardImg) {
+      cardImg.addEventListener('click', function() {
+        lbPageIds = pageIds.slice();
+        openLightbox(id);
+      });
       cardImg.addEventListener('mouseenter', function(e) {
         const src = this.getAttribute('src') || '';
         if (!src || src.startsWith('data:')) return;
@@ -612,17 +616,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' && lbCurrentIdx > 0) { lbCurrentIdx--; openLightboxByIdx(lbCurrentIdx); }
 });
 
-document.getElementById('grid').addEventListener('click', e => {
-  const img = e.target.closest('.card-img');
-  if (img) {
-    const card = img.closest('.card');
-    const btn = card.querySelector('.check-btn');
-    const id = parseInt(btn.dataset.id);
-    lbPageIds = [...document.querySelectorAll('.card .check-btn')].map(b => parseInt(b.dataset.id)).filter((v,i,a) => a.indexOf(v)===i);
-    openLightbox(id);
-    return;
-  }
-});
+
 
 </script>
 
@@ -638,6 +632,12 @@ document.getElementById('grid').addEventListener('click', e => {
   <div id="lightboxNav">
     <button id="lbPrev">◀ 이전</button>
     <button id="lbNext">다음 ▶</button>
+  </div>
+  <canvas id="logoZoom"></canvas>
+  <div id="logoZoomLabel"></div>
+  <div id="brandAnalysis" style="display:none;">
+    <div class="ba-title">🤖 Claude Vision 브랜드 분석</div>
+    <div class="ba-result" id="baResult"></div>
   </div>
 </div>
 
