@@ -160,22 +160,22 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
 
 <!-- Header -->
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.1</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.2</span></h1>
   <div id="stats">
-    <div class="stat-card">
-      <div class="label">📦 품목 인식률</div>
-      <div class="value" id="nameRate">-</div>
-      <div class="sub" id="nameSub">체크 필요</div>
-    </div>
     <div class="stat-card brand">
       <div class="label">🏷️ 브랜드 인식률</div>
       <div class="value" id="brandRate">-</div>
       <div class="sub" id="brandSub">체크 필요</div>
     </div>
+    <div class="stat-card" style="background:#fff0f0;">
+      <div class="label">❌ 오인식</div>
+      <div class="value" style="color:#e03131;" id="failCount">-</div>
+      <div class="sub" id="failSub">건</div>
+    </div>
     <div class="stat-card unknown">
-      <div class="label">🚫 이미지 확인불가</div>
+      <div class="label">🚫 확인불가</div>
       <div class="value" id="unknownCount">-</div>
-      <div class="sub" id="unknownSub">품목 / 브랜드</div>
+      <div class="sub" id="unknownSub">건</div>
     </div>
     <div class="stat-card" style="background:#e8f5e9;">
       <div class="label">✅ 전체 진행</div>
@@ -273,19 +273,17 @@ function saveResults() { localStorage.setItem(STORAGE_KEY, JSON.stringify(result
 // ── Stats ─────────────────────────────────────────────────
 function updateStats() {
   const vals = Object.values(results);
-  const nameChecked = vals.filter(r => r.nameOk !== null && !r.nameUnknown).length;
-  const nameOk      = vals.filter(r => r.nameOk === true && !r.nameUnknown).length;
-  const brandChecked= vals.filter(r => r.brandOk !== null && !r.brandUnknown).length;
-  const brandOk     = vals.filter(r => r.brandOk === true && !r.brandUnknown).length;
-  const nameUnk     = vals.filter(r => r.nameUnknown).length;
-  const brandUnk    = vals.filter(r => r.brandUnknown).length;
+  const brandChecked = vals.filter(r => r.brandOk !== null && !r.brandUnknown).length;
+  const brandOk      = vals.filter(r => r.brandOk === true && !r.brandUnknown).length;
+  const brandFail    = vals.filter(r => r.brandOk === false && !r.brandUnknown).length;
+  const brandUnk     = vals.filter(r => r.brandUnknown).length;
 
-  document.getElementById('nameRate').textContent  = nameChecked  ? (nameOk/nameChecked*100).toFixed(1)+'%'  : '-';
-  document.getElementById('nameSub').textContent   = '정상 '+nameOk+' / 체크 '+nameChecked+'건';
   document.getElementById('brandRate').textContent = brandChecked ? (brandOk/brandChecked*100).toFixed(1)+'%' : '-';
   document.getElementById('brandSub').textContent  = '정상 '+brandOk+' / 체크 '+brandChecked+'건';
-  document.getElementById('unknownCount').textContent = (nameUnk+brandUnk).toLocaleString();
-  document.getElementById('unknownSub').textContent   = '품목불가 '+nameUnk+' / 브랜드불가 '+brandUnk;
+  document.getElementById('failCount').textContent = brandFail.toLocaleString();
+  document.getElementById('failSub').textContent   = '/ 체크 '+brandChecked+'건';
+  document.getElementById('unknownCount').textContent = brandUnk.toLocaleString();
+  document.getElementById('unknownSub').textContent   = '/ 전체 '+vals.length.toLocaleString()+'건';
   document.getElementById('totalChecked').textContent = vals.length.toLocaleString();
   document.getElementById('totalSub').textContent     = '/ '+(allData.length||0).toLocaleString()+'건';
 }
@@ -295,10 +293,9 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 function cardClass(r) {
   if (!r) return 'card';
-  const done = (r.nameOk !== null || r.nameUnknown) && (r.brandOk !== null || r.brandUnknown);
-  if (!done) return 'card';
-  if (r.nameUnknown || r.brandUnknown) return 'card checked-unknown';
-  if (r.nameOk && r.brandOk) return 'card checked-ok';
+  if (r.brandOk === null && !r.brandUnknown) return 'card';
+  if (r.brandUnknown) return 'card checked-unknown';
+  if (r.brandOk === true)  return 'card checked-ok';
   return 'card checked-fail';
 }
 
@@ -385,12 +382,6 @@ function renderPage() {
     body.innerHTML =
       '<div class="card-id">#'+(id+1)+'</div>'+
       '<div class="card-meta"><div class="card-name">'+esc(row.name)+'</div><div class="card-brand">'+esc(row.brand)+'</div></div>'+
-      '<div class="section-label">📦 품목 인식</div>'+
-      '<div class="check-row">'+
-        '<button class="'+btnCls('name','ok',r)+'" data-id="'+id+'" data-type="name" data-val="ok">✅ 정상</button>'+
-        '<button class="'+btnCls('name','fail',r)+'" data-id="'+id+'" data-type="name" data-val="fail">❌ 오인식</button>'+
-        '<button class="'+btnCls('name','unknown',r)+'" data-id="'+id+'" data-type="name" data-val="unknown">🚫 확인불가</button>'+
-      '</div>'+
       '<div class="section-label">🏷️ 브랜드 인식</div>'+
       '<div class="check-row">'+
         '<button class="'+btnCls('brand','ok',r)+'" data-id="'+id+'" data-type="brand" data-val="ok">✅ 정상</button>'+
@@ -432,11 +423,7 @@ document.getElementById('grid').addEventListener('click', function(e) {
   results[id].user = user;
   results[id].ts   = Date.now();
 
-  if (type === 'name') {
-    if      (val === 'ok')      { results[id].nameOk = true;  results[id].nameUnknown = false; }
-    else if (val === 'fail')    { results[id].nameOk = false; results[id].nameUnknown = false; }
-    else                        { results[id].nameUnknown = true; results[id].nameOk = null; }
-  } else {
+  if (type === 'brand') {
     if      (val === 'ok')      { results[id].brandOk = true;  results[id].brandUnknown = false; }
     else if (val === 'fail')    { results[id].brandOk = false; results[id].brandUnknown = false; }
     else                        { results[id].brandUnknown = true; results[id].brandOk = null; }
@@ -649,11 +636,51 @@ let batchPaused  = false;
 let batchStop    = false;
 let batchErrors  = 0;
 
+// 한글↔영문 브랜드명 동의어 사전
+const BRAND_SYNONYMS = [
+  ['나이키','nike'],['아디다스','adidas'],['구찌','gucci'],['프라다','prada'],
+  ['루이비통','louisvuitton','lv'],['샤넬','chanel'],['에르메스','hermes'],
+  ['버버리','burberry'],['발렌시아가','balenciaga'],['지방시','givenchy'],
+  ['몽클레르','moncler'],['톰포드','tomford'],['보테가베네타','bottegaveneta'],
+  ['생로랑','saintlaurent','ysl'],['펜디','fendi'],['셀린느','celine'],
+  ['발렌티노','valentino'],['아크네','acnestudios'],['메종마르지엘라','maisonmargiela','mm6'],
+  ['막스마라','maxmara'],['미우미우','miumiu'],['끌로에','chloe'],
+  ['알렉산더맥퀸','alexandermcqueen'],['알렉산더왕','alexanderwang'],
+  ['드리스반노튼','driesvanoten'],['이자벨마랑','isabelmarant'],
+  ['아페쎄','apc'],['꼼데가르송','commedesgarcons','cdg'],['마르니','marni'],
+  ['토즈','tod's','tods'],['살바토레페라가모','ferragamo','salvatoreferragamo'],
+  ['조르지오아르마니','armani','giorgioarmani'],['엠포리오아르마니','emporioarmani'],
+  ['랄프로렌','ralphlauren','polo'],['타미힐피거','tommyhilfiger'],['캘빈클라인','calvinklein','ck'],
+  ['휴고보스','hugoboss','boss'],['라코스테','lacoste'],['폴로','polo'],
+  ['뉴발란스','newbalance'],['아식스','asics'],['리복','reebok'],['푸마','puma'],
+  ['언더아머','underarmour'],['컨버스','converse'],['반스','vans'],
+  ['노스페이스','northface','thenorthface'],['콜롬비아','columbia'],['파타고니아','patagonia'],
+  ['디스커버리','discovery'],['빈폴','beanpole'],['헤지스','hazzys'],['빈폴아웃도어','beanpoleoutdoor'],
+  ['코오롱','kolon'],['케이투','k2'],['블랙야크','blackyak'],['밀레','millet'],
+  ['아이더','eider'],['네파','nepa'],['라푸마','lafuma'],['마무트','mammut'],
+  ['아크테릭스','arcteryx'],['피엘라벤','fjallraven'],['살로몬','salomon'],
+  ['롱샴','longchamp'],['코치','coach'],['케이트스페이드','katespade'],
+  ['마이클코어스','michaelkors'],['토리버치','toryburch'],['폴스미스','paulsmith'],
+  ['띠어리','theory'],['씨에프씨엘','cfcl'],['이세이미야케','isseymiyake'],
+  ['준지','juunj'],['우영미','wooyoungmi'],['99%is','99percentis'],
+];
+
+function normBrand(s) {
+  return (s||'').toLowerCase().replace(/[\s\-_\.'·]/g,'').replace(/[^\w가-힣]/g,'');
+}
+
 function brandMatch(identified, defined) {
   if (!identified || !defined) return false;
-  const a = identified.toLowerCase().replace(/[\s\-_\.]/g, '');
-  const b = defined.toLowerCase().replace(/[\s\-_\.]/g, '');
-  return a === b || a.includes(b) || b.includes(a);
+  const a = normBrand(identified);
+  const b = normBrand(defined);
+  if (!a || !b) return false;
+  if (a === b || a.includes(b) || b.includes(a)) return true;
+  // 동의어 사전 검색
+  for (const group of BRAND_SYNONYMS) {
+    const normGroup = group.map(normBrand);
+    if (normGroup.includes(a) && normGroup.includes(b)) return true;
+  }
+  return false;
 }
 
 async function analyzeForBatch(row) {
@@ -752,24 +779,18 @@ async function runBatch() {
         results[id].ts   = Date.now();
 
         if (!res.brand_visible || !res.identified_brand) {
-          // 확인불가
-          results[id].nameUnknown  = true;
+          // 확인불가 (로고/텍스트 없음)
           results[id].brandUnknown = true;
-          results[id].nameOk       = null;
           results[id].brandOk      = null;
         } else if (brandMatch(res.identified_brand, row.brand)) {
-          // 정상
-          results[id].nameOk       = true;
+          // 정상 (한글↔영문 포함 일치)
           results[id].brandOk      = true;
-          results[id].nameUnknown  = false;
           results[id].brandUnknown = false;
         } else {
-          // 오인식
-          results[id].nameOk       = true;  // 품목은 판단하기 어려우니 브랜드만 오인식 처리
+          // 오인식 (다른 브랜드 인식)
           results[id].brandOk      = false;
-          results[id].nameUnknown  = false;
           results[id].brandUnknown = false;
-          results[id].aiDetected   = res.identified_brand; // 참고용 저장
+          results[id].aiDetected   = res.identified_brand;
         }
 
       } catch(e) {
