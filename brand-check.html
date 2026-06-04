@@ -76,12 +76,36 @@
   #lightboxNav { display: flex; gap: 12px; margin-top: 12px; }
   #lightboxNav button { background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 8px; padding: 7px 18px; font-size: 13px; cursor: pointer; }
   #lightboxNav button:hover { background: rgba(255,255,255,0.28); }
+
+  /* API Key bar */
+  #apiBar { background: #1a1a2e; color: #eee; padding: 8px 20px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  #apiBar label { color: #aaa; white-space: nowrap; }
+  #apiKeyInput { flex: 1; max-width: 380px; background: #2a2a3e; border: 1px solid #444; border-radius: 6px; padding: 4px 10px; color: #fff; font-size: 12px; font-family: monospace; }
+  #apiKeySave { background: #3b5bdb; color: #fff; border: none; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  #apiStatus { font-size: 11px; color: #888; }
+  /* Brand analysis overlay in lightbox */
+  #brandAnalysis { margin-top: 14px; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 18px; max-width: 500px; text-align: left; }
+  #brandAnalysis .ba-title { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+  #brandAnalysis .ba-result { font-size: 15px; color: #fff; line-height: 1.7; }
+  #brandAnalysis .ba-brand { font-size: 18px; font-weight: 700; color: #ffd43b; }
+  #brandAnalysis .ba-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Logo zoom canvas */
+  #logoZoom { display: none; margin: 10px auto 0; border-radius: 8px; border: 2px solid #ffd43b; box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 90vw; }
+  #logoZoomLabel { font-size: 11px; color: #ffd43b; margin-top: 6px; text-align: center; }
 </style>
 </head>
 <body>
 
+<div id="apiBar">
+  <label>🔑 Anthropic API Key:</label>
+  <input id="apiKeyInput" type="password" placeholder="sk-ant-..." />
+  <button id="apiKeySave">저장</button>
+  <span id="apiStatus"></span>
+  <span style="margin-left:auto;color:#666;font-size:11px;">이미지 클릭 시 브랜드 AI 분석 (Claude Vision)</span>
+</div>
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.4</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v1.5</span></h1>
   <div id="stats">
     <div class="stat-card">
       <div class="label">📦 품목 인식률</div>
@@ -140,7 +164,14 @@
       <button id="importOkBtn">병합하기</button>
       <button id="importCancelBtn">취소</button>
     </div>
+  
+  <canvas id="logoZoom"></canvas>
+  <div id="logoZoomLabel"></div>
+  <div id="brandAnalysis" style="display:none;">
+    <div class="ba-title">🤖 Claude Vision 브랜드 분석</div>
+    <div class="ba-result" id="baResult"></div>
   </div>
+
 </div>
 
 <script>
@@ -357,6 +388,144 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+
+// API Key management
+const API_KEY_STORAGE = 'anthropic_api_key';
+(function initApiKey() {
+  const saved = localStorage.getItem(API_KEY_STORAGE);
+  if (saved) {
+    document.getElementById('apiKeyInput').value = saved;
+    document.getElementById('apiStatus').textContent = '✅ 저장됨';
+  }
+})();
+document.getElementById('apiKeySave').addEventListener('click', () => {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  localStorage.setItem(API_KEY_STORAGE, key);
+  document.getElementById('apiStatus').textContent = '✅ 저장됨';
+});
+
+// Brand analysis via Claude Vision
+async function analyzeBrand(imgUrl, row) {
+  const apiKey = localStorage.getItem(API_KEY_STORAGE);
+  const baDiv = document.getElementById('brandAnalysis');
+  const baResult = document.getElementById('baResult');
+  const logoCanvas = document.getElementById('logoZoom');
+  const logoLabel = document.getElementById('logoZoomLabel');
+
+  baDiv.style.display = 'block';
+  logoCanvas.style.display = 'none';
+  logoLabel.textContent = '';
+  baResult.innerHTML = '<span class="ba-spinner"></span> 분석 중...';
+
+  if (!apiKey) {
+    baResult.innerHTML = '⚠️ API 키를 먼저 입력해주세요.';
+    return;
+  }
+
+  const prompt = `이 세탁물 이미지를 분석해주세요.
+
+다음 정보가 기록되어 있습니다:
+- 품목: ${row.name}
+- 브랜드(기록값): ${row.brand}
+
+분석 요청:
+1. 이미지에서 브랜드 로고, 라벨, 텍스트가 보이는지 확인
+2. 보인다면 어떤 브랜드인지 식별
+3. 로고/텍스트가 있는 위치를 이미지 전체 대비 상대 좌표로 알려주세요 (x, y, width, height를 0~1 사이 값으로)
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "brand_visible": true/false,
+  "identified_brand": "브랜드명 또는 null",
+  "confidence": "high/medium/low",
+  "logo_region": {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0},
+  "description": "한 문장 설명"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'url', url: imgUrl } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      baResult.innerHTML = '❌ API 오류: ' + (err.error?.message || resp.status);
+      return;
+    }
+
+    const data = await resp.json();
+    const text = data.content[0].text.trim();
+
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) { baResult.innerHTML = '⚠️ 응답 파싱 실패: ' + text; return; }
+    const result = JSON.parse(jsonMatch[0]);
+
+    // Render result
+    const confEmoji = result.confidence === 'high' ? '🟢' : result.confidence === 'medium' ? '🟡' : '🔴';
+    let html = '';
+    if (result.brand_visible && result.identified_brand) {
+      html += `<div class="ba-brand">🏷️ ${result.identified_brand}</div>`;
+      html += `<div>${confEmoji} 신뢰도: ${result.confidence}</div>`;
+    } else {
+      html += `<div style="color:#aaa;">🚫 브랜드 식별 불가</div>`;
+    }
+    html += `<div style="font-size:13px;color:#ccc;margin-top:6px;">${result.description || ''}</div>`;
+    baResult.innerHTML = html;
+
+    // Draw zoomed logo region on canvas
+    if (result.logo_region && result.brand_visible) {
+      drawLogoZoom(imgUrl, result.logo_region);
+    }
+
+  } catch(e) {
+    baResult.innerHTML = '❌ 오류: ' + e.message;
+  }
+}
+
+function drawLogoZoom(imgUrl, region) {
+  const canvas = document.getElementById('logoZoom');
+  const label = document.getElementById('logoZoomLabel');
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const sw = img.naturalWidth, sh = img.naturalHeight;
+    // Add padding around region
+    const pad = 0.03;
+    const sx = Math.max(0, (region.x - pad)) * sw;
+    const sy = Math.max(0, (region.y - pad)) * sh;
+    const sw2 = Math.min(1, (region.w + pad*2)) * sw;
+    const sh2 = Math.min(1, (region.h + pad*2)) * sh;
+    const outW = 480, outH = Math.round(outW * sh2 / sw2);
+    canvas.width = outW;
+    canvas.height = Math.min(outH, 320);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw2, sh2, 0, 0, outW, canvas.height);
+    canvas.style.display = 'block';
+    label.textContent = '📍 로고/브랜드 텍스트 확대 영역';
+  };
+  img.onerror = () => { /* skip if CORS blocked */ };
+  img.src = imgUrl;
+}
+
 async function init() {
   loadResults();
   const savedUser = localStorage.getItem(USER_KEY);
@@ -399,6 +568,12 @@ function openLightbox(id) {
   document.getElementById('lbId').textContent = '#' + (id + 1);
   lbCurrentIdx = lbPageIds.indexOf(id);
   document.getElementById('lightbox').classList.add('open');
+  // Reset analysis panel
+  document.getElementById('brandAnalysis').style.display = 'none';
+  document.getElementById('logoZoom').style.display = 'none';
+  document.getElementById('logoZoomLabel').textContent = '';
+  // Trigger brand analysis
+  if (row.img_url) analyzeBrand(row.img_url, row);
 }
 
 function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
@@ -423,6 +598,10 @@ function openLightboxByIdx(idx) {
   document.getElementById('lbBrand').textContent = '🏷️ ' + (row.brand || '-');
   document.getElementById('lbId').textContent = '#' + (id + 1);
   lbCurrentIdx = idx;
+  document.getElementById('brandAnalysis').style.display = 'none';
+  document.getElementById('logoZoom').style.display = 'none';
+  document.getElementById('logoZoomLabel').textContent = '';
+  if (row.img_url) analyzeBrand(row.img_url, row);
 }
 
 document.addEventListener('keydown', e => {
