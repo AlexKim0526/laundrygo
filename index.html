@@ -50,7 +50,7 @@
     }
     .nav-title {
       flex: 1; text-align: center;
-      font-size: 16px; font-weight: 700; color: #111;
+      font-size: 17px; font-weight: 700; color: #111;
     }
 
     /* ── PRIMARY BUTTON ── */
@@ -148,11 +148,12 @@
       color: #fff; font-size: 22px; cursor: pointer;
     }
 
-    /* Guide frame */
+    /* Guide frame — 썸네일과 안 겹치도록 위쪽 정렬 */
     .cam-guide {
       position: absolute; inset: 0; z-index: 5;
       pointer-events: none;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 72px;
     }
     .guide-rect {
       width: 75%; aspect-ratio: 3/4;
@@ -241,8 +242,8 @@
     }
     #thumbStrip::-webkit-scrollbar { display: none; }
     .thumb-item {
-      position: relative; width: 62px; height: 62px; flex-shrink: 0;
-      border-radius: 10px; overflow: hidden;
+      position: relative; width: 53px; height: 53px; flex-shrink: 0;
+      border-radius: 9px; overflow: hidden;
       border: 2px solid rgba(255,255,255,0.5);
       cursor: pointer;
     }
@@ -262,6 +263,8 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 28px 4px;
     }
+    .cam-controls > * { flex: 1; }
+    .cam-controls > #captureBtn { flex: 0 0 auto; }
     .btn-album {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 500;
@@ -294,10 +297,10 @@
       background: #2BAE66; color: #fff;
       border: none; border-radius: 22px;
       font-size: 13px; font-weight: 700;
-      padding: 11px 18px; cursor: pointer;
+      padding: 11px 14px; cursor: pointer;
       opacity: 0.45; pointer-events: none;
       transition: opacity 0.2s;
-      text-align: center; line-height: 1.3;
+      text-align: right; line-height: 1.3;
     }
     .btn-price.on { opacity: 1; pointer-events: auto; }
 
@@ -345,11 +348,12 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
-    /* 컬럼: 품목(고정) | 정가 | 구독할인 | 구독차감 | 프리미엄(스크롤) */
+    /* 컬럼: 품목 | 정가 | 구독할인 | 구독차감 | 프리미엄
+       앞 4개가 화면에 딱 맞고 프리미엄이 살짝 보이도록 축소 */
     .col-grid {
       display: grid;
-      grid-template-columns: 132px 68px 78px 66px 72px;
-      min-width: 416px;
+      grid-template-columns: 118px 60px 72px 58px 72px;
+      min-width: 380px;
     }
     .table-head {
       padding: 10px 10px;
@@ -420,8 +424,37 @@
     .foot-label { font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
     .foot-정가  { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
     .foot-sub   { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
-    .foot-차감  { text-align: center; font-size: 15px; font-weight: 600; color: #888; white-space: nowrap; }
+    .foot-차감  { text-align: center; font-size: 15px; font-weight: 800; color: #555; white-space: nowrap; }
     .foot-premium { text-align: center; font-size: 16px; font-weight: 800; color: #7C3AED; white-space: nowrap; }
+
+    /* ── UPSELL CARD ── */
+    .upsell-card {
+      border-radius: 14px;
+      margin-bottom: 10px;
+      padding: 13px 14px 12px;
+      background: #fff;
+      border: 1.5px solid #FFD97A;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      display: none;
+    }
+    .upsell-card.show { display: block; }
+    .upsell-top {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .upsell-icon { font-size: 22px; flex-shrink: 0; line-height: 1.3; }
+    .upsell-body { flex: 1; min-width: 0; }
+    .upsell-msg  { font-size: 14px; color: #222; line-height: 1.45; }
+    .upsell-msg strong { color: #FF6B00; }
+    .upsell-sub  { font-size: 12px; color: #888; margin-top: 3px; }
+    .upsell-bar-wrap {
+      margin-top: 10px; height: 6px;
+      background: #f0f0f0; border-radius: 6px; overflow: hidden;
+    }
+    .upsell-bar {
+      height: 100%; border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+    .upsell-achieve .upsell-msg strong { color: #2BAE66; }
 
     /* Empty */
     .empty {
@@ -585,7 +618,7 @@
           <div class="cap-inner"></div>
         </button>
         <button class="btn-price" id="priceBtn" onclick="doAnalyze()">
-          가격보기
+          세탁비<br>확인하기
         </button>
       </div>
     </div>
@@ -597,7 +630,7 @@
   <div class="screen" id="screen4">
     <div class="nav-header">
       <div class="nav-btn" onclick="backFromResult()">←</div>
-      <div class="nav-title">세탁비 확인</div>
+      <div class="nav-title">세탁비 확인하기</div>
       <div class="nav-btn"></div>
     </div>
     <div class="body" id="resultBody"></div>
@@ -939,13 +972,14 @@ function renderResult() {
         <span class="price-num" id="sumNum">${w(t.정가)}</span>원 이예요
       </div>
     </div>
+    <div class="upsell-card" id="upsellCard"></div>
     <div class="table-card">
       <div class="table-scroll">
         <div class="table-head col-grid">
           <div class="th" style="text-align:left">품목</div>
-          <div class="th">정가</div>
-          <div class="th">구독할인</div>
-          <div class="th">구독차감</div>
+          <div class="th">정가(원)</div>
+          <div class="th">구독할인(원)</div>
+          <div class="th">구독차감(개)</div>
           <div class="th">프리미엄</div>
         </div>
         <div id="rowsWrap"></div>
@@ -954,7 +988,7 @@ function renderResult() {
     </div>
   `;
   renderRows();
-  renderFoot();
+  renderFoot();   // renderFoot 내부에서 renderUpsell() 호출됨
 }
 
 function renderRows() {
@@ -980,7 +1014,7 @@ function renderRows() {
       </div>
       <div class="cell-정가">${w(p.정가 * q)}</div>
       <div class="cell-sub">${w(p.구독 * q)}</div>
-      <div class="cell-차감">${p.차감 ? p.차감 * q + '개' : '-'}</div>
+      <div class="cell-차감">${p.차감 ? p.차감 * q : '-'}</div>
       <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) : '-'}</div>
     `;
     wrap.appendChild(div);
@@ -993,11 +1027,12 @@ function renderFoot() {
   const t = totals();
   f.innerHTML = `
     <div class="foot-label">합계</div>
-    <div class="foot-정가">${w(t.정가)}원</div>
-    <div class="foot-sub">${w(t.구독)}원</div>
-    <div class="foot-차감">${t.차감 ? t.차감 + '개' : '-'}</div>
-    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
+    <div class="foot-정가">${w(t.정가)}</div>
+    <div class="foot-sub">${w(t.구독)}</div>
+    <div class="foot-차감">${t.차감 ? t.차감 : '-'}</div>
+    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) : '-'}</div>
   `;
+  renderUpsell();
   const sn = document.getElementById('sumNum');
   if (sn) sn.textContent = w(t.정가);
 }
@@ -1023,6 +1058,76 @@ function delItem(idx) {
     renderRows();
     renderFoot();
   }
+}
+
+// ═══════════════════════════════════════
+// UPSELLING
+// ═══════════════════════════════════════
+function getUpsell(total) {
+  if (total < 19500) {
+    const gap = 19500 - total;
+    return {
+      type: 'nudge', color: '#FF9500',
+      icon: '🚚',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 50% 할인!`,
+      sub: '배송비 7,400원 → 3,700원으로 줄어들어요',
+      progress: total / 19500
+    };
+  }
+  if (total >= 33000 && total <= 38000) {
+    const gap = 45000 - total;
+    return {
+      type: 'nudge', color: '#2BAE66',
+      icon: '🎉',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 무료!`,
+      sub: '45,000원 달성 시 배송비 0원 혜택이에요',
+      progress: total / 45000
+    };
+  }
+  if (total >= 48000 && total <= 53000) {
+    const gap = 60000 - total;
+    return {
+      type: 'nudge', color: '#7C3AED',
+      icon: '🛏️',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 무료 + 이불 압축 포장!`,
+      sub: '60,000원 달성 시 이불 압축 포장 서비스도 드려요',
+      progress: total / 60000
+    };
+  }
+  if (total >= 61000 && total <= 70000) {
+    return {
+      type: 'achieve', color: '#2BAE66',
+      icon: '⭐',
+      msg: `<strong>런드리고X 스탠다드 20% 할인</strong> 혜택을 받으실 수 있어요!`,
+      sub: '지금 구독 신청하면 20% 할인된 가격으로 이용 가능해요',
+      progress: 1
+    };
+  }
+  return null;
+}
+
+function renderUpsell() {
+  const el = document.getElementById('upsellCard');
+  if (!el) return;
+  const t = totals();
+  const u = getUpsell(t.정가);
+  if (!u) { el.classList.remove('show'); return; }
+
+  const barHtml = u.progress < 1
+    ? `<div class="upsell-bar-wrap"><div class="upsell-bar" style="width:${Math.min(u.progress*100,100).toFixed(1)}%;background:${u.color}"></div></div>`
+    : '';
+  el.className = `upsell-card show${u.type === 'achieve' ? ' upsell-achieve' : ''}`;
+  el.style.borderColor = u.color + '88';
+  el.innerHTML = `
+    <div class="upsell-top">
+      <span class="upsell-icon">${u.icon}</span>
+      <div class="upsell-body">
+        <div class="upsell-msg">${u.msg}</div>
+        <div class="upsell-sub">${u.sub}</div>
+      </div>
+    </div>
+    ${barHtml}
+  `;
 }
 
 // ═══════════════════════════════════════
