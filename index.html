@@ -298,16 +298,26 @@
     }
 
     .btn-price {
-      background: #2BAE66; color: #fff;
-      border: none; border-radius: 20px;
+      /* 비활성: 흰색 테두리 + 반투명 흰 텍스트 — 어두운 배경에서도 선명 */
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.6);
+      border-radius: 20px;
       font-size: 12px; font-weight: 700;
-      padding: 8px 10px; cursor: pointer;
-      opacity: 0.45; pointer-events: none;
-      transition: opacity 0.2s;
+      padding: 8px 10px; cursor: not-allowed;
+      pointer-events: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
       text-align: center; line-height: 1.35;
       width: 72px;
     }
-    .btn-price.on { opacity: 1; pointer-events: auto; }
+    .btn-price.on {
+      /* 활성: 초록 배경 + 흰 텍스트 */
+      background: #2BAE66;
+      border-color: #2BAE66;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+    }
 
     #albumInput { display: none; }
 
@@ -426,11 +436,11 @@
       border-top: 2px solid #efefef;
       align-items: center;
     }
-    .foot-label { font-size: 16px; font-weight: 800; color: #111; text-align: center; white-space: nowrap; }
-    .foot-정가  { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
-    .foot-sub   { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-label { font-size: 15px; font-weight: 800; color: #111; text-align: center; white-space: nowrap; }
+    .foot-정가  { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
+    .foot-sub   { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
     .foot-차감  { text-align: center; font-size: 15px; font-weight: 800; color: #555; white-space: nowrap; }
-    .foot-premium { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-premium { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
 
     /* ── UPSELL CARD ── */
     .upsell-card {
@@ -978,10 +988,10 @@ function renderResult() {
     <div class="table-card">
       <div class="table-scroll">
         <div class="table-head col-grid">
-          <div class="th" style="text-align:left">품목</div>
-          <div class="th">정가(원)</div>
-          <div class="th">구독할인(원)</div>
-          <div class="th">구독차감(개)</div>
+          <div class="th">품목</div>
+          <div class="th">정가</div>
+          <div class="th">구독할인</div>
+          <div class="th">구독차감</div>
           <div class="th">프리미엄</div>
         </div>
         <div id="rowsWrap"></div>
@@ -1014,10 +1024,10 @@ function renderRows() {
           <div class="name">${it.name}</div>
         </div>
       </div>
-      <div class="cell-정가">${w(p.정가 * q)}</div>
-      <div class="cell-sub">${w(p.구독 * q)}</div>
-      <div class="cell-차감">${p.차감 ? p.차감 * q : '-'}</div>
-      <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) : '-'}</div>
+      <div class="cell-정가">${w(p.정가 * q)}원</div>
+      <div class="cell-sub">${w(p.구독 * q)}원</div>
+      <div class="cell-차감">${p.차감 ? p.차감 * q + '개' : '-'}</div>
+      <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) + '원' : '-'}</div>
     `;
     wrap.appendChild(div);
   });
@@ -1029,10 +1039,10 @@ function renderFoot() {
   const t = totals();
   f.innerHTML = `
     <div class="foot-label">합계</div>
-    <div class="foot-정가">${w(t.정가)}</div>
-    <div class="foot-sub">${w(t.구독)}</div>
-    <div class="foot-차감">${t.차감 ? t.차감 : '-'}</div>
-    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) : '-'}</div>
+    <div class="foot-정가">${w(t.정가)}원</div>
+    <div class="foot-sub">${w(t.구독)}원</div>
+    <div class="foot-차감">${t.차감 ? t.차감 + '개' : '-'}</div>
+    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
   `;
   renderUpsell();
   const sn = document.getElementById('sumNum');
