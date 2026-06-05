@@ -91,7 +91,7 @@
       position: relative;
     }
     .explain-img-wrap img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
+      width: 100%; height: 100%; object-fit: contain; display: block;
     }
     .explain-img-overlay {
       position: absolute; inset: 0;
@@ -345,26 +345,25 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
-    /* 컬럼: 품목(고정) | 정가 | 구독할인 | 구독차감 | X | 프리미엄 */
-    /* 앞 5개(품목~X)가 화면에 맞고, 프리미엄은 스크롤로 노출 */
+    /* 컬럼: 품목(고정) | 정가 | 구독할인 | 구독차감 | 프리미엄(스크롤) */
     .col-grid {
       display: grid;
-      grid-template-columns: 120px 60px 70px 60px 30px 66px;
-      min-width: 406px;
+      grid-template-columns: 132px 68px 78px 66px 72px;
+      min-width: 416px;
     }
     .table-head {
-      padding: 9px 10px;
+      padding: 10px 10px;
       background: #fafafa;
       border-bottom: 1px solid #efefef;
     }
     .th {
-      font-size: 11px; font-weight: 700; color: #999;
+      font-size: 13px; font-weight: 700; color: #999;
       text-align: center; line-height: 1.3;
     }
     .th:first-child { text-align: left; }
 
     .item-row {
-      padding: 10px 10px;
+      padding: 12px 10px;
       border-bottom: 1px solid #f2f2f2;
       align-items: center;
       animation: fadeUp 0.25s ease forwards;
@@ -377,47 +376,52 @@
     }
 
     .item-cell {
-      display: flex; flex-direction: row; align-items: center; gap: 7px;
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
       min-width: 0;
     }
+    /* 사진 래퍼 — X 버튼 절대 위치 기준 */
+    .item-img-wrap {
+      position: relative; flex-shrink: 0;
+      width: 50px; height: 50px;
+    }
     .item-img {
-      width: 44px; height: 44px; border-radius: 8px;
-      object-fit: cover; background: #f0f0f0; flex-shrink: 0;
+      width: 100%; height: 100%; border-radius: 8px;
+      object-fit: cover; background: #f0f0f0; display: block;
+    }
+    /* 사진 우상단 빨간 X */
+    .img-del-btn {
+      position: absolute; top: -5px; right: -5px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #FF3B30; border: 1.5px solid #fff;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 900; color: #fff; line-height: 1;
+      padding: 0;
     }
     .item-info { display: flex; flex-direction: column; min-width: 0; }
     .item-info .name {
-      font-size: 13px; font-weight: 600; color: #111; line-height: 1.3;
+      font-size: 15px; font-weight: 600; color: #111; line-height: 1.3;
       word-break: keep-all; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis;
     }
 
-    .cell-정가 { text-align: center; font-size: 13px; font-weight: 600; color: #333; }
-    .cell-sub { text-align: center; font-size: 13px; font-weight: 700; color: #2BAE66; }
-    .cell-차감 { text-align: center; font-size: 13px; font-weight: 600; color: #888; }
-    .cell-premium { text-align: center; font-size: 13px; font-weight: 600; color: #7C3AED; }
-    .cell-del {
-      display: flex; align-items: center; justify-content: center;
-    }
-    .del-btn {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: #f2f2f2; border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; color: #888; transition: all 0.15s;
-    }
-    .del-btn:hover { background: #ffe5e5; color: #e53e3e; }
+    .cell-정가 { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+    .cell-sub  { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+    .cell-차감 { text-align: center; font-size: 15px; font-weight: 600; color: #888; }
+    .cell-premium { text-align: center; font-size: 15px; font-weight: 600; color: #7C3AED; }
 
     /* Footer row */
     .table-foot {
-      padding: 11px 10px;
+      padding: 12px 10px;
       background: #fafafa;
       border-top: 2px solid #efefef;
       align-items: center;
     }
-    .foot-label { font-size: 14px; font-weight: 800; color: #111; }
-    .foot-정가 { text-align: center; font-size: 14px; font-weight: 800; color: #111; }
-    .foot-sub { text-align: center; font-size: 14px; font-weight: 800; color: #2BAE66; }
-    .foot-차감 { text-align: center; font-size: 13px; font-weight: 600; color: #888; }
-    .foot-premium { text-align: center; font-size: 14px; font-weight: 800; color: #7C3AED; }
+    .foot-label { font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-정가  { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-sub   { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-차감  { text-align: center; font-size: 15px; font-weight: 600; color: #888; white-space: nowrap; }
+    .foot-premium { text-align: center; font-size: 16px; font-weight: 800; color: #7C3AED; white-space: nowrap; }
 
     /* Empty */
     .empty {
@@ -942,7 +946,6 @@ function renderResult() {
           <div class="th">정가</div>
           <div class="th">구독할인</div>
           <div class="th">구독차감</div>
-          <div class="th"></div>
           <div class="th">프리미엄</div>
         </div>
         <div id="rowsWrap"></div>
@@ -967,7 +970,10 @@ function renderRows() {
     div.style.animationDelay = `${idx * 0.07}s`;
     div.innerHTML = `
       <div class="item-cell">
-        <img class="item-img" src="${it.thumb}" alt="${it.name}">
+        <div class="item-img-wrap">
+          <img class="item-img" src="${it.thumb}" alt="${it.name}">
+          <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
+        </div>
         <div class="item-info">
           <div class="name">${it.name}</div>
         </div>
@@ -975,9 +981,6 @@ function renderRows() {
       <div class="cell-정가">${w(p.정가 * q)}</div>
       <div class="cell-sub">${w(p.구독 * q)}</div>
       <div class="cell-차감">${p.차감 ? p.차감 * q + '개' : '-'}</div>
-      <div class="cell-del">
-        <button class="del-btn" onclick="delItem(${idx})">✕</button>
-      </div>
       <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) : '-'}</div>
     `;
     wrap.appendChild(div);
@@ -993,7 +996,6 @@ function renderFoot() {
     <div class="foot-정가">${w(t.정가)}원</div>
     <div class="foot-sub">${w(t.구독)}원</div>
     <div class="foot-차감">${t.차감 ? t.차감 + '개' : '-'}</div>
-    <div></div>
     <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
   `;
   const sn = document.getElementById('sumNum');
