@@ -330,32 +330,41 @@
       display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px;
     }
     .summary-price .price-num {
-      font-size: 34px; font-weight: 900; color: #FF3B30;
+      font-size: 22px; font-weight: 900; color: #FF3B30;
     }
 
     /* Table card */
     .table-card {
-      background: #fff; border-radius: 18px; overflow: hidden;
+      background: #fff; border-radius: 18px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.06);
       margin-bottom: 14px;
+      overflow: hidden;
+    }
+    /* 가로 스크롤 래퍼 */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* 컬럼: 품목(고정) | 정가 | 구독할인 | 구독차감 | X | 프리미엄 */
+    /* 앞 5개(품목~X)가 화면에 맞고, 프리미엄은 스크롤로 노출 */
+    .col-grid {
+      display: grid;
+      grid-template-columns: 120px 60px 70px 60px 30px 66px;
+      min-width: 406px;
     }
     .table-head {
-      display: grid;
-      grid-template-columns: 1fr 66px 88px 66px 34px;
-      padding: 9px 12px;
+      padding: 9px 10px;
       background: #fafafa;
       border-bottom: 1px solid #efefef;
     }
     .th {
-      font-size: 12px; font-weight: 700; color: #999;
+      font-size: 11px; font-weight: 700; color: #999;
       text-align: center; line-height: 1.3;
     }
     .th:first-child { text-align: left; }
 
     .item-row {
-      display: grid;
-      grid-template-columns: 1fr 66px 88px 66px 34px;
-      padding: 11px 12px;
+      padding: 10px 10px;
       border-bottom: 1px solid #f2f2f2;
       align-items: center;
       animation: fadeUp 0.25s ease forwards;
@@ -368,57 +377,47 @@
     }
 
     .item-cell {
-      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      display: flex; flex-direction: row; align-items: center; gap: 7px;
+      min-width: 0;
     }
     .item-img {
-      width: 48px; height: 48px; border-radius: 8px;
+      width: 44px; height: 44px; border-radius: 8px;
       object-fit: cover; background: #f0f0f0; flex-shrink: 0;
     }
-    .item-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .item-info .name { font-size: 13px; font-weight: 600; color: #111; line-height: 1.3; word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .item-info .brand {
-      font-size: 11px; font-weight: 500; color: #fff;
-      background: #2BAE66; border-radius: 4px;
-      padding: 1px 6px; display: inline-block;
-      max-width: fit-content; letter-spacing: 0.2px;
+    .item-info { display: flex; flex-direction: column; min-width: 0; }
+    .item-info .name {
+      font-size: 13px; font-weight: 600; color: #111; line-height: 1.3;
+      word-break: keep-all; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
     }
-    .item-info .brand.unknown { background: #ddd; color: #999; }
-    .item-info .sub { display: none; }
 
-    .cell-정가 { text-align: center; font-size: 14px; font-weight: 600; color: #333; }
-    .cell-sub {
-      text-align: center;
-      display: flex; flex-direction: column; align-items: center; gap: 1px;
-    }
-    .sub-price { font-size: 14px; font-weight: 700; color: #2BAE66; }
-    .sub-badge { font-size: 11px; color: #aaa; }
-    .cell-premium { text-align: center; font-size: 14px; font-weight: 600; color: #7C3AED; }
+    .cell-정가 { text-align: center; font-size: 13px; font-weight: 600; color: #333; }
+    .cell-sub { text-align: center; font-size: 13px; font-weight: 700; color: #2BAE66; }
+    .cell-차감 { text-align: center; font-size: 13px; font-weight: 600; color: #888; }
+    .cell-premium { text-align: center; font-size: 13px; font-weight: 600; color: #7C3AED; }
     .cell-del {
       display: flex; align-items: center; justify-content: center;
     }
     .del-btn {
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 24px; height: 24px; border-radius: 50%;
       background: #f2f2f2; border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; color: #888; transition: all 0.15s;
+      font-size: 11px; color: #888; transition: all 0.15s;
     }
     .del-btn:hover { background: #ffe5e5; color: #e53e3e; }
 
     /* Footer row */
     .table-foot {
-      display: grid;
-      grid-template-columns: 1fr 66px 88px 66px 34px;
-      padding: 12px 12px;
+      padding: 11px 10px;
       background: #fafafa;
       border-top: 2px solid #efefef;
       align-items: center;
     }
-    .foot-label { font-size: 15px; font-weight: 800; color: #111; }
-    .foot-정가 { text-align: center; font-size: 15px; font-weight: 800; color: #111; }
-    .foot-sub { text-align: center; }
-    .foot-sub-price { font-size: 15px; font-weight: 800; color: #2BAE66; }
-    .foot-sub-badge { font-size: 11px; color: #aaa; }
-    .foot-premium { text-align: center; font-size: 15px; font-weight: 800; color: #7C3AED; }
+    .foot-label { font-size: 14px; font-weight: 800; color: #111; }
+    .foot-정가 { text-align: center; font-size: 14px; font-weight: 800; color: #111; }
+    .foot-sub { text-align: center; font-size: 14px; font-weight: 800; color: #2BAE66; }
+    .foot-차감 { text-align: center; font-size: 13px; font-weight: 600; color: #888; }
+    .foot-premium { text-align: center; font-size: 14px; font-weight: 800; color: #7C3AED; }
 
     /* Empty */
     .empty {
@@ -516,8 +515,9 @@
     <div class="body">
       <div class="explain-img-wrap">
         <img
-          src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgODAwIDYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0Q1RDJDQyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNCRUJBQjQiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImpMIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMC42Ij4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzhBOUE1NCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iIzZFN0M0MiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1RTZDMzgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImpSIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMC42Ij4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzU4NjYzMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM0NTUyMjQiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNvbEwiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzdBOEE0QSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1NDYwMzgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNvbFIiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzUyNjIzMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzRTRFMjIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJkcm9wc2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj4KICAgICAgPGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjYiIHN0ZERldmlhdGlvbj0iMTAiIGZsb29kLWNvbG9yPSIjMDAwMDAwMzAiLz4KICAgIDwvZmlsdGVyPgogIDwvZGVmcz4KCiAgPCEtLSBCRyAtLT4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNiZykiLz4KCiAgPCEtLSBGbG9vciBzaGFkb3cgLS0+CiAgPGVsbGlwc2UgY3g9IjQwMCIgY3k9IjU3MiIgcng9IjE5NSIgcnk9IjE2IiBmaWxsPSIjMDAwMDAwMjIiLz4KCiAgPCEtLSA9PT0gSkFDS0VUIEJPRFkgPT09IC0tPgogIDwhLS0gTGVmdCBwYW5lbCAtLT4KICA8cGF0aCBkPSJNNDAwLDg4IEwxMDAsMTMyIFE4MiwxNTUgODAsMTg1IEw5NCw1NDggTDQwMCw1NDggWiIKICAgICAgICBmaWxsPSJ1cmwoI2pMKSIgZmlsdGVyPSJ1cmwoI2Ryb3BzaGFkb3cpIi8+CiAgPCEtLSBSaWdodCBwYW5lbCAtLT4KICA8cGF0aCBkPSJNNDAwLDg4IEw3MDAsMTMyIFE3MTgsMTU1IDcyMCwxODUgTDcwNiw1NDggTDQwMCw1NDggWiIKICAgICAgICBmaWxsPSJ1cmwoI2pSKSIvPgoKICA8IS0tIENlbnRlciBzaGFkb3cgc3RyaXAgLS0+CiAgPHJlY3QgeD0iMzkzIiB5PSI4OCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjQ2MCIgZmlsbD0iIzAwMDAwMDMwIi8+CiAgPCEtLSBDZW50ZXIgemlwcGVyIHRhcGUgLS0+CiAgPHJlY3QgeD0iMzk1IiB5PSI4OCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjQyMCIgcng9IjIiIGZpbGw9IiM4ODg4NzgiLz4KICA8IS0tIFppcHBlciB0ZWV0aCAtLT4KICA8bGluZSB4MT0iNDAwIiB5MT0iOTUiIHgyPSI0MDAiIHkyPSI1MDUiIHN0cm9rZT0iIzU1NTU0QSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1kYXNoYXJyYXk9IjQsNSIvPgogIDwhLS0gWmlwcGVyIHNsaWRlciAtLT4KICA8cmVjdCB4PSIzOTAiIHk9IjE4OCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjI2IiByeD0iMyIgZmlsbD0iI0EwQTA5MCIgc3Ryb2tlPSIjNzA3MDYwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxyZWN0IHg9IjM5NSIgeT0iMTkzIiB3aWR0aD0iMTAiIGhlaWdodD0iMTYiIHJ4PSIyIiBmaWxsPSIjQzhDOEIwIi8+CgogIDwhLS0gPT09IENPTExBUiA9PT0gLS0+CiAgPHBhdGggZD0iTTQwMCw4OCBMMzIyLDExMCBMMjQ1LDE2MiBMMjkwLDIwMCBMMzgwLDE3OCBMNDAwLDE1NSBaIgogICAgICAgIGZpbGw9InVybCgjY29sTCkiIHN0cm9rZT0iIzRBNTgyOCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cGF0aCBkPSJNNDAwLDg4IEw0NzgsMTEwIEw1NTUsMTYyIEw1MTAsMjAwIEw0MjAsMTc4IEw0MDAsMTU1IFoiCiAgICAgICAgZmlsbD0idXJsKCNjb2xSKSIgc3Ryb2tlPSIjM0E0ODIwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwhLS0gQ29sbGFyIHNoYWRvdyBpbm5lciAtLT4KICA8cGF0aCBkPSJNNDAwLDg4IEw0MDAsMTU1IEwzNjgsMTYyIEwzMzAsMTM4IFoiIGZpbGw9IiMwMDAwMDAyNSIvPgogIDxwYXRoIGQ9Ik00MDAsODggTDQwMCwxNTUgTDQzMiwxNjIgTDQ3MCwxMzggWiIgZmlsbD0iIzAwMDAwMDM1Ii8+CgogIDwhLS0gPT09IEVQQVVMRVRURVMgPT09IC0tPgogIDwhLS0gTGVmdCAtLT4KICA8cGF0aCBkPSJNMTAwLDEzMiBMMTMwLDExMiBMMTcyLDEyMCBMMTYyLDE0OCBMMTAwLDE1MiBaIgogICAgICAgIGZpbGw9IiM4QTlBNTQiIHN0cm9rZT0iIzVFNkMzOCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iMTA4IiB5MT0iMTQ1IiB4Mj0iMTY4IiB5Mj0iMTI4IiBzdHJva2U9IiM0QTU4MjgiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iMiw0IiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSIxMjIiIGN5PSIxMzIiIHI9IjciIGZpbGw9IiM5QTgwNTAiIHN0cm9rZT0iIzZBNTgzMCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICA8Y2lyY2xlIGN4PSIxMjIiIGN5PSIxMzIiIHI9IjMuNSIgZmlsbD0iIzVBMzgyMCIvPgogIDwhLS0gUmlnaHQgLS0+CiAgPHBhdGggZD0iTTcwMCwxMzIgTDY3MCwxMTIgTDYyOCwxMjAgTDYzOCwxNDggTDcwMCwxNTIgWiIKICAgICAgICBmaWxsPSIjNjM3MDM4IiBzdHJva2U9IiM0QTU2MjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjY5MiIgeTE9IjE0NSIgeDI9IjYzMiIgeTI9IjEyOCIgc3Ryb2tlPSIjM0E0ODIwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjIsNCIgb3BhY2l0eT0iMC43Ii8+CiAgPGNpcmNsZSBjeD0iNjc4IiBjeT0iMTMyIiByPSI3IiBmaWxsPSIjOUE4MDUwIiBzdHJva2U9IiM2QTU4MzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CiAgPGNpcmNsZSBjeD0iNjc4IiBjeT0iMTMyIiByPSIzLjUiIGZpbGw9IiM1QTM4MjAiLz4KCiAgPCEtLSA9PT0gTEVGVCBDSEVTVCBQT0NLRVQgPT09IC0tPgogIDxyZWN0IHg9IjEzMCIgeT0iMjI4IiB3aWR0aD0iOTgiIGhlaWdodD0iNzUiIHJ4PSIzIiBmaWxsPSIjNjI3MDM4IiBzdHJva2U9IiM0ODU1MjUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwYXRoIGQ9Ik0xMjcsMjE3IEwyMzAsMjE3IEwyMzAsMjQ0IFExNzgsMjU1IDEyNywyNDQgWiIKICAgICAgICBmaWxsPSIjNkU3QzQyIiBzdHJva2U9IiM0ODU1MjUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxjaXJjbGUgY3g9IjE3OCIgY3k9IjIzMCIgcj0iOCIgZmlsbD0iIzlBODA1MCIgc3Ryb2tlPSIjNkE1MDMwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxjaXJjbGUgY3g9IjE3OCIgY3k9IjIzMCIgcj0iNCIgZmlsbD0iIzVBMzgyMCIvPgogIDxyZWN0IHg9IjEzNiIgeT0iMjM3IiB3aWR0aD0iODUiIGhlaWdodD0iNjAiIHJ4PSIyIiBmaWxsPSJub25lIiBzdHJva2U9IiM1MjcwMzAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iMyw0IiBvcGFjaXR5PSIwLjYiLz4KCiAgPCEtLSA9PT0gUklHSFQgQ0hFU1QgUE9DS0VUID09PSAtLT4KICA8cmVjdCB4PSI1NzIiIHk9IjIyOCIgd2lkdGg9Ijk4IiBoZWlnaHQ9Ijc1IiByeD0iMyIgZmlsbD0iIzRDNUMyOCIgc3Ryb2tlPSIjMzY0MDE4IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNNTcwLDIxNyBMNjczLDIxNyBMNjczLDI0NCBRNjIyLDI1NSA1NzAsMjQ0IFoiCiAgICAgICAgZmlsbD0iIzU0NjgzMCIgc3Ryb2tlPSIjMzY0MDE4IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8Y2lyY2xlIGN4PSI2MjIiIGN5PSIyMzAiIHI9IjgiIGZpbGw9IiM5QTgwNTAiIHN0cm9rZT0iIzZBNTAzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8Y2lyY2xlIGN4PSI2MjIiIGN5PSIyMzAiIHI9IjQiIGZpbGw9IiM1QTM4MjAiLz4KICA8cmVjdCB4PSI1NzgiIHk9IjIzNyIgd2lkdGg9Ijg1IiBoZWlnaHQ9IjYwIiByeD0iMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0E0QzIwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsNCIgb3BhY2l0eT0iMC42Ii8+CgogIDwhLS0gPT09IExFRlQgSElQIFBPQ0tFVCA9PT0gLS0+CiAgPHJlY3QgeD0iMTEyIiB5PSIzNTIiIHdpZHRoPSIxMTIiIGhlaWdodD0iMTE4IiByeD0iNCIgZmlsbD0iIzVFNkUzNiIgc3Ryb2tlPSIjNDY1MjIyIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iMTY4IiB5MT0iMzYwIiB4Mj0iMTY4IiB5Mj0iNDYyIiBzdHJva2U9IiM0NjUyMjIiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgPHBhdGggZD0iTTEwOCwzMzggTDIyNSwzMzggTDIyNSwzNjYgUTE2OCwzNzggMTA4LDM2NiBaIgogICAgICAgIGZpbGw9IiM2RTdDNDIiIHN0cm9rZT0iIzQ2NTIyMiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTY4IiBjeT0iMzUzIiByPSI4LjUiIGZpbGw9IiM5QTgwNTAiIHN0cm9rZT0iIzZBNTAzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8Y2lyY2xlIGN4PSIxNjgiIGN5PSIzNTMiIHI9IjQuMiIgZmlsbD0iIzVBMzgyMCIvPgogIDxyZWN0IHg9IjExOCIgeT0iMzQ4IiB3aWR0aD0iOTgiIGhlaWdodD0iMTEyIiByeD0iMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNEU2MjI4IiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsNCIgb3BhY2l0eT0iMC42Ii8+CgogIDwhLS0gPT09IFJJR0hUIEhJUCBQT0NLRVQgPT09IC0tPgogIDxyZWN0IHg9IjU3NiIgeT0iMzUyIiB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExOCIgcng9IjQiIGZpbGw9IiM0ODYwMjgiIHN0cm9rZT0iIzM0NDAxOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjYzMiIgeTE9IjM2MCIgeDI9IjYzMiIgeTI9IjQ2MiIgc3Ryb2tlPSIjMzQ0MDE4IiBzdHJva2Utd2lkdGg9IjIuNSIvPgogIDxwYXRoIGQ9Ik01NzUsMzM4IEw2OTIsMzM4IEw2OTIsMzY2IFE2MzIsMzc4IDU3NSwzNjYgWiIKICAgICAgICBmaWxsPSIjNTI2QTJDIiBzdHJva2U9IiMzNDQwMTgiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxjaXJjbGUgY3g9IjYzMiIgY3k9IjM1MyIgcj0iOC41IiBmaWxsPSIjOUE4MDUwIiBzdHJva2U9IiM2QTUwMzAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGNpcmNsZSBjeD0iNjMyIiBjeT0iMzUzIiByPSI0LjIiIGZpbGw9IiM1QTM4MjAiLz4KICA8cmVjdCB4PSI1ODIiIHk9IjM0OCIgd2lkdGg9Ijk4IiBoZWlnaHQ9IjExMiIgcng9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzNBNEUxQyIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSIzLDQiIG9wYWNpdHk9IjAuNiIvPgoKICA8IS0tID09PSBIRU0gQkFORCA9PT0gLS0+CiAgPHJlY3QgeD0iODAiIHk9IjUzMCIgd2lkdGg9IjY0MCIgaGVpZ2h0PSIyMiIgZmlsbD0iIzUwNjAzMCIgc3Ryb2tlPSIjM0M0QTIyIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSI4MCIgeTE9IjUzOCIgeDI9IjcyMCIgeTI9IjUzOCIgc3Ryb2tlPSIjM0M0QTIyIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjQsNiIgb3BhY2l0eT0iMC42Ii8+CgogIDwhLS0gPT09IFNMRUVWRSBFREdFUyA9PT0gLS0+CiAgPHBhdGggZD0iTTgwLDQ4OCBMODAsNTQ4IEwxMDgsNTUyIEwxMDgsNDg4IFoiIGZpbGw9IiMwMDAwMDAyOCIvPgogIDxwYXRoIGQ9Ik03MjAsNDg4IEw3MjAsNTQ4IEw2OTIsNTUyIEw2OTIsNDg4IFoiIGZpbGw9IiMwMDAwMDAzNSIvPgoKICA8IS0tIEhpZ2hsaWdodDogc3VidGxlIGxpZ2h0IGZyb20gdG9wLWxlZnQgLS0+CiAgPHBhdGggZD0iTTEwMCwxMzIgTDQwMCw4OCBMNDAwLDMyMCBMMjAwLDI5NSBMMTAwLDIxNSBaIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wMzUiLz4KPC9zdmc+"
+          src="jacket.png"
           alt="세탁 의류"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
         >
         <span class="img-fallback" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; font-size:80px;">🧥</span>
         <div class="explain-img-overlay">
@@ -936,15 +936,18 @@ function renderResult() {
       </div>
     </div>
     <div class="table-card">
-      <div class="table-head">
-        <div class="th" style="text-align:left">품목</div>
-        <div class="th">정가</div>
-        <div class="th">구독할인<br>(세탁권)</div>
-        <div class="th">프리미엄</div>
-        <div class="th"></div>
+      <div class="table-scroll">
+        <div class="table-head col-grid">
+          <div class="th" style="text-align:left">품목</div>
+          <div class="th">정가</div>
+          <div class="th">구독할인</div>
+          <div class="th">구독차감</div>
+          <div class="th"></div>
+          <div class="th">프리미엄</div>
+        </div>
+        <div id="rowsWrap"></div>
+        <div class="table-foot col-grid" id="footWrap"></div>
       </div>
-      <div id="rowsWrap"></div>
-      <div class="table-foot" id="footWrap"></div>
     </div>
   `;
   renderRows();
@@ -960,25 +963,22 @@ function renderRows() {
     if (!p) return;
     const q = it.qty;
     const div = document.createElement('div');
-    div.className = 'item-row';
+    div.className = 'item-row col-grid';
     div.style.animationDelay = `${idx * 0.07}s`;
     div.innerHTML = `
       <div class="item-cell">
         <img class="item-img" src="${it.thumb}" alt="${it.name}">
         <div class="item-info">
           <div class="name">${it.name}</div>
-          <div class="brand${it.brand ? '' : ' unknown'}">${it.brand || '브랜드 미확인'}</div>
         </div>
       </div>
       <div class="cell-정가">${w(p.정가 * q)}</div>
-      <div class="cell-sub">
-        <span class="sub-price">${w(p.구독 * q)}</span>
-        ${p.차감 ? `<span class="sub-badge">(${p.차감 * q}개)</span>` : ''}
-      </div>
-      <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) : '-'}</div>
+      <div class="cell-sub">${w(p.구독 * q)}</div>
+      <div class="cell-차감">${p.차감 ? p.차감 * q + '개' : '-'}</div>
       <div class="cell-del">
         <button class="del-btn" onclick="delItem(${idx})">✕</button>
       </div>
+      <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) : '-'}</div>
     `;
     wrap.appendChild(div);
   });
@@ -991,12 +991,10 @@ function renderFoot() {
   f.innerHTML = `
     <div class="foot-label">합계</div>
     <div class="foot-정가">${w(t.정가)}원</div>
-    <div class="foot-sub">
-      <div class="foot-sub-price">${w(t.구독)}원</div>
-      ${t.차감 ? `<div class="foot-sub-badge">(${t.차감}개)</div>` : ''}
-    </div>
-    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
+    <div class="foot-sub">${w(t.구독)}원</div>
+    <div class="foot-차감">${t.차감 ? t.차감 + '개' : '-'}</div>
     <div></div>
+    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
   `;
   const sn = document.getElementById('sumNum');
   if (sn) sn.textContent = w(t.정가);
