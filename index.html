@@ -258,17 +258,21 @@
       cursor: pointer;
     }
 
-    /* Camera controls */
+    /* Camera controls — captureBtn 절대 중앙 */
     .cam-controls {
+      position: relative;
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 28px 4px;
     }
-    .cam-controls > * { flex: 1; }
-    .cam-controls > #captureBtn { flex: 0 0 auto; }
+    #captureBtn {
+      position: absolute !important;
+      left: 50%; transform: translateX(-50%);
+    }
     .btn-album {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 500;
       background: none; border: none; cursor: pointer;
+      width: 72px;
     }
     .album-thumb {
       width: 46px; height: 46px; border-radius: 10px;
@@ -285,7 +289,7 @@
       background: transparent;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: transform 0.12s;
-      flex-shrink: 0;
+      flex-shrink: 0; z-index: 1;
     }
     #captureBtn:active { transform: scale(0.9); }
     #captureBtn .cap-inner {
@@ -295,12 +299,13 @@
 
     .btn-price {
       background: #2BAE66; color: #fff;
-      border: none; border-radius: 22px;
-      font-size: 13px; font-weight: 700;
-      padding: 11px 14px; cursor: pointer;
+      border: none; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+      padding: 8px 10px; cursor: pointer;
       opacity: 0.45; pointer-events: none;
       transition: opacity 0.2s;
-      text-align: right; line-height: 1.3;
+      text-align: center; line-height: 1.35;
+      width: 72px;
     }
     .btn-price.on { opacity: 1; pointer-events: auto; }
 
@@ -327,13 +332,12 @@
       margin-bottom: 10px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     }
-    .summary-label { font-size: 15px; color: #888; margin-bottom: 6px; }
     .summary-price {
-      font-size: 22px; font-weight: 700; color: #111;
-      display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px;
+      font-size: 20px; font-weight: 700; color: #111;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .summary-price .price-num {
-      font-size: 22px; font-weight: 900; color: #FF3B30;
+      font-size: 20px; font-weight: 900; color: #FF3B30;
     }
 
     /* Table card */
@@ -349,25 +353,25 @@
       -webkit-overflow-scrolling: touch;
     }
     /* 컬럼: 품목 | 정가 | 구독할인 | 구독차감 | 프리미엄
-       앞 4개가 화면에 딱 맞고 프리미엄이 살짝 보이도록 축소 */
+       앞 4개가 화면에 맞고 프리미엄이 살짝 노출 */
     .col-grid {
       display: grid;
-      grid-template-columns: 118px 60px 72px 58px 72px;
-      min-width: 380px;
+      grid-template-columns: 78px 72px 80px 66px 72px;
+      min-width: 368px;
     }
     .table-head {
-      padding: 10px 10px;
+      padding: 10px 8px;
       background: #fafafa;
       border-bottom: 1px solid #efefef;
     }
     .th {
-      font-size: 13px; font-weight: 700; color: #999;
+      font-size: 14px; font-weight: 700; color: #999;
       text-align: center; line-height: 1.3;
     }
-    .th:first-child { text-align: left; }
+    .th:first-child { text-align: center; }
 
     .item-row {
-      padding: 12px 10px;
+      padding: 12px 8px;
       border-bottom: 1px solid #f2f2f2;
       align-items: center;
       animation: fadeUp 0.25s ease forwards;
@@ -379,14 +383,14 @@
       to   { opacity: 1; transform: none; }
     }
 
+    /* 품목 셀 — 사진 위, 이름 아래 */
     .item-cell {
-      display: flex; flex-direction: row; align-items: center; gap: 8px;
-      min-width: 0;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
     }
     /* 사진 래퍼 — X 버튼 절대 위치 기준 */
     .item-img-wrap {
       position: relative; flex-shrink: 0;
-      width: 50px; height: 50px;
+      width: 46px; height: 46px;
     }
     .item-img {
       width: 100%; height: 100%; border-radius: 8px;
@@ -395,37 +399,38 @@
     /* 사진 우상단 빨간 X */
     .img-del-btn {
       position: absolute; top: -5px; right: -5px;
-      width: 18px; height: 18px; border-radius: 50%;
+      width: 17px; height: 17px; border-radius: 50%;
       background: #FF3B30; border: 1.5px solid #fff;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 900; color: #fff; line-height: 1;
+      font-size: 8px; font-weight: 900; color: #fff; line-height: 1;
       padding: 0;
     }
-    .item-info { display: flex; flex-direction: column; min-width: 0; }
+    .item-info { width: 100%; }
     .item-info .name {
-      font-size: 15px; font-weight: 600; color: #111; line-height: 1.3;
-      word-break: keep-all; white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
+      font-size: 11px; font-weight: 600; color: #111; line-height: 1.3;
+      text-align: center; word-break: keep-all;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    .cell-정가 { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
-    .cell-sub  { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
-    .cell-차감 { text-align: center; font-size: 15px; font-weight: 600; color: #888; }
-    .cell-premium { text-align: center; font-size: 15px; font-weight: 600; color: #7C3AED; }
+    .cell-정가   { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+    .cell-sub    { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+    .cell-차감   { text-align: center; font-size: 15px; font-weight: 600; color: #888; }
+    .cell-premium{ text-align: center; font-size: 15px; font-weight: 600; color: #333; }
 
     /* Footer row */
     .table-foot {
-      padding: 12px 10px;
+      padding: 12px 8px;
       background: #fafafa;
       border-top: 2px solid #efefef;
       align-items: center;
     }
-    .foot-label { font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
+    .foot-label { font-size: 16px; font-weight: 800; color: #111; text-align: center; white-space: nowrap; }
     .foot-정가  { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
     .foot-sub   { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
     .foot-차감  { text-align: center; font-size: 15px; font-weight: 800; color: #555; white-space: nowrap; }
-    .foot-premium { text-align: center; font-size: 16px; font-weight: 800; color: #7C3AED; white-space: nowrap; }
+    .foot-premium { text-align: center; font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
 
     /* ── UPSELL CARD ── */
     .upsell-card {
@@ -967,10 +972,7 @@ function renderResult() {
   const t = totals();
   body.innerHTML = `
     <div class="summary-card">
-      <div class="summary-label">총 예상 세탁비는</div>
-      <div class="summary-price">
-        <span class="price-num" id="sumNum">${w(t.정가)}</span>원 이예요
-      </div>
+      <div class="summary-price">총 예상 세탁비는 <span class="price-num" id="sumNum">${w(t.정가)}</span>원 이예요</div>
     </div>
     <div class="upsell-card" id="upsellCard"></div>
     <div class="table-card">
