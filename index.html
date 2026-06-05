@@ -79,16 +79,19 @@
     #screen2 { background: #fff; }
     #screen2 .body {
       flex: 1; overflow-y: auto;
-      padding: 20px 16px 8px;
+      padding: 14px 16px 8px;
     }
     .explain-img-wrap {
-      width: 100%; aspect-ratio: 1 / 1.1;
-      border-radius: 20px; overflow: hidden;
+      width: 100%; aspect-ratio: 16 / 9;
+      border-radius: 16px; overflow: hidden;
       background: #f0f0f0;
       display: flex; align-items: center; justify-content: center;
       font-size: 100px;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       position: relative;
+    }
+    .explain-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
     }
     .explain-img-overlay {
       position: absolute; inset: 0;
@@ -102,12 +105,12 @@
       display: flex; align-items: center; gap: 5px;
     }
     .explain-title {
-      font-size: 22px; font-weight: 800; line-height: 1.35; color: #111;
-      margin-bottom: 10px;
+      font-size: 20px; font-weight: 800; line-height: 1.35; color: #111;
+      margin-bottom: 8px;
     }
     .explain-desc {
-      font-size: 14px; color: #777; line-height: 1.7;
-      margin-bottom: 28px;
+      font-size: 13px; color: #777; line-height: 1.6;
+      margin-bottom: 18px;
     }
     .btn-camera {
       width: 100%; height: 54px;
