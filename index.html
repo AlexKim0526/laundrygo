@@ -379,6 +379,28 @@
       text-align: center; line-height: 1.3;
     }
     .th:first-child { text-align: center; }
+    /* 선택 가능한 컬럼 헤더 */
+    .th[data-col] {
+      cursor: pointer; border-radius: 6px;
+      padding: 4px 2px; margin: -4px -2px;
+      transition: color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .th[data-col].selected {
+      color: #111;
+    }
+    .th[data-col].selected::after {
+      content: '';
+      position: absolute; bottom: -10px; left: 10%; right: 10%;
+      height: 2.5px; background: #2BAE66; border-radius: 2px;
+    }
+    /* 선택된 컬럼 값 강조 */
+    .col-active {
+      color: #111 !important; font-weight: 700 !important;
+    }
+    .col-active-dim {
+      color: #888 !important; font-weight: 700 !important;
+    }
 
     .item-row {
       padding: 12px 8px;
@@ -428,6 +450,22 @@
     .cell-sub    { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
     .cell-차감   { text-align: center; font-size: 15px; font-weight: 600; color: #888; }
     .cell-premium{ text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+
+    /* 가격 셀 — 클릭 가능 */
+    .price-cell {
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 4px 2px;
+      margin: -4px -2px;
+      transition: background 0.12s;
+      align-self: center;
+    }
+    .price-cell:active { opacity: 0.65; }
+    .price-cell.cell-selected {
+      background: #edfaf3;
+      color: #2BAE66 !important;
+      font-weight: 700 !important;
+    }
 
     /* Footer row */
     .table-foot {
@@ -740,11 +778,13 @@ const CATS = RAW.map(r => r[0]).join(', ');
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
-let stream     = null;
-let photos     = [];   // data-URL strings
-let items      = [];   // { name, qty, thumb }
-let demoMode   = false;
-let curScreen  = 'screen2';
+let stream      = null;
+let photos      = [];   // data-URL strings
+let items       = [];   // { name, qty, thumb }
+let demoMode    = false;
+let curScreen   = 'screen2';
+let selectedCol = '정가'; // 선택된 가격 컬럼
+let itemCols    = {};   // 개별 의류 컬럼 선택 override { idx: col }
 
 // ═══════════════════════════════════════
 // INIT
@@ -979,20 +1019,22 @@ function renderResult() {
     return;
   }
 
+  selectedCol = '정가';
+  itemCols = {};
   const t = totals();
   body.innerHTML = `
     <div class="summary-card">
-      <div class="summary-price">총 예상 세탁비는 <span class="price-num" id="sumNum">${w(t.정가)}</span>원 이예요</div>
+      <div class="summary-price"><span id="sumLabel">총 예상 세탁비는</span> <span class="price-num" id="sumNum">${w(t.정가)}</span><span id="sumUnit">원</span> 이예요</div>
     </div>
     <div class="upsell-card" id="upsellCard"></div>
     <div class="table-card">
       <div class="table-scroll">
         <div class="table-head col-grid">
           <div class="th">품목</div>
-          <div class="th">정가</div>
-          <div class="th">구독할인</div>
-          <div class="th">구독차감</div>
-          <div class="th">프리미엄</div>
+          <div class="th selected" data-col="정가" onclick="selectCol('정가')">정가</div>
+          <div class="th" data-col="구독할인" onclick="selectCol('구독할인')">구독할인</div>
+          <div class="th" data-col="구독차감" onclick="selectCol('구독차감')">구독차감</div>
+          <div class="th" data-col="프리미엄" onclick="selectCol('프리미엄')">프리미엄</div>
         </div>
         <div id="rowsWrap"></div>
         <div class="table-foot col-grid" id="footWrap"></div>
@@ -1011,6 +1053,7 @@ function renderRows() {
     const p = PMAP[it.name];
     if (!p) return;
     const q = it.qty;
+    const ec = getItemCol(idx);
     const div = document.createElement('div');
     div.className = 'item-row col-grid';
     div.style.animationDelay = `${idx * 0.07}s`;
@@ -1024,13 +1067,14 @@ function renderRows() {
           <div class="name">${it.name}</div>
         </div>
       </div>
-      <div class="cell-정가">${w(p.정가 * q)}원</div>
-      <div class="cell-sub">${w(p.구독 * q)}원</div>
-      <div class="cell-차감">${p.차감 ? p.차감 * q + '개' : '-'}</div>
-      <div class="cell-premium">${p.프리미엄 ? w(p.프리미엄 * q) + '원' : '-'}</div>
+      <div class="price-cell cell-정가${ec==='정가'?' cell-selected':''}" onclick="selectItem(${idx},'정가')">${w(p.정가 * q)}원</div>
+      <div class="price-cell cell-sub${ec==='구독할인'?' cell-selected':''}" onclick="selectItem(${idx},'구독할인')">${w(p.구독 * q)}원</div>
+      <div class="price-cell cell-차감${ec==='구독차감'?' cell-selected':''}" onclick="selectItem(${idx},'구독차감')">${p.차감 ? p.차감 * q + '개' : '-'}</div>
+      <div class="price-cell cell-premium${ec==='프리미엄'?' cell-selected':''}" onclick="selectItem(${idx},'프리미엄')">${p.프리미엄 ? w(p.프리미엄 * q) + '원' : '-'}</div>
     `;
     wrap.appendChild(div);
   });
+  updateColHighlight();
 }
 
 function renderFoot() {
@@ -1045,21 +1089,30 @@ function renderFoot() {
     <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
   `;
   renderUpsell();
-  const sn = document.getElementById('sumNum');
-  if (sn) sn.textContent = w(t.정가);
+  updateColHighlight();
+  updateSummary();
 }
 
 function totals() {
-  let 정가=0, 구독=0, 차감=0, 프리미엄=0;
-  items.forEach(it => {
+  let 정가=0, 구독=0, 차감=0, 프리미엄=0, selected=0;
+  let firstCol=null, selAllSame=true;
+  items.forEach((it, idx) => {
     const p = PMAP[it.name]; if (!p) return;
     const q = it.qty;
     정가      += p.정가 * q;
     구독      += p.구독 * q;
     차감      += p.차감 * q;
     프리미엄  += p.프리미엄 * q;
+    const ec = getItemCol(idx);
+    if (firstCol === null) firstCol = ec;
+    else if (firstCol !== ec) selAllSame = false;
+    if      (ec === '정가')     selected += p.정가 * q;
+    else if (ec === '구독할인') selected += p.구독 * q;
+    else if (ec === '구독차감') selected += p.차감 * q;
+    else if (ec === '프리미엄') selected += (p.프리미엄 || 0) * q;
   });
-  return { 정가, 구독, 차감, 프리미엄 };
+  const selCol = selAllSame ? (firstCol || selectedCol) : 'mixed';
+  return { 정가, 구독, 차감, 프리미엄, selected, selCol };
 }
 
 function delItem(idx) {
@@ -1069,6 +1122,70 @@ function delItem(idx) {
   } else {
     renderRows();
     renderFoot();
+  }
+}
+
+// ═══════════════════════════════════════
+// COLUMN SELECTION
+// ═══════════════════════════════════════
+function getItemCol(idx) {
+  return itemCols[idx] !== undefined ? itemCols[idx] : selectedCol;
+}
+
+function selectItem(idx, col) {
+  // 이미 선택된 칼럼이면 해제(전체 기본값으로), 아니면 선택
+  if (itemCols[idx] === col) {
+    delete itemCols[idx];
+  } else {
+    itemCols[idx] = col;
+  }
+  renderRows();
+  renderFoot();
+}
+
+function selectCol(col) {
+  selectedCol = col;
+  itemCols = {}; // 개별 선택 초기화
+  document.querySelectorAll('.th[data-col]').forEach(el => {
+    el.classList.toggle('selected', el.dataset.col === col);
+  });
+  renderRows(); // cell-selected 클래스 재렌더
+  updateColHighlight();
+  updateSummary();
+}
+
+function updateColHighlight() {
+  // 푸터 행만 컬럼 하이라이트 (행 셀은 cell-selected로 처리)
+  const footMap = {
+    '정가':    '.foot-정가',
+    '구독할인': '.foot-sub',
+    '구독차감': '.foot-차감',
+    '프리미엄': '.foot-premium',
+  };
+  Object.keys(footMap).forEach(col => {
+    const active = col === selectedCol;
+    const isDim = col === '구독차감' && active;
+    document.querySelectorAll(footMap[col]).forEach(el => {
+      el.classList.toggle('col-active', active && !isDim);
+      el.classList.toggle('col-active-dim', isDim);
+    });
+  });
+}
+
+function updateSummary() {
+  const t = totals();
+  const sn = document.getElementById('sumNum');
+  const su = document.getElementById('sumUnit');
+  const sl = document.getElementById('sumLabel');
+  if (!sn) return;
+  if (t.selCol === '구독차감') {
+    sn.textContent = t.selected;
+    su && (su.textContent = '개');
+    sl && (sl.textContent = '총 필요 세탁권은');
+  } else {
+    sn.textContent = w(t.selected);
+    su && (su.textContent = '원');
+    sl && (sl.textContent = '총 예상 세탁비는');
   }
 }
 
