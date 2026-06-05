@@ -1,0 +1,16 @@
+{
+  "name": "laundrygo-quote",
+  "version": "1.0.0",
+  "description": "런드리고 즉시 세탁 견적 서비스",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
