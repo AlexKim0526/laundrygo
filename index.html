@@ -357,115 +357,107 @@
       margin-bottom: 14px;
       overflow: hidden;
     }
-    /* 가로 스크롤 래퍼 */
-    .table-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+    /* ── TABS ── */
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 10px; }
+    .tab-btn {
+      flex: 1; padding: 10px 0; text-align: center;
+      font-size: 13px; font-weight: 700; border-radius: 12px;
+      border: none; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
     }
-    /* 컬럼: 품목 | 정가 | 구독할인 | 구독차감 | 프리미엄
-       앞 4개가 화면에 맞고 프리미엄이 살짝 노출 */
-    .col-grid {
-      display: grid;
-      grid-template-columns: 78px 72px 80px 66px 72px;
-      min-width: 368px;
-    }
-    .table-head {
-      padding: 10px 8px;
-      background: #fafafa;
-      border-bottom: 1px solid #efefef;
-    }
-    .th {
-      font-size: 14px; font-weight: 700; color: #999;
-      text-align: center; line-height: 1.3;
-    }
-    .th:first-child { text-align: center; }
-    /* 선택 가능한 컬럼 헤더 */
-    .th[data-col] {
-      cursor: pointer; border-radius: 6px;
-      padding: 4px 2px; margin: -4px -2px;
-      transition: color 0.15s, background 0.15s;
-      position: relative;
-    }
-    .th[data-col].selected {
-      color: #111;
-    }
-    .th[data-col].selected::after {
-      content: '';
-      position: absolute; bottom: -10px; left: 10%; right: 10%;
-      height: 2.5px; background: #2BAE66; border-radius: 2px;
-    }
-    /* 선택된 컬럼 값 강조 */
-    .col-active {
-      color: #111 !important; font-weight: 700 !important;
-    }
-    .col-active-dim {
-      color: #888 !important; font-weight: 700 !important;
-    }
+    .tab-btn.active  { background: #111; color: #fff; }
+    .tab-btn.inactive { background: #fff; color: #999; border: 1.5px solid #e0e0e0; }
 
+    /* ── TABLE CARD ── */
+    .table-card {
+      background: #fff; border-radius: 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      margin-bottom: 10px; overflow: hidden;
+      padding: 0 14px;
+    }
     .item-row {
-      padding: 12px 8px;
-      border-bottom: 1px solid #f2f2f2;
-      align-items: center;
-      animation: fadeUp 0.25s ease forwards;
-      opacity: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0; border-bottom: 1px solid #f2f2f2;
+      animation: fadeUp 0.25s ease forwards; opacity: 0;
     }
     .item-row:last-child { border-bottom: none; }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(5px); }
       to   { opacity: 1; transform: none; }
     }
-
-    /* 품목 셀 — 사진 위, 이름 아래 */
-    .item-cell {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    .item-thumb {
+      width: 44px; height: 44px; border-radius: 8px;
+      flex-shrink: 0; position: relative;
+      background: #f0f0f0;
     }
-    /* 사진 래퍼 — X 버튼 절대 위치 기준 */
-    .item-img-wrap {
-      position: relative; flex-shrink: 0;
-      width: 46px; height: 46px;
-    }
-    .item-img {
-      width: 100%; height: 100%; border-radius: 8px;
-      object-fit: cover; background: #f0f0f0; display: block;
-    }
-    /* 사진 우상단 빨간 X */
+    .item-thumb img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; }
     .img-del-btn {
       position: absolute; top: -5px; right: -5px;
       width: 17px; height: 17px; border-radius: 50%;
       background: #FF3B30; border: 1.5px solid #fff;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 8px; font-weight: 900; color: #fff; line-height: 1;
-      padding: 0;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 900; color: #fff; line-height: 1; padding: 0;
     }
-    .item-info { width: 100%; }
-    .item-info .name {
-      font-size: 11px; font-weight: 600; color: #111; line-height: 1.3;
-      text-align: center; word-break: keep-all;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 13px; font-weight: 600; color: #111; word-break: keep-all; line-height: 1.3; }
+    .item-prem-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: #f3eeff; color: #6D28D9;
+      font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 6px;
+      margin-top: 3px;
     }
+    .item-price-col { text-align: right; flex-shrink: 0; }
+    .price-main       { font-size: 14px; font-weight: 700; color: #111; white-space: nowrap; }
+    .price-main.prem  { color: #6D28D9; }
+    .price-sub        { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+    .credit-main      { font-size: 14px; font-weight: 700; color: #c05000; white-space: nowrap; }
+    .credit-sub       { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+    /* 합계 푸터 */
+    .table-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-top: 1.5px solid #efefef;
+    }
+    .foot-label       { font-size: 14px; font-weight: 800; color: #111; }
+    .foot-total       { text-align: right; }
+    .foot-price-main  { font-size: 15px; font-weight: 800; color: #FF3B30; white-space: nowrap; }
+    .foot-price-sub   { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
 
-    .cell-정가   { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
-    .cell-sub    { text-align: center; font-size: 15px; font-weight: 600; color: #333; }
-    .cell-차감   { text-align: center; font-size: 15px; font-weight: 600; color: #888; }
-    .cell-premium{ text-align: center; font-size: 15px; font-weight: 600; color: #333; }
+    /* ── PREMIUM SECTION ── */
+    .premium-card {
+      background: #faf7ff; border-radius: 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      margin-bottom: 10px; padding: 14px 16px;
+      border: 1px solid #e8d8ff;
+    }
+    .premium-card-title {
+      font-size: 13px; font-weight: 700; color: #6D28D9;
+      margin-bottom: 10px;
+    }
+    .prem-item-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 0.5px solid #ede8fb;
+    }
+    .prem-item-row:last-child { border-bottom: none; }
+    .prem-item-name  { flex: 1; font-size: 13px; color: #333; }
+    .prem-item-price { font-size: 13px; font-weight: 700; color: #6D28D9; flex-shrink: 0; margin-right: 8px; white-space: nowrap; }
+    .prem-toggle-btn {
+      font-size: 11px; font-weight: 700; border: none; border-radius: 7px;
+      padding: 5px 10px; cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .prem-toggle-btn.add    { background: #6D28D9; color: #fff; }
+    .prem-toggle-btn.add:hover { background: #5B21B6; }
+    .prem-toggle-btn.remove { background: #ede8fb; color: #6D28D9; }
 
-    /* 가격 셀 — 클릭 가능 */
-    .price-cell {
-      cursor: pointer;
-      border-radius: 8px;
-      padding: 4px 2px;
-      margin: -4px -2px;
-      transition: background 0.12s;
-      align-self: center;
+    /* ── 구독 탭 업셀 ── */
+    .sub-upsell-card {
+      background: #edfaf3; border-radius: 14px;
+      padding: 12px 14px; margin-bottom: 10px;
+      border: 1px solid #86efac; display: none;
     }
-    .price-cell:active { opacity: 0.65; }
-    .price-cell.cell-selected {
-      background: #edfaf3;
-      color: #2BAE66 !important;
-      font-weight: 700 !important;
-    }
+    .sub-upsell-card.show { display: block; }
+    .sub-upsell-msg { font-size: 13px; color: #166534; line-height: 1.5; }
+    .sub-upsell-msg strong { font-weight: 700; }
 
     /* Footer row */
     .table-foot {
@@ -815,8 +807,8 @@ let photos      = [];   // data-URL strings
 let items       = [];   // { name, qty, thumb }
 let demoMode    = false;
 let curScreen   = 'screen2';
-let selectedCol = '정가'; // 선택된 가격 컬럼
-let itemCols    = {};   // 개별 의류 컬럼 선택 override { idx: col }
+let activeTab   = '일반';    // '일반' | '구독'
+let premiumSet  = new Set(); // 프리미엄 선택된 item 인덱스
 
 // ═══════════════════════════════════════
 // INIT
@@ -1045,36 +1037,33 @@ async function mockAnalyze() {
 // ═══════════════════════════════════════
 function renderResult() {
   const body = document.getElementById('resultBody');
-
   if (!items.length) {
     body.innerHTML = `<div class="empty"><span class="empty-ico">🔍</span>의류를 인식하지 못했어요.<br>다시 촬영해주세요.</div>`;
     return;
   }
-
-  selectedCol = '정가';
-  itemCols = {};
+  activeTab  = '일반';
+  premiumSet = new Set();
   const t = totals();
   body.innerHTML = `
     <div class="summary-card">
-      <div class="summary-price"><span id="sumLabel">총 예상 세탁비는</span> <span class="price-num" id="sumNum">${w(t.정가)}</span><span id="sumUnit">원</span> 이예요</div>
+      <div class="summary-price"><span id="sumLabel">총 예상 세탁비는</span> <span class="price-num" id="sumNum">${w(t.실결제)}</span><span id="sumUnit">원</span> 이예요</div>
     </div>
     <div class="upsell-card" id="upsellCard"></div>
-    <div class="table-card">
-      <div class="table-scroll">
-        <div class="table-head col-grid">
-          <div class="th">품목</div>
-          <div class="th selected" data-col="정가" onclick="selectCol('정가')">정가</div>
-          <div class="th" data-col="구독할인" onclick="selectCol('구독할인')">구독할인</div>
-          <div class="th" data-col="구독차감" onclick="selectCol('구독차감')">구독차감</div>
-          <div class="th" data-col="프리미엄" onclick="selectCol('프리미엄')">프리미엄</div>
-        </div>
-        <div id="rowsWrap"></div>
-        <div class="table-foot col-grid" id="footWrap"></div>
-      </div>
+    <div class="sub-upsell-card" id="subUpsellCard"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active"   data-tab="일반" onclick="selectTab('일반')">일반 고객</button>
+      <button class="tab-btn inactive" data-tab="구독" onclick="selectTab('구독')">구독 회원</button>
     </div>
+    <div class="table-card">
+      <div id="rowsWrap"></div>
+      <div class="table-foot" id="footWrap"></div>
+    </div>
+    <div id="premiumSection"></div>
   `;
   renderRows();
-  renderFoot();   // renderFoot 내부에서 renderUpsell() 호출됨
+  renderFoot();
+  renderUpsell();
+  renderPremiumSection();
 }
 
 function renderRows() {
@@ -1085,123 +1074,147 @@ function renderRows() {
     const p = PMAP[it.name];
     if (!p) return;
     const q = it.qty;
-    const ec = getItemCol(idx);
+    const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
     const div = document.createElement('div');
-    div.className = 'item-row col-grid';
+    div.className = 'item-row';
     div.style.animationDelay = `${idx * 0.07}s`;
+
+    let priceHtml = '';
+    if (activeTab === '일반') {
+      if (isPrem) {
+        priceHtml = `<div class="item-price-col"><div class="price-main prem">${w(p.프리미엄 * q)}원</div></div>`;
+      } else {
+        priceHtml = `<div class="item-price-col"><div class="price-main">${w(p.정가 * q)}원</div></div>`;
+      }
+    } else {
+      if (isPrem) {
+        priceHtml = `<div class="item-price-col"><div class="price-main prem">${w(p.프리미엄 * q)}원</div><div class="price-sub">현금 결제</div></div>`;
+      } else {
+        const creditText = p.차감 * q > 0 ? `세탁권 ${p.차감 * q}개` : `${w(p.구독 * q)}원`;
+        const subText    = p.차감 * q > 0 ? `소진시 ${w(p.구독 * q)}원` : '';
+        priceHtml = `<div class="item-price-col"><div class="credit-main">${creditText}</div>${subText ? `<div class="credit-sub">${subText}</div>` : ''}</div>`;
+      }
+    }
+    const premBadge = isPrem ? `<div class="item-prem-badge">✦ 프리미엄</div>` : '';
+
     div.innerHTML = `
-      <div class="item-cell">
-        <div class="item-img-wrap">
-          <img class="item-img" src="${it.thumb}" alt="${it.name}">
-          <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
-        </div>
-        <div class="item-info">
-          <div class="name">${it.name}</div>
-        </div>
+      <div class="item-thumb">
+        <img src="${it.thumb}" alt="${it.name}">
+        <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
       </div>
-      <div class="price-cell cell-정가${ec==='정가'?' cell-selected':''}" onclick="selectItem(${idx},'정가')">${w(p.정가 * q)}원</div>
-      <div class="price-cell cell-sub${ec==='구독할인'?' cell-selected':''}" onclick="selectItem(${idx},'구독할인')">${w(p.구독 * q)}원</div>
-      <div class="price-cell cell-차감${ec==='구독차감'?' cell-selected':''}" onclick="selectItem(${idx},'구독차감')">${p.차감 ? p.차감 * q + '개' : '-'}</div>
-      <div class="price-cell cell-premium${ec==='프리미엄'?' cell-selected':''}" onclick="selectItem(${idx},'프리미엄')">${p.프리미엄 ? w(p.프리미엄 * q) + '원' : '-'}</div>
+      <div class="item-info">
+        <div class="item-name">${it.name}</div>
+        ${premBadge}
+      </div>
+      ${priceHtml}
     `;
     wrap.appendChild(div);
   });
-  updateColHighlight();
 }
 
 function renderFoot() {
   const f = document.getElementById('footWrap');
   if (!f) return;
   const t = totals();
-  f.innerHTML = `
-    <div class="foot-label">합계</div>
-    <div class="foot-정가">${w(t.정가)}원</div>
-    <div class="foot-sub">${w(t.구독)}원</div>
-    <div class="foot-차감">${t.차감 ? t.차감 + '개' : '-'}</div>
-    <div class="foot-premium">${t.프리미엄 ? w(t.프리미엄) + '원' : '-'}</div>
-  `;
-  renderUpsell();
-  updateColHighlight();
+  let inner = '';
+  if (activeTab === '일반') {
+    inner = `<div class="foot-label">합계</div>
+      <div class="foot-total"><div class="foot-price-main">${w(t.실결제)}원</div></div>`;
+  } else {
+    if (t.차감 > 0 && t.구독현금 > 0) {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total">
+          <div class="foot-price-main" style="color:#c05000">세탁권 ${t.차감}개</div>
+          <div class="foot-price-sub">+ ${w(t.구독현금)}원 현금 추가</div>
+        </div>`;
+    } else if (t.차감 > 0) {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total">
+          <div class="foot-price-main" style="color:#c05000">세탁권 ${t.차감}개</div>
+          <div class="foot-price-sub">소진시 ${w(t.구독)}원</div>
+        </div>`;
+    } else {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total"><div class="foot-price-main">${w(t.구독현금)}원</div></div>`;
+    }
+  }
+  f.innerHTML = inner;
   updateSummary();
 }
 
 function totals() {
-  let 정가=0, 구독=0, 차감=0, 프리미엄=0, selected=0;
-  let firstCol=null, selAllSame=true;
+  let 정가=0, 구독=0, 차감=0, 구독현금=0, 실결제=0;
   items.forEach((it, idx) => {
     const p = PMAP[it.name]; if (!p) return;
     const q = it.qty;
-    정가      += p.정가 * q;
-    구독      += p.구독 * q;
-    차감      += p.차감 * q;
-    프리미엄  += p.프리미엄 * q;
-    const ec = getItemCol(idx);
-    if (firstCol === null) firstCol = ec;
-    else if (firstCol !== ec) selAllSame = false;
-    if      (ec === '정가')     selected += p.정가 * q;
-    else if (ec === '구독할인') selected += p.구독 * q;
-    else if (ec === '구독차감') selected += p.차감 * q;
-    else if (ec === '프리미엄') selected += (p.프리미엄 || 0) * q;
+    const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
+    정가 += p.정가 * q;
+    if (isPrem) {
+      구독현금 += p.프리미엄 * q;
+      실결제   += p.프리미엄 * q;
+    } else {
+      구독  += p.구독 * q;
+      차감  += p.차감 * q;
+      실결제 += p.정가 * q;
+    }
   });
-  const selCol = selAllSame ? (firstCol || selectedCol) : 'mixed';
-  return { 정가, 구독, 차감, 프리미엄, selected, selCol };
+  return { 정가, 구독, 차감, 구독현금, 실결제 };
 }
 
 function delItem(idx) {
   items.splice(idx, 1);
+  premiumSet = new Set([...premiumSet].filter(i => i !== idx).map(i => i > idx ? i - 1 : i));
   if (!items.length) {
     renderResult();
   } else {
     renderRows();
     renderFoot();
+    renderUpsell();
+    renderPremiumSection();
   }
 }
 
 // ═══════════════════════════════════════
-// COLUMN SELECTION
+// TAB & PREMIUM SELECTION
 // ═══════════════════════════════════════
-function getItemCol(idx) {
-  return itemCols[idx] !== undefined ? itemCols[idx] : selectedCol;
-}
-
-function selectItem(idx, col) {
-  // 이미 선택된 칼럼이면 해제(전체 기본값으로), 아니면 선택
-  if (itemCols[idx] === col) {
-    delete itemCols[idx];
-  } else {
-    itemCols[idx] = col;
-  }
+function selectTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    el.classList.toggle('active',   el.dataset.tab === tab);
+    el.classList.toggle('inactive', el.dataset.tab !== tab);
+  });
   renderRows();
   renderFoot();
+  renderUpsell();
 }
 
-function selectCol(col) {
-  selectedCol = col;
-  itemCols = {}; // 개별 선택 초기화
-  document.querySelectorAll('.th[data-col]').forEach(el => {
-    el.classList.toggle('selected', el.dataset.col === col);
-  });
-  renderRows(); // cell-selected 클래스 재렌더
-  updateColHighlight();
+function togglePremium(idx) {
+  if (premiumSet.has(idx)) premiumSet.delete(idx);
+  else                      premiumSet.add(idx);
+  renderRows();
+  renderFoot();
+  renderPremiumSection();
   updateSummary();
 }
 
-function updateColHighlight() {
-  // 푸터 행만 컬럼 하이라이트 (행 셀은 cell-selected로 처리)
-  const footMap = {
-    '정가':    '.foot-정가',
-    '구독할인': '.foot-sub',
-    '구독차감': '.foot-차감',
-    '프리미엄': '.foot-premium',
-  };
-  Object.keys(footMap).forEach(col => {
-    const active = col === selectedCol;
-    const isDim = col === '구독차감' && active;
-    document.querySelectorAll(footMap[col]).forEach(el => {
-      el.classList.toggle('col-active', active && !isDim);
-      el.classList.toggle('col-active-dim', isDim);
-    });
-  });
+function renderPremiumSection() {
+  const sec = document.getElementById('premiumSection');
+  if (!sec) return;
+  const eligible = items.map((it, idx) => ({ it, idx, p: PMAP[it.name] }))
+                        .filter(({ p }) => p && p.프리미엄 > 0);
+  if (!eligible.length) { sec.innerHTML = ''; return; }
+  sec.innerHTML = `
+    <div class="premium-card">
+      <div class="premium-card-title">✦ 프리미엄 서비스 추가</div>
+      ${eligible.map(({ it, idx, p }) => {
+        const on = premiumSet.has(idx);
+        return `<div class="prem-item-row">
+          <div class="prem-item-name">${it.name}</div>
+          <div class="prem-item-price">${w(p.프리미엄 * it.qty)}원</div>
+          <button class="prem-toggle-btn ${on ? 'remove' : 'add'}" onclick="togglePremium(${idx})">${on ? '취소' : '추가'}</button>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 function updateSummary() {
@@ -1210,16 +1223,23 @@ function updateSummary() {
   const su = document.getElementById('sumUnit');
   const sl = document.getElementById('sumLabel');
   if (!sn) return;
-  if (t.selCol === '구독차감') {
-    sn.textContent = t.selected;
-    su && (su.textContent = '개');
-    sl && (sl.textContent = '총 필요 세탁권은');
-  } else {
-    sn.textContent = w(t.selected);
-    su && (su.textContent = '원');
+  if (activeTab === '일반') {
     sl && (sl.textContent = '총 예상 세탁비는');
+    sn.textContent = w(t.실결제);
+    su && (su.textContent = '원');
+  } else {
+    if (t.차감 > 0) {
+      sl && (sl.textContent = '총 필요 세탁권은');
+      sn.textContent = t.차감;
+      su && (su.textContent = '개');
+    } else {
+      sl && (sl.textContent = '총 예상 세탁비는');
+      sn.textContent = w(t.구독현금);
+      su && (su.textContent = '원');
+    }
   }
 }
+
 
 // ═══════════════════════════════════════
 // UPSELLING
@@ -1268,27 +1288,41 @@ function getUpsell(total) {
 }
 
 function renderUpsell() {
-  const el = document.getElementById('upsellCard');
+  const el    = document.getElementById('upsellCard');
+  const subEl = document.getElementById('subUpsellCard');
   if (!el) return;
   const t = totals();
-  const u = getUpsell(t.정가);
-  if (!u) { el.classList.remove('show'); return; }
 
-  const barHtml = u.progress < 1
-    ? `<div class="upsell-bar-wrap"><div class="upsell-bar" style="width:${Math.min(u.progress*100,100).toFixed(1)}%;background:${u.color}"></div></div>`
-    : '';
-  el.className = `upsell-card show${u.type === 'achieve' ? ' upsell-achieve' : ''}`;
-  el.style.borderColor = u.color + '88';
-  el.innerHTML = `
-    <div class="upsell-top">
-      <span class="upsell-icon">${u.icon}</span>
-      <div class="upsell-body">
-        <div class="upsell-msg">${u.msg}</div>
-        <div class="upsell-sub">${u.sub}</div>
+  if (activeTab === '일반') {
+    if (subEl) subEl.classList.remove('show');
+    const u = getUpsell(t.실결제);
+    if (!u) { el.classList.remove('show'); return; }
+    const barHtml = u.progress < 1
+      ? `<div class="upsell-bar-wrap"><div class="upsell-bar" style="width:${Math.min(u.progress*100,100).toFixed(1)}%;background:${u.color}"></div></div>`
+      : '';
+    el.className = `upsell-card show${u.type === 'achieve' ? ' upsell-achieve' : ''}`;
+    el.style.borderColor = u.color + '88';
+    el.innerHTML = `
+      <div class="upsell-top">
+        <span class="upsell-icon">${u.icon}</span>
+        <div class="upsell-body">
+          <div class="upsell-msg">${u.msg}</div>
+          <div class="upsell-sub">${u.sub}</div>
+        </div>
       </div>
-    </div>
-    ${barHtml}
-  `;
+      ${barHtml}
+    `;
+  } else {
+    el.classList.remove('show');
+    if (subEl) {
+      // 세탁권이 0인데 품목이 있으면 → 전부 프리미엄 현금 결제
+      if (t.차감 === 0 && t.구독현금 > 0) {
+        subEl.classList.remove('show');
+      } else {
+        subEl.classList.remove('show');
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════════
