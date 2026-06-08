@@ -862,7 +862,7 @@ RAW.forEach(r => {
   PMAP[r[0]] = { name:r[0], cat:r[1], 정가:r[2], 구독:r[3], 차감:r[4], 프리미엄:r[5] };
 });
 // AI 인식용 품목 목록 — RAW에서 자동 생성
-const CATS = RAW.map(r => r[0]).join(', ');
+const CATS = RAW.map((r, i) => `${i + 1}. ${r[0]}`).join('\n');
 
 // ═══════════════════════════════════════
 // STATE
@@ -1095,7 +1095,7 @@ async function callClaude() {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-sonnet-4-6',
       max_tokens: 512,
       messages: [{ role: 'user', content }]
     })
