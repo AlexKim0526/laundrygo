@@ -898,22 +898,32 @@ function useDemo() {
 // ═══════════════════════════════════════
 // HERO ANIMATION (Screen 2)
 // ═══════════════════════════════════════
-(function(){
-  const frames = ['heroF0','heroF1','heroF2'].map(id => document.getElementById(id));
-  const dots   = ['heroDot0','heroDot1','heroDot2'].map(id => document.getElementById(id));
-  if (!frames[0]) return;
-  const holds  = [2000, 1500, 2500];
+function initHeroAnimation() {
+  const frames = [
+    document.getElementById('heroF0'),
+    document.getElementById('heroF1'),
+    document.getElementById('heroF2')
+  ];
+  const dots = [
+    document.getElementById('heroDot0'),
+    document.getElementById('heroDot1'),
+    document.getElementById('heroDot2')
+  ];
+  if (frames.some(f => !f) || dots.some(d => !d)) return;
+  const holds = [2000, 1500, 2500];
   let cur = 0;
+  let timer = null;
   function next() {
     frames[cur].classList.add('hidden');
     dots[cur].classList.remove('active');
     cur = (cur + 1) % 3;
     frames[cur].classList.remove('hidden');
     dots[cur].classList.add('active');
-    setTimeout(next, holds[cur]);
+    timer = setTimeout(next, holds[cur]);
   }
-  setTimeout(next, holds[0]);
-})();
+  timer = setTimeout(next, holds[0]);
+}
+document.addEventListener('DOMContentLoaded', initHeroAnimation);
 
 // ═══════════════════════════════════════
 // NAVIGATION
