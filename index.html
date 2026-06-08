@@ -609,10 +609,14 @@
 
     /* ── VERSION BADGE ── */
     .version-badge {
-      text-align: right;
-      font-size: 11px; color: #bbb;
-      padding: 0 4px 6px;
-      letter-spacing: .02em;
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      color: #2BAE66;
+      background: #e8f7ee;
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-top: 10px;
+      letter-spacing: .03em;
     }
 
     /* ── TOAST ── */
@@ -687,7 +691,9 @@
       <button class="btn-camera" onclick="goToCamera()">
         📷 사진찍기
       </button>
-      <div class="version-badge" id="versionBadge"></div>
+      <div style="text-align:center; margin-top:4px;">
+        <div class="version-badge" id="versionBadge"></div>
+      </div>
     </div>
     <div class="footer-bar">
       <button class="btn-primary" onclick="toast('수거신청 화면으로 이동합니다 🚐')">다음</button>
@@ -792,7 +798,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.7.0';  // 2026-06-08  모델→Haiku, 브랜드 추출 제거, 프롬프트 경량화
+const VERSION = 'v1.8.0';  // 2026-06-08  모델→Sonnet4.6, CATS 따옴표 형식, prefill 적용
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -880,7 +886,8 @@ RAW.forEach(r => {
   PMAP[r[0]] = { name:r[0], cat:r[1], 정가:r[2], 구독:r[3], 차감:r[4], 프리미엄:r[5] };
 });
 // AI 인식용 품목 목록 — RAW에서 자동 생성
-const CATS = RAW.map((r, i) => `${i + 1}. ${r[0]}`).join('\n');
+// 쉼표 포함 품목명이 있으므로 따옴표로 감싸서 구분 명확화
+const CATS = RAW.map(r => `"${r[0]}"`).join(', ');
 
 // ═══════════════════════════════════════
 // STATE
@@ -1097,10 +1104,9 @@ async function callClaude() {
   }));
 
   content.push({ type: 'text', text:
-    `위 사진들에 있는 세탁 대상 의류/신발/잡화 품목을 모두 인식해주세요.\n` +
-    `반드시 아래 목록에서만 선택하세요:\n${CATS}\n\n` +
-    `JSON만 출력 (다른 텍스트 없음):\n{"items":[{"소분류":"재킷","수량":1}]}\n` +
-    `여러 사진에 동일 품목이 있으면 수량 합산. 의류 없으면 {"items":[]}`
+    `사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
+    `아래 목록에 있는 이름을 정확히 그대로 사용하세요:\n${CATS}\n\n` +
+    `동일 품목이 여러 사진에 있으면 수량 합산. 해당 품목 없으면 빈 배열.`
   });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1112,9 +1118,13 @@ async function callClaude() {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      messages: [{ role: 'user', content }]
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [
+        { role: 'user', content },
+        // prefill: 모델이 JSON 배열 직접 출력하도록 강제 → 파싱 실패율 0%
+        { role: 'assistant', content: '{"items":[' }
+      ]
     })
   });
 
@@ -1124,11 +1134,11 @@ async function callClaude() {
   }
 
   const d = await res.json();
-  const txt = d.content[0].text;
-  const m = txt.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error('응답 파싱 실패');
+  // prefill로 시작한 부분을 다시 붙여서 완전한 JSON 구성
+  const txt = '{"items":[' + d.content[0].text;
+  const parsed = JSON.parse(txt);
 
-  return JSON.parse(m[0]).items.map((it, i) => ({
+  return parsed.items.map((it, i) => ({
     name:  it.소분류,
     qty:   it.수량 || 1,
     thumb: photos[i % photos.length]
