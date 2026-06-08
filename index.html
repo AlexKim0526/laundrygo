@@ -992,11 +992,14 @@ function capturePhoto() {
   const vid = document.getElementById('cameraVideo');
   if (!vid.videoWidth) { toast('카메라가 준비 중이에요'); return; }
 
+  // 이미지 최대 1024px로 다운스케일 (API 전송 속도 개선)
+  const MAX = 1024;
   const c = document.createElement('canvas');
-  c.width  = vid.videoWidth;
-  c.height = vid.videoHeight;
-  c.getContext('2d').drawImage(vid, 0, 0);
-  photos.push(c.toDataURL('image/jpeg', 0.85));
+  const ratio = Math.min(1, MAX / Math.max(vid.videoWidth, vid.videoHeight));
+  c.width  = Math.round(vid.videoWidth  * ratio);
+  c.height = Math.round(vid.videoHeight * ratio);
+  c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+  photos.push(c.toDataURL('image/jpeg', 0.80));
   refreshThumbs();
   doFlash();
 }
@@ -1092,8 +1095,8 @@ async function callClaude() {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
       messages: [{ role: 'user', content }]
     })
   });
