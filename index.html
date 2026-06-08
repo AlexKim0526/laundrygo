@@ -798,7 +798,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.8.0';  // 2026-06-08  모델→Sonnet4.6, CATS 따옴표 형식, prefill 적용
+const VERSION = 'v1.9.0';  // 2026-06-08  prefill 제거, 응답 파싱 방어코드 강화
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1106,7 +1106,9 @@ async function callClaude() {
   content.push({ type: 'text', text:
     `사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
     `아래 목록에 있는 이름을 정확히 그대로 사용하세요:\n${CATS}\n\n` +
-    `동일 품목이 여러 사진에 있으면 수량 합산. 해당 품목 없으면 빈 배열.`
+    `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
+    `{"items":[{"소분류":"재킷","수량":1}]}\n` +
+    `동일 품목은 수량 합산. 해당 품목 없으면 {"items":[]}`
   });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1120,25 +1122,33 @@ async function callClaude() {
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      messages: [
-        { role: 'user', content },
-        // prefill: 모델이 JSON 배열 직접 출력하도록 강제 → 파싱 실패율 0%
-        { role: 'assistant', content: '{"items":[' }
-      ]
+      messages: [{ role: 'user', content }]
     })
   });
 
   if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e.error?.message || `API 오류 (${res.status})`);
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API 오류 (${res.status})`);
   }
 
   const d = await res.json();
-  // prefill로 시작한 부분을 다시 붙여서 완전한 JSON 구성
-  const txt = '{"items":[' + d.content[0].text;
-  const parsed = JSON.parse(txt);
 
-  return parsed.items.map((it, i) => ({
+  // 응답 구조 방어
+  const raw = d?.content?.[0]?.text ?? '';
+  if (!raw) throw new Error('AI 응답이 비어있습니다. 다시 시도해주세요.');
+
+  // 모델이 마크다운 코드블록으로 감싸는 경우도 처리
+  const m = raw.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('품목을 인식하지 못했습니다. 다시 촬영해주세요.');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(m[0]);
+  } catch (_) {
+    throw new Error('응답 파싱 실패. 다시 시도해주세요.');
+  }
+
+  return (parsed.items || []).map((it, i) => ({
     name:  it.소분류,
     qty:   it.수량 || 1,
     thumb: photos[i % photos.length]
