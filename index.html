@@ -607,6 +607,14 @@
     .modal-btn.pri:hover { background: #249958; }
     .modal-btn.sec { background: #f4f4f4; color: #666; }
 
+    /* ── VERSION BADGE ── */
+    .version-badge {
+      text-align: right;
+      font-size: 11px; color: #bbb;
+      padding: 0 4px 6px;
+      letter-spacing: .02em;
+    }
+
     /* ── TOAST ── */
     .toast {
       position: fixed; bottom: 88px; left: 50%;
@@ -679,6 +687,7 @@
       <button class="btn-camera" onclick="goToCamera()">
         📷 사진찍기
       </button>
+      <div class="version-badge" id="versionBadge"></div>
     </div>
     <div class="footer-bar">
       <button class="btn-primary" onclick="toast('수거신청 화면으로 이동합니다 🚐')">다음</button>
@@ -780,6 +789,15 @@
 
 <script>
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// VERSION
+// ═══════════════════════════════════════
+const VERSION = 'v1.7.0';  // 2026-06-08  모델→Haiku, 브랜드 추출 제거, 프롬프트 경량화
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('versionBadge');
+  if (el) el.textContent = VERSION;
+});
+
 // PRICE DATA  (from 품목별가격표.csv)
 // columns: [소분류, 중분류, 정가, 구독할인, 구독차감, 프리미엄, 구독자프리미엄]
 // ═══════════════════════════════════════
@@ -1081,8 +1099,7 @@ async function callClaude() {
   content.push({ type: 'text', text:
     `위 사진들에 있는 세탁 대상 의류/신발/잡화 품목을 모두 인식해주세요.\n` +
     `반드시 아래 목록에서만 선택하세요:\n${CATS}\n\n` +
-    `브랜드 로고나 텍스트가 보이면 브랜드명을 기재하고, 확인 불가면 null로 출력하세요.\n\n` +
-    `JSON만 출력 (다른 텍스트 없음):\n{"items":[{"소분류":"재킷","수량":1,"브랜드":"Zara"}]}\n` +
+    `JSON만 출력 (다른 텍스트 없음):\n{"items":[{"소분류":"재킷","수량":1}]}\n` +
     `여러 사진에 동일 품목이 있으면 수량 합산. 의류 없으면 {"items":[]}`
   });
 
@@ -1095,7 +1112,7 @@ async function callClaude() {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       messages: [{ role: 'user', content }]
     })
@@ -1114,7 +1131,6 @@ async function callClaude() {
   return JSON.parse(m[0]).items.map((it, i) => ({
     name:  it.소분류,
     qty:   it.수량 || 1,
-    brand: it.브랜드 || null,
     thumb: photos[i % photos.length]
   }));
 }
