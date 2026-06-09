@@ -798,7 +798,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.10.1'; // 2026-06-08  폴로셔츠→티셔츠 분류 규칙 추가
+const VERSION = 'v1.10.2'; // 2026-06-08  PMAP 퍼지매칭, 앨범 비동기 로드 대기 수정
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -886,6 +886,12 @@ const PMAP = {};
 RAW.forEach(r => {
   PMAP[r[0]] = { name:r[0], cat:r[1], 정가:r[2], 구독:r[3], 차감:r[4], 프리미엄:r[5] };
 });
+// 공백 등 사소한 차이를 허용하는 안전 조회 함수
+function pLookup(name) {
+  if (!name) return null;
+  const n = name.trim().replace(/\s+/g, ' ');
+  return PMAP[n] || PMAP[name] || null;
+}
 // AI 인식용 품목 목록 — RAW에서 자동 생성
 // 쉼표 포함 품목명이 있으므로 따옴표로 감싸서 구분 명확화
 const CATS = RAW.map(r => `"${r[0]}"`).join(', ');
@@ -895,6 +901,7 @@ const CATS = RAW.map(r => `"${r[0]}"`).join(', ');
 // ═══════════════════════════════════════
 let stream      = null;
 let photos      = [];   // data-URL strings
+let photosLoading = 0; // 앨범 비동기 로드 중인 사진 수
 let items       = [];   // { name, qty, thumb }
 let demoMode    = false;
 let curScreen   = 'screen2';
@@ -1065,6 +1072,7 @@ function openAlbum() { document.getElementById('albumInput').click(); }
 
 function handleAlbum(inp) {
   Array.from(inp.files).forEach(f => {
+    photosLoading++;
     const r = new FileReader();
     r.onload = e => {
       // 앨범 사진도 카메라와 동일하게 max 1024px로 리사이즈
@@ -1078,6 +1086,7 @@ function handleAlbum(inp) {
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         const resized = c.toDataURL('image/jpeg', 0.80);
         photos.push(resized);
+        photosLoading--;
         refreshThumbs();
         const prev = document.getElementById('albumPreview');
         prev.innerHTML = `<img src="${resized}">`;
@@ -1089,11 +1098,20 @@ function handleAlbum(inp) {
   inp.value = '';
 }
 
+async function waitPhotosReady() {
+  while (photosLoading > 0) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+}
+
 // ═══════════════════════════════════════
 // VISION API
 // ═══════════════════════════════════════
 async function doAnalyze() {
-  if (!photos.length) return;
+  if (!photos.length && photosLoading === 0) return;
+  showLoad('사진 준비 중...');
+  await waitPhotosReady();       // 앨범 사진 로드 완료 대기
+  if (!photos.length) { hideLoad(); return; }
   showLoad('품목을 인식하고 있어요...');
   try {
     items = demoMode ? await mockAnalyze() : await callClaude();
@@ -1220,16 +1238,17 @@ function renderRows() {
   if (!wrap) return;
   wrap.innerHTML = '';
   items.forEach((it, idx) => {
-    const p = PMAP[it.name];
-    if (!p) return;
+    const p = pLookup(it.name);
     const q = it.qty;
-    const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
+    const isPrem = p && premiumSet.has(idx) && p.프리미엄 > 0;
     const div = document.createElement('div');
     div.className = 'item-row';
     div.style.animationDelay = `${idx * 0.07}s`;
 
     let priceHtml = '';
-    if (activeTab === '일반') {
+    if (!p) {
+      priceHtml = `<div class="item-price-col"><div class="price-main" style="color:#bbb;font-size:12px">가격 조회 불가</div></div>`;
+    } else if (activeTab === '일반') {
       if (isPrem) {
         priceHtml = `<div class="item-price-col"><div class="price-main prem">${w(p.프리미엄 * q)}원</div></div>`;
       } else {
@@ -1294,7 +1313,7 @@ function renderFoot() {
 function totals() {
   let 정가=0, 구독=0, 차감=0, 구독현금=0, 실결제=0;
   items.forEach((it, idx) => {
-    const p = PMAP[it.name]; if (!p) return;
+    const p = pLookup(it.name); if (!p) return;
     const q = it.qty;
     const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
     정가 += p.정가 * q;
@@ -1349,7 +1368,7 @@ function togglePremium(idx) {
 function renderPremiumSection() {
   const sec = document.getElementById('premiumSection');
   if (!sec) return;
-  const eligible = items.map((it, idx) => ({ it, idx, p: PMAP[it.name] }))
+  const eligible = items.map((it, idx) => ({ it, idx, p: pLookup(it.name) }))
                         .filter(({ p }) => p && p.프리미엄 > 0);
   if (!eligible.length) { sec.innerHTML = ''; return; }
   sec.innerHTML = `
