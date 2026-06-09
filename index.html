@@ -798,7 +798,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.10.2'; // 2026-06-08  PMAP 퍼지매칭, 앨범 비동기 로드 대기 수정
+const VERSION = 'v1.10.3'; // 2026-06-08  동일 품목 합산 제거, 개별 항목으로 나열
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1141,7 +1141,7 @@ async function callClaude() {
     `- 패딩 길이: 모자 제외 100cm 이상 → "롱패딩점퍼" / 얇고 가벼운 패딩 → "경량패딩" / 그 외 → "일반패딩"\n\n` +
     `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
     `{"items":[{"소분류":"재킷","수량":1}]}\n` +
-    `동일 품목은 수량 합산. 해당 품목 없으면 {"items":[]}`
+    `동일 품목이라도 합치지 말고 각각 별도 항목으로 나열하세요. 해당 품목 없으면 {"items":[]}`
   });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
