@@ -79,45 +79,53 @@
     #screen2 { background: #fff; }
     #screen2 .body {
       flex: 1; overflow-y: auto;
-      padding: 14px 16px 8px;
+      padding: 0 16px 8px;
     }
+    .s2-back {
+      font-size: 22px; color: #111; font-weight: 300;
+      padding: 14px 16px 0; display: block; line-height: 1;
+    }
+    .explain-title {
+      font-size: 21px; font-weight: 800; line-height: 1.35; color: #111;
+      padding: 10px 0 14px;
+    }
+    /* 히어로 카드 (애니메이션 유지, 스타일만 변경) */
     .explain-img-wrap {
-      width: 100%; aspect-ratio: 16 / 9;
-      border-radius: 16px; overflow: hidden;
-      background: #f5f7f5;
-      margin-bottom: 16px;
-      position: relative;
+      width: 100%; border-radius: 18px; overflow: hidden;
+      background: #f5f9f5; border: 0.5px solid #d4edd9;
+      margin-bottom: 12px; position: relative;
+      aspect-ratio: 16 / 9;
     }
-    /* 애니메이션 프레임 */
     .hero-frame {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 8px;
-      padding: 16px;
+      align-items: center; justify-content: center; gap: 10px;
+      padding: 16px; background: #f5f9f5;
       opacity: 1; transition: opacity 0.3s ease;
     }
     .hero-frame.hidden { opacity: 0; pointer-events: none; }
-    .hero-frame.warm { background: #fffdf8; }
+    .hero-frame.warm { background: #fdfaf5; }
+    /* 프레임 아이콘 스타일 */
     .hero-viewfinder {
-      width: 80px; height: 80px; border-radius: 10px;
+      width: 56px; height: 56px; border-radius: 14px;
       background: #1a1a1a; position: relative;
       display: flex; align-items: center; justify-content: center;
-      font-size: 36px;
+      font-size: 28px;
     }
-    .hv-corner { position: absolute; width: 13px; height: 13px; border-color: #2BAE66; border-style: solid; }
-    .hv-corner.tl { top:3px; left:3px;  border-width: 2.5px 0 0 2.5px; }
-    .hv-corner.tr { top:3px; right:3px; border-width: 2.5px 2.5px 0 0; }
-    .hv-corner.bl { bottom:3px; left:3px;  border-width: 0 0 2.5px 2.5px; }
-    .hv-corner.br { bottom:3px; right:3px; border-width: 0 2.5px 2.5px 0; }
+    .hv-corner { position: absolute; width: 11px; height: 11px; border-color: #2BAE66; border-style: solid; }
+    .hv-corner.tl { top:3px; left:3px;  border-width: 2px 0 0 2px; }
+    .hv-corner.tr { top:3px; right:3px; border-width: 2px 2px 0 0; }
+    .hv-corner.bl { bottom:3px; left:3px;  border-width: 0 0 2px 2px; }
+    .hv-corner.br { bottom:3px; right:3px; border-width: 0 2px 2px 0; }
     .hero-badge {
       font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
     }
-    .hero-badge.green { background: #e1f5ee; color: #0f6e56; }
+    .hero-badge.green  { background: #e1f5ee; color: #0f6e56; }
     .hero-badge.orange { background: #faeeda; color: #854f0b; }
-    .hero-frame-label { font-size: 11px; color: #888; text-align: center; line-height: 1.5; }
+    .hero-frame-label  { font-size: 11px; color: #888; text-align: center; line-height: 1.5; }
     .hero-spinner {
-      width: 40px; height: 40px;
-      border: 3.5px solid #e0e0e0; border-top-color: #2BAE66;
+      width: 36px; height: 36px;
+      border: 3px solid #e0e0e0; border-top-color: #2BAE66;
       border-radius: 50%; animation: heroSpin 0.9s linear infinite;
     }
     @keyframes heroSpin { to { transform: rotate(360deg); } }
@@ -125,44 +133,49 @@
       background: #fff; border-radius: 12px; border: 0.5px solid #e8e8e8;
       padding: 10px 12px; width: 100%;
     }
-    .hero-result-total { font-size: 17px; font-weight: 800; color: #2BAE66; margin-bottom: 6px; }
-    .hero-result-item {
-      display: flex; justify-content: space-between;
-      font-size: 10px; color: #888; padding: 2px 0;
-    }
-    .hero-result-divider { height: 0.5px; background: #eee; margin: 5px 0; }
-    .hero-result-sum {
-      display: flex; justify-content: space-between;
-      font-size: 11px; font-weight: 700; color: #222;
-    }
+    .hero-result-total { font-size: 16px; font-weight: 800; color: #2BAE66; margin-bottom: 5px; }
+    .hero-result-item  { display: flex; justify-content: space-between; font-size: 10px; color: #888; padding: 2px 0; }
+    .hero-result-divider { height: 0.5px; background: #eee; margin: 4px 0; }
+    .hero-result-sum   { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #222; }
     .hero-dots {
       position: absolute; bottom: 8px; left: 0; right: 0;
       display: flex; gap: 5px; justify-content: center;
     }
     .hero-dot {
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
       background: rgba(0,0,0,0.15); transition: background 0.3s;
     }
-    .hero-dot.active { background: #2BAE66; }
-    .explain-title {
-      font-size: 20px; font-weight: 800; line-height: 1.35; color: #111;
-      margin-bottom: 8px;
+    .hero-dot.active { background: #2BAE66; width: 14px; border-radius: 3px; }
+    /* 설명 인포 카드 */
+    .explain-info-card {
+      background: #f0faf5; border-radius: 14px;
+      border: 0.5px solid #b6e8d0;
+      padding: 11px 14px; margin-bottom: 14px;
     }
-    .explain-desc {
-      font-size: 13px; color: #777; line-height: 1.6;
-      margin-bottom: 18px;
-    }
+    .explain-info-title { font-size: 12px; font-weight: 700; color: #2BAE66; margin-bottom: 3px; }
+    .explain-info-desc  { font-size: 11px; color: #444; line-height: 1.6; }
+    /* 카메라·앨범 버튼 */
     .btn-camera {
-      width: 100%; height: 54px;
-      background: #fff; color: #2BAE66;
-      border: 2px solid #2BAE66;
-      font-size: 16px; font-weight: 700;
+      width: 100%; height: 52px;
+      background: #2BAE66; color: #fff;
+      border: none;
+      font-size: 15px; font-weight: 700;
       border-radius: 14px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       transition: background 0.15s;
     }
-    .btn-camera:hover { background: #edfaf3; }
+    .btn-camera:hover { background: #249958; }
+    .btn-album-s2 {
+      width: 100%; height: 46px;
+      background: #fff; color: #2BAE66;
+      border: 1.5px solid #2BAE66;
+      font-size: 14px; font-weight: 700;
+      border-radius: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: background 0.15s;
+    }
+    .btn-album-s2:hover { background: #edfaf3; }
 
     /* ═══════════════════════════════════════
        SCREEN 3 – 카메라
@@ -337,26 +350,36 @@
       background: rgba(255,255,255,0.9);
     }
 
+    /* 사진 카운트 뱃지 */
+    .cam-count-badge {
+      position: absolute; top: 12px; right: 12px; z-index: 21;
+      background: rgba(43,174,102,0.92); border-radius: 12px;
+      padding: 4px 10px; font-size: 11px; font-weight: 700; color: #fff;
+      display: none;
+    }
+    .cam-count-badge.show { display: block; }
+    /* 분석하기 버튼 (square green) */
     .btn-price {
-      /* 비활성: 흰색 테두리 + 반투명 흰 텍스트 — 어두운 배경에서도 선명 */
-      background: rgba(255,255,255,0.12);
-      border: 1.5px solid rgba(255,255,255,0.55);
-      color: rgba(255,255,255,0.6);
-      border-radius: 20px;
-      font-size: 12px; font-weight: 700;
-      padding: 8px 10px; cursor: not-allowed;
-      pointer-events: none;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.3);
+      cursor: not-allowed; pointer-events: none;
+      transition: background 0.2s, color 0.2s;
       text-align: center; line-height: 1.35;
-      width: 72px;
+      width: 56px; height: 56px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+    }
+    .btn-price .analyze-ico {
+      font-size: 20px; display: block; line-height: 1;
     }
     .btn-price.on {
-      /* 활성: 초록 배경 + 흰 텍스트 */
       background: #2BAE66;
-      border-color: #2BAE66;
       color: #fff;
-      cursor: pointer;
-      pointer-events: auto;
+      cursor: pointer; pointer-events: auto;
+      border-radius: 14px;
     }
 
     #albumInput { display: none; }
@@ -415,9 +438,10 @@
       margin-bottom: 10px; overflow: hidden;
       padding: 0 14px;
     }
-    /* ── ITEM ROW (A안: 품목별 프리미엄 토글) ── */
+    /* ── ITEM ROW (B안 구조 + 프리미엄 토글) ── */
     .item-row {
-      padding: 12px 0; border-bottom: 1px solid #f2f2f2;
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid #f2f2f2;
       animation: fadeUp 0.25s ease forwards; opacity: 0;
     }
     .item-row:last-child { border-bottom: none; }
@@ -425,46 +449,34 @@
       from { opacity: 0; transform: translateY(5px); }
       to   { opacity: 1; transform: none; }
     }
-    /* 윗줄: 썸네일 + 품목명 + 삭제 */
-    .item-row-top {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 7px;
-    }
+    /* 썸네일: 44px * 1.3 ≈ 57px */
     .item-thumb {
-      width: 44px; height: 44px; border-radius: 10px;
+      width: 57px; height: 57px; border-radius: 12px;
       flex-shrink: 0; position: relative; background: #f0f0f0;
     }
-    .item-thumb img { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; display: block; }
+    .item-thumb img { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; display: block; }
     .img-del-btn {
       position: absolute; top: -5px; right: -5px;
-      width: 17px; height: 17px; border-radius: 50%;
+      width: 18px; height: 18px; border-radius: 50%;
       background: #FF3B30; border: 1.5px solid #fff;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 8px; font-weight: 900; color: #fff; line-height: 1; padding: 0;
+      font-size: 9px; font-weight: 900; color: #fff; line-height: 1; padding: 0;
     }
-    .item-name { font-size: 13px; font-weight: 700; color: #111; flex: 1; word-break: keep-all; }
-    /* 뱃지줄 */
-    .item-badges { margin-bottom: 7px; display: flex; gap: 4px; flex-wrap: wrap; }
-    /* 아랫줄: 가격 + 프리미엄 토글 */
-    .item-row-btm {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    }
-    .item-price-col { flex-shrink: 0; }
-    .price-main       { font-size: 14px; font-weight: 800; color: #111; white-space: nowrap; }
+    /* 중앙: 품목명 + 뱃지 */
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 15px; font-weight: 700; color: #111; word-break: keep-all; line-height: 1.3; }
+    .item-badges { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+    /* 우측: 가격 + 토글 */
+    .item-right { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .price-main       { font-size: 15px; font-weight: 800; color: #111; white-space: nowrap; }
     .price-main.prem  { color: #6D28D9; }
-    .price-sub        { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
-    .credit-main      { font-size: 14px; font-weight: 700; color: #c05000; white-space: nowrap; }
-    .credit-sub       { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
-    /* 프리미엄 토글 영역 */
-    .prem-toggle-area {
-      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-    }
-    .prem-toggle-label {
-      font-size: 11px; font-weight: 600; color: #bbb;
-      transition: color 0.2s;
-    }
+    .price-sub        { font-size: 12px; color: #999; margin-top: 1px; white-space: nowrap; }
+    .credit-main      { font-size: 15px; font-weight: 700; color: #c05000; white-space: nowrap; }
+    .credit-sub       { font-size: 12px; color: #999; margin-top: 1px; white-space: nowrap; }
+    /* 프리미엄 토글 */
+    .prem-toggle-area { display: flex; align-items: center; gap: 6px; }
+    .prem-toggle-label { font-size: 11px; font-weight: 600; color: #bbb; transition: color 0.2s; }
     .prem-toggle-label.on { color: #6D28D9; }
-    /* 토글 스위치 pill */
     .toggle-pill {
       width: 40px; height: 22px; border-radius: 11px;
       background: #e0e0e0; position: relative;
@@ -472,25 +484,23 @@
       transition: background 0.2s; border: none; padding: 0;
     }
     .toggle-pill::after {
-      content: ''; position: absolute;
-      top: 3px; left: 3px;
+      content: ''; position: absolute; top: 3px; left: 3px;
       width: 16px; height: 16px; border-radius: 50%;
       background: #fff; transition: transform 0.2s;
     }
     .toggle-pill.on { background: #6D28D9; }
     .toggle-pill.on::after { transform: translateX(18px); }
-    /* 잠금 상태 (브랜드 자동) */
     .toggle-pill.locked { background: #C4B5FD; cursor: not-allowed; }
     .toggle-pill.locked::after { transform: translateX(18px); }
     /* 합계 푸터 */
     .table-foot {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0; border-top: 1.5px solid #efefef;
+      padding: 13px 0; border-top: 1.5px solid #efefef;
     }
-    .foot-label       { font-size: 14px; font-weight: 800; color: #111; }
+    .foot-label       { font-size: 15px; font-weight: 800; color: #111; }
     .foot-total       { text-align: right; }
-    .foot-price-main  { font-size: 15px; font-weight: 800; color: #FF3B30; white-space: nowrap; }
-    .foot-price-sub   { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+    .foot-price-main  { font-size: 16px; font-weight: 800; color: #FF3B30; white-space: nowrap; }
+    .foot-price-sub   { font-size: 12px; color: #999; margin-top: 2px; white-space: nowrap; }
 
     /* ── 구독 탭 업셀 ── */
     .sub-upsell-card {
@@ -664,11 +674,7 @@
 
   <!-- ══════════ SCREEN 2: 설명 ══════════ -->
   <div class="screen active" id="screen2">
-    <div class="nav-header">
-      <div class="nav-btn" onclick="toast('이전 화면으로 이동합니다')">←</div>
-      <div class="nav-title"></div>
-      <div class="nav-btn"></div>
-    </div>
+    <span class="s2-back" onclick="toast('이전 화면으로 이동합니다')">‹</span>
     <div class="body">
       <div class="explain-title">[선택] 사진을 찍어<br>세탁비를 확인해 보세요.</div>
       <div class="explain-img-wrap">
@@ -707,14 +713,13 @@
           <div class="hero-dot" id="heroDot2"></div>
         </div>
       </div>
-      <div class="explain-desc">
-        세탁할 의류를 카메라로 촬영하면 AI가 품목을 자동으로 인식하고
-        예상 세탁비를 바로 알려드려요.
+      <div class="explain-info-card">
+        <div class="explain-info-title">의류·신발·가방을 촬영하면</div>
+        <div class="explain-info-desc">AI가 품목을 자동으로 인식하고<br>세탁비를 즉시 계산해 드려요.</div>
       </div>
-      <button class="btn-camera" onclick="goToCamera()">
-        📷 사진찍기
-      </button>
-      <div style="text-align:center; margin-top:4px;">
+      <button class="btn-camera" onclick="goToCamera()">📷 카메라로 촬영하기</button>
+      <button class="btn-album-s2" onclick="openAlbum()">🖼 앨범에서 선택</button>
+      <div style="text-align:center; margin-top:10px;">
         <div class="version-badge" id="versionBadge"></div>
       </div>
     </div>
@@ -730,6 +735,7 @@
     <div class="cam-header">
       <div class="cam-back" onclick="backFromCamera()">←</div>
     </div>
+    <div class="cam-count-badge" id="camCountBadge"></div>
 
     <!-- Guide brackets -->
     <div class="cam-guide">
@@ -766,7 +772,7 @@
           <div class="cap-inner"></div>
         </button>
         <button class="btn-price" id="priceBtn" onclick="doAnalyze()">
-          세탁비<br>확인하기
+          <span class="analyze-ico">✦</span>분석
         </button>
       </div>
     </div>
@@ -1133,6 +1139,13 @@ function refreshThumbs() {
   badge.textContent = n ? `${n}개` : '';
   btn.classList.toggle('on', n > 0);
 
+  // 카운트 뱃지 (우측 상단)
+  const countBadge = document.getElementById('camCountBadge');
+  if (countBadge) {
+    countBadge.textContent = n ? `📷 ${n}장 선택됨` : '';
+    countBadge.classList.toggle('show', n > 0);
+  }
+
   setTimeout(() => { strip.scrollLeft = strip.scrollWidth; }, 40);
 }
 
@@ -1304,8 +1317,8 @@ function renderResult() {
     <div class="upsell-card" id="upsellCard"></div>
     <div class="sub-upsell-card" id="subUpsellCard"></div>
     <div class="tab-bar">
-      <button class="tab-btn active"   data-tab="일반" onclick="selectTab('일반')">일반 고객</button>
-      <button class="tab-btn inactive" data-tab="구독" onclick="selectTab('구독')">구독 회원</button>
+      <button class="tab-btn active"   data-tab="일반" onclick="selectTab('일반')">정가</button>
+      <button class="tab-btn inactive" data-tab="구독" onclick="selectTab('구독')">구독 할인</button>
     </div>
     <div class="table-card">
       <div id="rowsWrap"></div>
@@ -1378,16 +1391,16 @@ function renderRows() {
     }
 
     div.innerHTML = `
-      <div class="item-row-top">
-        <div class="item-thumb">
-          <img src="${it.thumb}" alt="${it.name}">
-          <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
-        </div>
-        <div class="item-name">${it.name}</div>
+      <div class="item-thumb">
+        <img src="${it.thumb}" alt="${it.name}">
+        <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
       </div>
-      ${badgesHtml ? `<div class="item-badges">${badgesHtml}</div>` : ''}
-      <div class="item-row-btm">
-        <div class="item-price-col">${priceHtml}</div>
+      <div class="item-info">
+        <div class="item-name">${it.name}</div>
+        ${badgesHtml ? `<div class="item-badges">${badgesHtml}</div>` : ''}
+      </div>
+      <div class="item-right">
+        <div>${priceHtml}</div>
         ${toggleHtml}
       </div>
     `;
