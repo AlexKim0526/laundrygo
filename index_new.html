@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>세탁비 확인 | 런드리고</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+      background: #1a1a1a;
+    }
+
+    /* ── APP SHELL ── */
+    #app {
+      position: fixed; inset: 0;
+      max-width: 430px; margin: 0 auto;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+
+    /* ── SCREEN SYSTEM ── */
+    .screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      background: #fff;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+    .screen.active { transform: translateX(0); }
+    .screen.prev   { transform: translateX(-28%); }
+
+    /* ── HEADER ── */
+    .nav-header {
+      display: flex; align-items: center;
+      padding: 0 8px;
+      height: 52px; flex-shrink: 0;
+      background: #fff;
+      border-bottom: 1px solid #ededed;
+      position: relative; z-index: 10;
+    }
+    .nav-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border-radius: 50%; font-size: 22px; color: #222;
+      flex-shrink: 0;
+    }
+    .nav-title {
+      flex: 1; text-align: center;
+      font-size: 17px; font-weight: 700; color: #111;
+    }
+
+    /* ── PRIMARY BUTTON ── */
+    .btn-primary {
+      width: 100%; height: 54px;
+      background: #2BAE66; color: #fff;
+      font-size: 16px; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: #249958; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+    .footer-bar {
+      padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      background: #fff;
+      border-top: 1px solid #ededed;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       SCREEN 2 – 세탁비 확인설명
+    ═══════════════════════════════════════ */
+    #screen2 { background: #fff; }
+    #screen2 .body {
+      flex: 1; overflow-y: auto;
+      padding: 14px 16px 8px;
+    }
+    .explain-img-wrap {
+      width: 100%; aspect-ratio: 16 / 9;
+      border-radius: 16px; overflow: hidden;
+      background: #f5f7f5;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    /* 애니메이션 프레임 */
+    .hero-frame {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      padding: 16px;
+      opacity: 1; transition: opacity 0.3s ease;
+    }
+    .hero-frame.hidden { opacity: 0; pointer-events: none; }
+    .hero-frame.warm { background: #fffdf8; }
+    .hero-viewfinder {
+      width: 80px; height: 80px; border-radius: 10px;
+      background: #1a1a1a; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+    }
+    .hv-corner { position: absolute; width: 13px; height: 13px; border-color: #2BAE66; border-style: solid; }
+    .hv-corner.tl { top:3px; left:3px;  border-width: 2.5px 0 0 2.5px; }
+    .hv-corner.tr { top:3px; right:3px; border-width: 2.5px 2.5px 0 0; }
+    .hv-corner.bl { bottom:3px; left:3px;  border-width: 0 0 2.5px 2.5px; }
+    .hv-corner.br { bottom:3px; right:3px; border-width: 0 2.5px 2.5px 0; }
+    .hero-badge {
+      font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+    }
+    .hero-badge.green { background: #e1f5ee; color: #0f6e56; }
+    .hero-badge.orange { background: #faeeda; color: #854f0b; }
+    .hero-frame-label { font-size: 11px; color: #888; text-align: center; line-height: 1.5; }
+    .hero-spinner {
+      width: 40px; height: 40px;
+      border: 3.5px solid #e0e0e0; border-top-color: #2BAE66;
+      border-radius: 50%; animation: heroSpin 0.9s linear infinite;
+    }
+    @keyframes heroSpin { to { transform: rotate(360deg); } }
+    .hero-result-card {
+      background: #fff; border-radius: 12px; border: 0.5px solid #e8e8e8;
+      padding: 10px 12px; width: 100%;
+    }
+    .hero-result-total { font-size: 17px; font-weight: 800; color: #2BAE66; margin-bottom: 6px; }
+    .hero-result-item {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: #888; padding: 2px 0;
+    }
+    .hero-result-divider { height: 0.5px; background: #eee; margin: 5px 0; }
+    .hero-result-sum {
+      display: flex; justify-content: space-between;
+      font-size: 11px; font-weight: 700; color: #222;
+    }
+    .hero-dots {
+      position: absolute; bottom: 8px; left: 0; right: 0;
+      display: flex; gap: 5px; justify-content: center;
+    }
+    .hero-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(0,0,0,0.15); transition: background 0.3s;
+    }
+    .hero-dot.active { background: #2BAE66; }
+    .explain-title {
+      font-size: 20px; font-weight: 800; line-height: 1.35; color: #111;
+      margin-bottom: 8px;
+    }
+    .explain-desc {
+      font-size: 13px; color: #777; line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .btn-camera {
+      width: 100%; height: 54px;
+      background: #fff; color: #2BAE66;
+      border: 2px solid #2BAE66;
+      font-size: 16px; font-weight: 700;
+      border-radius: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-bottom: 10px;
+      transition: background 0.15s;
+    }
+    .btn-camera:hover { background: #edfaf3; }
+
+    /* ═══════════════════════════════════════
+       SCREEN 3 – 카메라
+    ═══════════════════════════════════════ */
+    #screen3 { background: #000; }
+
+    #cameraVideo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .cam-header {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+      padding: 10px 12px;
+      padding-top: calc(10px + env(safe-area-inset-top, 0px));
+      display: flex; align-items: center;
+    }
+    .cam-back {
+      width: 42px; height: 42px;
+      background: rgba(0,0,0,0.45); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 22px; cursor: pointer;
+    }
+
+    /* Guide frame — 썸네일과 안 겹치도록 위쪽 정렬 */
+    .cam-guide {
+      position: absolute; inset: 0; z-index: 5;
+      pointer-events: none;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 72px;
+    }
+    .guide-rect {
+      width: 75%; aspect-ratio: 3/4;
+      position: relative;
+    }
+    /* Corner brackets */
+    .guide-rect::before, .guide-rect::after,
+    .guide-rect .br, .guide-rect .bl {
+      content: '';
+      position: absolute; width: 24px; height: 24px;
+    }
+    .guide-rect::before {
+      top: 0; left: 0;
+      border-top: 3px solid #fff; border-left: 3px solid #fff;
+      border-radius: 4px 0 0 0;
+    }
+    .guide-rect::after {
+      top: 0; right: 0;
+      border-top: 3px solid #fff; border-right: 3px solid #fff;
+      border-radius: 0 4px 0 0;
+    }
+    .guide-rect .br {
+      bottom: 0; right: 0;
+      border-bottom: 3px solid #fff; border-right: 3px solid #fff;
+      border-radius: 0 0 4px 0;
+    }
+    .guide-rect .bl {
+      bottom: 0; left: 0;
+      border-bottom: 3px solid #fff; border-left: 3px solid #fff;
+      border-radius: 0 0 0 4px;
+    }
+    .guide-hint {
+      position: absolute; bottom: -42px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff; font-size: 13px; font-weight: 500;
+      padding: 7px 18px; border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* Overlay dimming outside guide */
+    .guide-dim {
+      position: absolute; inset: 0; z-index: 4;
+      pointer-events: none;
+    }
+
+    /* Camera error */
+    #camErr {
+      position: absolute; inset: 0; z-index: 30;
+      background: #111;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px;
+      gap: 12px;
+    }
+    #camErr.show { display: flex; }
+    #camErr .err-ico { font-size: 52px; }
+    #camErr h3 { font-size: 16px; font-weight: 700; }
+    #camErr p { font-size: 13px; color: #aaa; line-height: 1.6; }
+    #camErr button {
+      margin-top: 8px; padding: 12px 28px;
+      background: #2BAE66; color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
+    /* Bottom area */
+    .cam-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+      background: linear-gradient(transparent, rgba(0,0,0,0.72) 40%);
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Thumbnail strip */
+    .thumb-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px 6px;
+    }
+    .thumb-count-badge {
+      color: #fff; font-size: 13px; font-weight: 700;
+      min-width: 28px; flex-shrink: 0;
+    }
+    #thumbStrip {
+      display: flex; gap: 6px; flex: 1;
+      overflow-x: auto; scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+    #thumbStrip::-webkit-scrollbar { display: none; }
+    .thumb-item {
+      position: relative; width: 53px; height: 53px; flex-shrink: 0;
+      border-radius: 9px; overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+    }
+    .thumb-item.latest { border-color: #2BAE66; border-width: 2.5px; }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb-del {
+      position: absolute; top: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(0,0,0,0.65);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: #fff; font-weight: 900; line-height: 1;
+      cursor: pointer;
+    }
+
+    /* Camera controls — captureBtn 절대 중앙 */
+    .cam-controls {
+      position: relative;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 28px 4px;
+    }
+    #captureBtn {
+      position: absolute !important;
+      left: 50%; transform: translateX(-50%);
+    }
+    .btn-album {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 500;
+      background: none; border: none; cursor: pointer;
+      width: 72px;
+    }
+    .album-thumb {
+      width: 46px; height: 46px; border-radius: 10px;
+      background: rgba(255,255,255,0.2);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .album-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    #captureBtn {
+      width: 74px; height: 74px; border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.9);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.12s;
+      flex-shrink: 0; z-index: 1;
+    }
+    #captureBtn:active { transform: scale(0.9); }
+    #captureBtn .cap-inner {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .btn-price {
+      /* 비활성: 흰색 테두리 + 반투명 흰 텍스트 — 어두운 배경에서도 선명 */
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.6);
+      border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+      padding: 8px 10px; cursor: not-allowed;
+      pointer-events: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      text-align: center; line-height: 1.35;
+      width: 72px;
+    }
+    .btn-price.on {
+      /* 활성: 초록 배경 + 흰 텍스트 */
+      background: #2BAE66;
+      border-color: #2BAE66;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    #albumInput { display: none; }
+
+    /* Flash */
+    .cam-flash {
+      position: absolute; inset: 0; z-index: 40;
+      background: #fff; opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+    }
+
+    /* ═══════════════════════════════════════
+       SCREEN 4 – 세탁비 결과
+    ═══════════════════════════════════════ */
+    #screen4 { background: #f5f5f5; }
+    #screen4 .body { flex: 1; overflow-y: auto; padding: 14px 14px 0; }
+
+    /* Summary card */
+    .summary-card {
+      background: #fff; border-radius: 18px;
+      padding: 18px 18px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .summary-price {
+      font-size: 20px; font-weight: 700; color: #111;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .summary-price .price-num {
+      font-size: 20px; font-weight: 900; color: #FF3B30;
+    }
+
+    /* Table card */
+    .table-card {
+      background: #fff; border-radius: 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    /* ── TABS ── */
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 10px; }
+    .tab-btn {
+      flex: 1; padding: 10px 0; text-align: center;
+      font-size: 13px; font-weight: 700; border-radius: 12px;
+      border: none; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active  { background: #111; color: #fff; }
+    .tab-btn.inactive { background: #fff; color: #999; border: 1.5px solid #e0e0e0; }
+
+    /* ── TABLE CARD ── */
+    .table-card {
+      background: #fff; border-radius: 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      margin-bottom: 10px; overflow: hidden;
+      padding: 0 14px;
+    }
+    /* ── ITEM ROW (A안: 품목별 프리미엄 토글) ── */
+    .item-row {
+      padding: 12px 0; border-bottom: 1px solid #f2f2f2;
+      animation: fadeUp 0.25s ease forwards; opacity: 0;
+    }
+    .item-row:last-child { border-bottom: none; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: none; }
+    }
+    /* 윗줄: 썸네일 + 품목명 + 삭제 */
+    .item-row-top {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 7px;
+    }
+    .item-thumb {
+      width: 44px; height: 44px; border-radius: 10px;
+      flex-shrink: 0; position: relative; background: #f0f0f0;
+    }
+    .item-thumb img { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; display: block; }
+    .img-del-btn {
+      position: absolute; top: -5px; right: -5px;
+      width: 17px; height: 17px; border-radius: 50%;
+      background: #FF3B30; border: 1.5px solid #fff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 900; color: #fff; line-height: 1; padding: 0;
+    }
+    .item-name { font-size: 13px; font-weight: 700; color: #111; flex: 1; word-break: keep-all; }
+    /* 뱃지줄 */
+    .item-badges { margin-bottom: 7px; display: flex; gap: 4px; flex-wrap: wrap; }
+    /* 아랫줄: 가격 + 프리미엄 토글 */
+    .item-row-btm {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .item-price-col { flex-shrink: 0; }
+    .price-main       { font-size: 14px; font-weight: 800; color: #111; white-space: nowrap; }
+    .price-main.prem  { color: #6D28D9; }
+    .price-sub        { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+    .credit-main      { font-size: 14px; font-weight: 700; color: #c05000; white-space: nowrap; }
+    .credit-sub       { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+    /* 프리미엄 토글 영역 */
+    .prem-toggle-area {
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .prem-toggle-label {
+      font-size: 11px; font-weight: 600; color: #bbb;
+      transition: color 0.2s;
+    }
+    .prem-toggle-label.on { color: #6D28D9; }
+    /* 토글 스위치 pill */
+    .toggle-pill {
+      width: 40px; height: 22px; border-radius: 11px;
+      background: #e0e0e0; position: relative;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.2s; border: none; padding: 0;
+    }
+    .toggle-pill::after {
+      content: ''; position: absolute;
+      top: 3px; left: 3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; transition: transform 0.2s;
+    }
+    .toggle-pill.on { background: #6D28D9; }
+    .toggle-pill.on::after { transform: translateX(18px); }
+    /* 잠금 상태 (브랜드 자동) */
+    .toggle-pill.locked { background: #C4B5FD; cursor: not-allowed; }
+    .toggle-pill.locked::after { transform: translateX(18px); }
+    /* 합계 푸터 */
+    .table-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-top: 1.5px solid #efefef;
+    }
+    .foot-label       { font-size: 14px; font-weight: 800; color: #111; }
+    .foot-total       { text-align: right; }
+    .foot-price-main  { font-size: 15px; font-weight: 800; color: #FF3B30; white-space: nowrap; }
+    .foot-price-sub   { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; }
+
+    /* ── 구독 탭 업셀 ── */
+    .sub-upsell-card {
+      background: #edfaf3; border-radius: 14px;
+      padding: 12px 14px; margin-bottom: 10px;
+      border: 1px solid #86efac; display: none;
+    }
+    .sub-upsell-card.show { display: block; }
+    .sub-upsell-msg { font-size: 13px; color: #166534; line-height: 1.5; }
+    .sub-upsell-msg strong { font-weight: 700; }
+
+    /* Footer row */
+    .table-foot {
+      padding: 12px 8px;
+      background: #fafafa;
+      border-top: 2px solid #efefef;
+      align-items: center;
+    }
+    .foot-label { font-size: 15px; font-weight: 800; color: #111; text-align: center; white-space: nowrap; }
+    .foot-정가  { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
+    .foot-sub   { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
+    .foot-차감  { text-align: center; font-size: 15px; font-weight: 800; color: #555; white-space: nowrap; }
+    .foot-premium { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
+
+    /* ── UPSELL CARD ── */
+    .upsell-card {
+      border-radius: 14px;
+      margin-bottom: 10px;
+      padding: 13px 14px 12px;
+      background: #fff;
+      border: 1.5px solid #FFD97A;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      display: none;
+    }
+    .upsell-card.show { display: block; }
+    .upsell-top {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .upsell-icon { font-size: 22px; flex-shrink: 0; line-height: 1.3; }
+    .upsell-body { flex: 1; min-width: 0; }
+    .upsell-msg  { font-size: 14px; color: #222; line-height: 1.45; }
+    .upsell-msg strong { color: #FF6B00; }
+    .upsell-sub  { font-size: 12px; color: #888; margin-top: 3px; }
+    .upsell-bar-wrap {
+      margin-top: 10px; height: 6px;
+      background: #f0f0f0; border-radius: 6px; overflow: hidden;
+    }
+    .upsell-bar {
+      height: 100%; border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+    .upsell-achieve .upsell-msg strong { color: #2BAE66; }
+
+    /* Empty */
+    .empty {
+      text-align: center; padding: 48px 20px;
+      font-size: 14px; color: #aaa; line-height: 2;
+    }
+    .empty-ico { font-size: 44px; display: block; margin-bottom: 10px; }
+
+    /* ── LOADING ── */
+    #loadingMask {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,0.68);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      color: #fff;
+    }
+    #loadingMask.on { display: flex; }
+    .spin {
+      width: 54px; height: 54px;
+      border: 4px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-title { font-size: 16px; font-weight: 700; }
+    .load-sub { font-size: 13px; color: rgba(255,255,255,0.65); }
+
+    /* ── API MODAL ── */
+    .modal-wrap {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(0,0,0,0.55);
+      display: none; align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .modal-wrap.on { display: flex; }
+    .modal-sheet {
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      width: 100%; max-width: 430px;
+      padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+    }
+    .modal-handle {
+      width: 40px; height: 4px; background: #e0e0e0;
+      border-radius: 2px; margin: 0 auto 20px;
+    }
+    .modal-ico { font-size: 32px; text-align: center; margin-bottom: 10px; }
+    .modal-title { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .modal-desc { font-size: 13px; color: #777; text-align: center; line-height: 1.6; margin-bottom: 20px; }
+    .modal-desc a { color: #2BAE66; }
+    .modal-input {
+      width: 100%; padding: 14px;
+      border: 1.5px solid #ddd; border-radius: 12px;
+      font-size: 14px; outline: none; margin-bottom: 6px;
+      transition: border-color 0.15s;
+    }
+    .modal-input:focus { border-color: #2BAE66; }
+    .modal-hint { font-size: 11px; color: #bbb; line-height: 1.5; margin-bottom: 18px; }
+    .modal-btn {
+      width: 100%; height: 52px; border-radius: 14px;
+      font-size: 15px; font-weight: 700; border: none; cursor: pointer;
+      margin-bottom: 8px; transition: background 0.15s;
+    }
+    .modal-btn.pri { background: #2BAE66; color: #fff; }
+    .modal-btn.pri:hover { background: #249958; }
+    .modal-btn.sec { background: #f4f4f4; color: #666; }
+
+    /* ── VERSION BADGE ── */
+    .version-badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      color: #2BAE66;
+      background: #e8f7ee;
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-top: 10px;
+      letter-spacing: .03em;
+    }
+
+
+    /* ── PREMIUM BRAND BADGES ── */
+    .brand-badge {
+      font-size: 10px; font-weight: 700;
+      color: #7c5a00; background: #fff3cd;
+      border-radius: 10px; padding: 2px 8px;
+      display: inline-block; margin-top: 2px;
+    }
+    .auto-prem-lock {
+      font-size: 10px; font-weight: 700;
+      color: #6a0572; background: #f3e8ff;
+      border-radius: 10px; padding: 2px 8px;
+      display: inline-flex; align-items: center; gap: 3px;
+      margin-top: 2px;
+    }
+    .prem-locked-row {
+      opacity: 0.7; font-size: 11px; color: #888;
+      padding: 4px 0; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 88px; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(30,30,30,0.88); color: #fff;
+      padding: 10px 22px; border-radius: 22px;
+      font-size: 13px; font-weight: 500;
+      z-index: 950; opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.on {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══════════ SCREEN 2: 설명 ══════════ -->
+  <div class="screen active" id="screen2">
+    <div class="nav-header">
+      <div class="nav-btn" onclick="toast('이전 화면으로 이동합니다')">←</div>
+      <div class="nav-title"></div>
+      <div class="nav-btn"></div>
+    </div>
+    <div class="body">
+      <div class="explain-title">[선택] 사진을 찍어<br>세탁비를 확인해 보세요.</div>
+      <div class="explain-img-wrap">
+        <!-- 프레임 0: 카메라 촬영 -->
+        <div class="hero-frame" id="heroF0">
+          <div class="hero-viewfinder">
+            <div class="hv-corner tl"></div><div class="hv-corner tr"></div>
+            <div class="hv-corner bl"></div><div class="hv-corner br"></div>
+            🧥
+          </div>
+          <div class="hero-badge green">카메라 촬영 중</div>
+          <div class="hero-frame-label">의류를 화면에 맞춰<br>촬영해 주세요</div>
+        </div>
+        <!-- 프레임 1: AI 분석 -->
+        <div class="hero-frame warm hidden" id="heroF1">
+          <div class="hero-spinner"></div>
+          <div class="hero-badge orange">AI 분석 중</div>
+          <div class="hero-frame-label">품목을 인식하고 있어요</div>
+        </div>
+        <!-- 프레임 2: 결과 -->
+        <div class="hero-frame hidden" id="heroF2">
+          <div class="hero-result-card">
+            <div class="hero-result-total">27,800원</div>
+            <div class="hero-result-item"><span>재킷</span><span>8,500원</span></div>
+            <div class="hero-result-item"><span>티셔츠</span><span>4,500원</span></div>
+            <div class="hero-result-item"><span>바지</span><span>5,800원</span></div>
+            <div class="hero-result-divider"></div>
+            <div class="hero-result-sum"><span>합계</span><span style="color:#2BAE66">27,800원</span></div>
+          </div>
+          <div class="hero-badge green">세탁비 확인 완료</div>
+        </div>
+        <!-- 인디케이터 -->
+        <div class="hero-dots">
+          <div class="hero-dot active" id="heroDot0"></div>
+          <div class="hero-dot" id="heroDot1"></div>
+          <div class="hero-dot" id="heroDot2"></div>
+        </div>
+      </div>
+      <div class="explain-desc">
+        세탁할 의류를 카메라로 촬영하면 AI가 품목을 자동으로 인식하고
+        예상 세탁비를 바로 알려드려요.
+      </div>
+      <button class="btn-camera" onclick="goToCamera()">
+        📷 사진찍기
+      </button>
+      <div style="text-align:center; margin-top:4px;">
+        <div class="version-badge" id="versionBadge"></div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <button class="btn-primary" onclick="toast('수거신청 화면으로 이동합니다 🚐')">다음</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 3: 카메라 ══════════ -->
+  <div class="screen" id="screen3">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+
+    <div class="cam-header">
+      <div class="cam-back" onclick="backFromCamera()">←</div>
+    </div>
+
+    <!-- Guide brackets -->
+    <div class="cam-guide">
+      <div class="guide-rect">
+        <div class="br"></div>
+        <div class="bl"></div>
+        <div class="guide-hint">세탁물을 펼쳐서 한 벌씩 차례대로 찍어 주세요.</div>
+      </div>
+    </div>
+
+    <!-- Camera error -->
+    <div id="camErr">
+      <div class="err-ico">📷</div>
+      <h3>카메라에 접근할 수 없어요</h3>
+      <p>브라우저 카메라 권한을 허용하거나<br>앨범에서 사진을 선택해주세요.</p>
+      <button onclick="openAlbum()">앨범에서 선택</button>
+    </div>
+
+    <!-- Flash effect -->
+    <div class="cam-flash" id="camFlash"></div>
+
+    <!-- Bottom controls -->
+    <div class="cam-bottom">
+      <div class="thumb-row">
+        <span class="thumb-count-badge" id="thumbCount"></span>
+        <div id="thumbStrip"></div>
+      </div>
+      <div class="cam-controls">
+        <button class="btn-album" onclick="openAlbum()">
+          <div class="album-thumb" id="albumPreview">🖼️</div>
+          <span>앨범선택</span>
+        </button>
+        <button id="captureBtn" onclick="capturePhoto()">
+          <div class="cap-inner"></div>
+        </button>
+        <button class="btn-price" id="priceBtn" onclick="doAnalyze()">
+          세탁비<br>확인하기
+        </button>
+      </div>
+    </div>
+
+    <input type="file" id="albumInput" accept="image/*" multiple onchange="handleAlbum(this)">
+  </div>
+
+  <!-- ══════════ SCREEN 4: 결과 ══════════ -->
+  <div class="screen" id="screen4">
+    <div class="nav-header">
+      <div class="nav-btn" onclick="backFromResult()">←</div>
+      <div class="nav-title">세탁비 확인하기</div>
+      <div class="nav-btn"></div>
+    </div>
+    <div class="body" id="resultBody"></div>
+    <div class="footer-bar">
+      <button class="btn-primary" onclick="toast('수거신청 화면으로 이동합니다 🚐')">인식품목으로 수거신청</button>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- LOADING -->
+<div id="loadingMask">
+  <div class="spin"></div>
+  <div class="load-title">AI가 의류를 분석 중이에요</div>
+  <div class="load-sub" id="loadSub">품목을 인식하고 있어요...</div>
+</div>
+
+<!-- API MODAL -->
+<div class="modal-wrap" id="apiModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-ico">🔑</div>
+    <div class="modal-title">API 키 설정</div>
+    <div class="modal-desc">
+      Claude Vision으로 의류를 인식합니다.<br>
+      <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>에서 발급받으세요.
+    </div>
+    <input class="modal-input" id="apiKeyInput" type="password" placeholder="sk-ant-...">
+    <div class="modal-hint">⚠️ API 키는 이 기기에만 저장되며 외부로 전송되지 않아요.</div>
+    <button class="modal-btn pri" onclick="saveKey()">저장하고 시작하기</button>
+    <button class="modal-btn sec" onclick="useDemo()">API 없이 데모 모드로 체험</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// VERSION
+// ═══════════════════════════════════════
+const VERSION = 'v1.13.0'; // 2026-06-10  품목별 프리미엄 토글 UI + 수거신청 버튼
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('versionBadge');
+  if (el) el.textContent = VERSION;
+});
+
+// PRICE DATA  (from 품목별가격표.csv)
+// columns: [소분류, 중분류, 정가, 구독할인, 구독차감, 프리미엄, 구독자프리미엄]
+// ═══════════════════════════════════════
+const RAW = [
+  // ── 개별클리닝 ──────────────────────────
+  ['캐주얼조끼','상의',5000,4000,1,12000],
+  ['한복 조끼','상의',3000,2400,1,0],
+  ['한복 상의','상의',6000,4800,1,0],
+  ['한복 하의','하의',7000,5600,1,0],
+  ['수영복, 레시가드','잡화',6000,4800,1,0],
+  ['가운','상의',7500,6000,1,0],
+  ['에코백/토트백','잡화',4000,3200,1,0],
+  ['인형','잡화',7800,6240,1,0],
+  ['대형 인형','잡화',20000,16000,1,0],
+  ['앞치마','잡화',4000,3200,1,0],
+  ['정장조끼','상의',3500,2800,1,12000],
+  ['티셔츠','상의',4500,3600,1,12000],
+  ['가디건','상의',6500,5200,1,18000],
+  ['패딩바지','하의',10000,8000,1,25000],
+  ['경량패딩','아우터',9800,7840,1,40000],
+  ['블라우스','상의',4800,3840,1,15000],
+  ['후드티, 맨투맨티','상의',5500,4400,1,15000],
+  ['롱패딩점퍼','아우터',22000,17600,3,50000],
+  ['패딩조끼','아우터',9800,7840,1,40000],
+  ['코트, 트렌치코트','아우터',14800,11840,2,50000],
+  ['장갑','잡화',4800,3840,1,12000],
+  ['넥타이','잡화',3000,2400,1,12000],
+  ['일반패딩','아우터',17800,14240,2,40000],
+  ['모자','잡화',6800,5440,2,12000],
+  ['머플러, 스카프','잡화',4800,3840,1,12000],
+  ['니트, 스웨터','상의',6500,5200,1,18000],
+  ['원피스, 점프수트','상의',7400,5920,1,25000],
+  ['정장재킷','아우터',6500,5200,1,25000],
+  ['바지','하의',5800,4640,1,15000],
+  ['스커트','하의',5800,4640,1,15000],
+  ['재킷','상의',8500,6800,1,30000],
+  ['숄','잡화',8000,6400,1,20000],
+  ['일반셔츠','셔츠',3800,3040,1,0],
+  ['와이셔츠','셔츠',2900,2320,0,10000],
+  // ── 이불 ────────────────────────────────
+  ['구스 이불','이불',22000,17600,3,0],
+  ['양모 이불','이불',22000,17600,3,0],
+  ['실크 이불','이불',22000,17600,3,0],
+  ['일반이불','이불',14500,11600,2,0],
+  ['아동이불','이불',7500,6000,1,0],
+  ['무릎담요','이불',7500,6000,1,0],
+  ['구스토퍼','이불',30000,24000,3,0],
+  ['구스베개','이불',12000,9600,2,0],
+  ['극세사 패드','이불',14500,11600,2,0],
+  ['극세사 이불','이불',19800,15840,3,0],
+  ['일반 토퍼','이불',19800,15840,3,0],
+  // ── 리빙 ────────────────────────────────
+  ['쇼파커버(3인이상)','리빙',20000,16000,0,0],
+  ['쇼파커버(2인이하)','리빙',15000,12000,0,0],
+  ['일반커튼','리빙',17000,13600,0,0],
+  ['암막커튼','리빙',25000,20000,0,0],
+  ['이중커튼','리빙',20000,16000,0,0],
+  ['러그, 카펫','리빙',18000,14400,0,0],
+  ['식탁보','리빙',12000,9600,0,0],
+  ['차량용 양털시트','리빙',20000,16000,0,0],
+  ['러그, 카펫 [스페셜]','리빙',60000,48000,0,0],
+  ['러그, 카펫 [스페셜/대형]','리빙',100000,80000,0,0],
+  ['베개커버','리빙',4000,3200,0,0],
+  ['발매트','리빙',5800,4640,0,0],
+  ['커버류','리빙',11500,9200,0,0],
+  ['쿠션커버','리빙',4000,3200,0,0],
+  // ── 신발 ────────────────────────────────
+  ['농구화','신발',9800,7840,1,25000],
+  ['축구화','신발',9800,7840,1,25000],
+  ['일반운동화','신발',6500,5200,1,25000],
+  ['운동화 - 부분 세무 / 가죽','신발',8500,6800,1,45000],
+  ['운동화 - 전체 세무 / 가죽','신발',10500,8400,2,45000],
+  ['골프화','신발',12500,10000,2,25000],
+  ['등산화','신발',12500,10000,2,25000],
+  ['아동 신발','신발',5800,4640,1,25000],
+  ['하이탑','신발',9800,7840,1,25000],
+];
+
+const PMAP = {};
+RAW.forEach(r => {
+  PMAP[r[0]] = { name:r[0], cat:r[1], 정가:r[2], 구독:r[3], 차감:r[4], 프리미엄:r[5] };
+});
+// 공백 등 사소한 차이를 허용하는 안전 조회 함수
+function pLookup(name) {
+  if (!name) return null;
+  const n = name.trim().replace(/\s+/g, ' ');
+  return PMAP[n] || PMAP[name] || null;
+}
+
+// ═══════════════════════════════════════
+// PREMIUM BRANDS (from 프리미엄브랜드.csv)
+// ═══════════════════════════════════════
+const PREMIUM_BRANDS = {
+  'HERMÈS':          { kr:'에르메스',    scope:'all' },
+  'CHANEL':          { kr:'샤넬',        scope:'all' },
+  'LOUIS VUITTON':   { kr:'루이비통',    scope:'all' },
+  'GUCCI':           { kr:'구찌',        scope:'all' },
+  'PRADA':           { kr:'프라다',      scope:'all' },
+  'BURBERRY':        { kr:'버버리',      scope:'all' },
+  'CELINE':          { kr:'셀린느',      scope:'all' },
+  'MONCLER':         { kr:'몽클레르',    scope:'all' },
+  'VALENTINO':       { kr:'발렌티노',    scope:'all' },
+  'FENDI':           { kr:'펜디',        scope:'all' },
+  'DIOR':            { kr:'디올',        scope:'all' },
+  'LORO PIANA':      { kr:'로로피아나',  scope:'all' },
+  'MIU MIU':         { kr:'미우미우',    scope:'all' },
+  'KITON':           { kr:'키톤',        scope:'all' },
+  'MAXMARA':         { kr:'막스마라',    scope:'all' },
+  'BALENCIAGA':      { kr:'발렌시아가',  scope:'all' },
+  'BOTTEGA VENETA':  { kr:'보테가 베네타', scope:'all' },
+  'THOM BROWNE':     { kr:'톰브라운',    scope:'all' },
+  'POLO':            { kr:'폴로',        scope:'all' },
+  'MOOSE KNUCKLES':  { kr:'무스너클',    scope:'padding' },
+  'CANADA GOOSE':    { kr:'캐나다구스',  scope:'padding' },
+  'STONE ISLAND':    { kr:'스톤아일랜드', scope:'padding' },
+  'NOBIS':           { kr:'노비스',      scope:'padding' },
+  'HERNO':           { kr:'에르노',      scope:'padding' },
+};
+const PADDING_ITEMS = new Set(['경량패딩','일반패딩','롱패딩점퍼','패딩조끼','패딩바지']);
+
+// 브랜드명 → PREMIUM_BRANDS 매칭 (대소문자 무관)
+function findPremiumBrand(brandStr) {
+  if (!brandStr) return null;
+  const s = brandStr.trim().toUpperCase();
+  for (const [key, val] of Object.entries(PREMIUM_BRANDS)) {
+    if (s.includes(key) || key.includes(s)) return val;
+  }
+  return null;
+}
+// 품목+브랜드 기준으로 자동 프리미엄 여부 판단
+function isAutoPremium(itemName, brandStr) {
+  const info = findPremiumBrand(brandStr);
+  if (!info) return false;
+  if (info.scope === 'all') return true;
+  if (info.scope === 'padding' && PADDING_ITEMS.has(itemName)) return true;
+  return false;
+}
+
+// AI 인식용 품목 목록 — RAW에서 자동 생성
+// 쉼표 포함 품목명이 있으므로 따옴표로 감싸서 구분 명확화
+const CATS = RAW.map(r => `"${r[0]}"`).join(', ');
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let stream      = null;
+let photos      = [];   // data-URL strings
+let photosLoading = 0; // 앨범 비동기 로드 중인 사진 수
+let items       = [];   // { name, qty, thumb }
+let demoMode    = false;
+let curScreen   = 'screen2';
+let activeTab   = '일반';    // '일반' | '구독'
+let premiumSet  = new Set(); // 프리미엄 선택된 item 인덱스
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('load', () => {
+  if (!localStorage.getItem('anthropic_api_key')) {
+    document.getElementById('apiModal').classList.add('on');
+  }
+});
+
+function saveKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k.startsWith('sk-ant-')) { toast('sk-ant- 로 시작하는 키를 입력해주세요'); return; }
+  localStorage.setItem('anthropic_api_key', k);
+  document.getElementById('apiModal').classList.remove('on');
+}
+function useDemo() {
+  demoMode = true;
+  document.getElementById('apiModal').classList.remove('on');
+}
+
+// ═══════════════════════════════════════
+// HERO ANIMATION (Screen 2)
+// ═══════════════════════════════════════
+function initHeroAnimation() {
+  const frames = [
+    document.getElementById('heroF0'),
+    document.getElementById('heroF1'),
+    document.getElementById('heroF2')
+  ];
+  const dots = [
+    document.getElementById('heroDot0'),
+    document.getElementById('heroDot1'),
+    document.getElementById('heroDot2')
+  ];
+  if (frames.some(f => !f) || dots.some(d => !d)) return;
+  const holds = [2000, 1500, 2500];
+  let cur = 0;
+  let timer = null;
+  function next() {
+    frames[cur].classList.add('hidden');
+    dots[cur].classList.remove('active');
+    cur = (cur + 1) % 3;
+    frames[cur].classList.remove('hidden');
+    dots[cur].classList.add('active');
+    timer = setTimeout(next, holds[cur]);
+  }
+  timer = setTimeout(next, holds[0]);
+}
+document.addEventListener('DOMContentLoaded', initHeroAnimation);
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+const ORDER = ['screen2','screen3','screen4'];
+
+function navTo(id) {
+  const from = document.getElementById(curScreen);
+  const to   = document.getElementById(id);
+  const fwd  = ORDER.indexOf(id) > ORDER.indexOf(curScreen);
+  if (fwd) {
+    from.classList.add('prev');
+    from.classList.remove('active');
+  } else {
+    from.classList.remove('active', 'prev');
+  }
+  to.classList.remove('prev');
+  to.classList.add('active');
+  curScreen = id;
+}
+
+function goToCamera() {
+  navTo('screen3');
+  startCam();
+}
+function backFromCamera() {
+  stopCam();
+  navTo('screen2');
+}
+function backFromResult() {
+  navTo('screen3');
+  startCam();
+}
+
+// ═══════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════
+async function startCam() {
+  const vid = document.getElementById('cameraVideo');
+  const err = document.getElementById('camErr');
+  if (stream) { vid.srcObject = stream; return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    vid.srcObject = stream;
+    err.classList.remove('show');
+
+    // Try 0.5× (ultra-wide) zoom
+    const track = stream.getVideoTracks()[0];
+    const caps  = track.getCapabilities?.();
+    if (caps?.zoom) {
+      track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }).catch(() => {});
+    }
+  } catch (e) {
+    console.warn('Camera:', e);
+    err.classList.add('show');
+  }
+}
+
+function stopCam() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+function capturePhoto() {
+  const vid = document.getElementById('cameraVideo');
+  if (!vid.videoWidth) { toast('카메라가 준비 중이에요'); return; }
+
+  // 이미지 최대 1024px로 다운스케일 (API 전송 속도 개선)
+  const MAX = 1024;
+  const c = document.createElement('canvas');
+  const ratio = Math.min(1, MAX / Math.max(vid.videoWidth, vid.videoHeight));
+  c.width  = Math.round(vid.videoWidth  * ratio);
+  c.height = Math.round(vid.videoHeight * ratio);
+  c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+  photos.push(c.toDataURL('image/jpeg', 0.80));
+  refreshThumbs();
+  doFlash();
+}
+
+function doFlash() {
+  const f = document.getElementById('camFlash');
+  f.style.opacity = '0.75';
+  setTimeout(() => { f.style.opacity = '0'; }, 160);
+}
+
+function refreshThumbs() {
+  const strip = document.getElementById('thumbStrip');
+  const badge = document.getElementById('thumbCount');
+  const btn   = document.getElementById('priceBtn');
+
+  strip.innerHTML = '';
+  photos.forEach((p, i) => {
+    const d = document.createElement('div');
+    d.className = 'thumb-item' + (i === photos.length - 1 ? ' latest' : '');
+    d.innerHTML = `<img src="${p}"><div class="thumb-del" onclick="removePhoto(${i})">✕</div>`;
+    strip.appendChild(d);
+  });
+
+  const n = photos.length;
+  badge.textContent = n ? `${n}개` : '';
+  btn.classList.toggle('on', n > 0);
+
+  setTimeout(() => { strip.scrollLeft = strip.scrollWidth; }, 40);
+}
+
+function removePhoto(i) {
+  photos.splice(i, 1);
+  refreshThumbs();
+}
+
+function openAlbum() { document.getElementById('albumInput').click(); }
+
+function handleAlbum(inp) {
+  Array.from(inp.files).forEach(f => {
+    photosLoading++;
+    const r = new FileReader();
+    r.onload = e => {
+      // 앨범 사진도 카메라와 동일하게 max 1024px로 리사이즈
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1024;
+        const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width  = Math.round(img.width  * ratio);
+        c.height = Math.round(img.height * ratio);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const resized = c.toDataURL('image/jpeg', 0.80);
+        photos.push(resized);
+        photosLoading--;
+        refreshThumbs();
+        const prev = document.getElementById('albumPreview');
+        prev.innerHTML = `<img src="${resized}">`;
+      };
+      img.src = e.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+  inp.value = '';
+}
+
+async function waitPhotosReady() {
+  while (photosLoading > 0) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+}
+
+// ═══════════════════════════════════════
+// VISION API
+// ═══════════════════════════════════════
+async function doAnalyze() {
+  if (!photos.length && photosLoading === 0) return;
+  showLoad('사진 준비 중...');
+  await waitPhotosReady();       // 앨범 사진 로드 완료 대기
+  if (!photos.length) { hideLoad(); return; }
+  showLoad('품목을 인식하고 있어요...');
+  try {
+    items = demoMode ? await mockAnalyze() : await callClaude();
+    hideLoad();
+    renderResult();
+    navTo('screen4');
+  } catch (e) {
+    hideLoad();
+    toast('분석 실패: ' + e.message);
+  }
+}
+
+async function callClaude() {
+  const key = localStorage.getItem('anthropic_api_key');
+  if (!key) throw new Error('API 키가 없습니다');
+
+  const content = photos.map((p, idx) => [
+    { type: 'text', text: `[사진 ${idx + 1}]` },
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.split(',')[1] } }
+  ]).flat();
+
+  content.push({ type: 'text', text:
+    `각 사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
+    `아래 목록에 있는 이름을 정확히 그대로 사용하세요:\n${CATS}\n\n` +
+    `[분류 기준]\n` +
+    `- 셔츠: 캐주얼/일반 버튼다운 셔츠 → "일반셔츠" / 포멀 드레스셔츠 → "와이셔츠" / 라운드·V넥 티셔츠 + 폴로셔츠(카라티, 2~3개 반버튼) → "티셔츠" (칼라가 있어도 전체 버튼다운이 아니면 티셔츠로 분류, 세 가지 엄격 구분)\n` +
+    `- 패딩 길이: 모자 제외 100cm 이상 → "롱패딩점퍼" / 얇고 가벼운 패딩 → "경량패딩" / 그 외 → "일반패딩"\n\n` +
+    `[브랜드 인식]\n` +
+    `아래 프리미엄 브랜드 로고·텍스트가 보이면 "브랜드" 필드에 영문명을 정확히 기재하세요:\n` +
+    `HERMÈS, CHANEL, LOUIS VUITTON, GUCCI, PRADA, BURBERRY, CELINE, MONCLER, VALENTINO, FENDI, DIOR, Loro Piana, MIU MIU, Kiton, MaxMara, BALENCIAGA, BOTTEGA VENETA, THOM BROWNE, Polo, MOOSE KNUCKLES, CANADA GOOSE, STONE ISLAND, nobis, HERNO\n` +
+    `브랜드 미확인 시 "브랜드" 필드 생략.\n\n` +
+    `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
+    `{"items":[{"소분류":"재킷","수량":1,"브랜드":"GUCCI","사진":1}]}\n` +
+    `- "사진" 필드에는 해당 품목이 나온 사진 번호(1부터 시작)를 반드시 기재하세요.\n` +
+    `- 동일 품목이라도 합치지 말고 각각 별도 항목으로 나열하세요. 해당 품목 없으면 {"items":[]}`
+  });
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API 오류 (${res.status})`);
+  }
+
+  const d = await res.json();
+
+  // 응답 구조 방어
+  const raw = d?.content?.[0]?.text ?? '';
+  if (!raw) throw new Error('AI 응답이 비어있습니다. 다시 시도해주세요.');
+
+  // 모델이 마크다운 코드블록으로 감싸는 경우도 처리
+  const m = raw.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('품목을 인식하지 못했습니다. 다시 촬영해주세요.');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(m[0]);
+  } catch (_) {
+    throw new Error('응답 파싱 실패. 다시 시도해주세요.');
+  }
+
+  return (parsed.items || []).map((it, i) => {
+    const name  = it.소분류;
+    const brand = it.브랜드 || null;
+    // "사진" 필드(1-based)가 있으면 해당 사진, 없으면 순서대로 fallback
+    const photoIdx = it.사진 != null ? Math.min(Math.max(it.사진 - 1, 0), photos.length - 1) : (i % photos.length);
+    return {
+      name,
+      qty:        it.수량 || 1,
+      brand,
+      autoPremium: isAutoPremium(name, brand),
+      thumb:      photos[photoIdx]
+    };
+  });
+}
+
+async function mockAnalyze() {
+  await new Promise(r => setTimeout(r, 2400));
+  const sets = [
+    [['재킷',1,'Zara'],['티셔츠',1,'Uniqlo'],['바지',1,null]],
+    [['코트, 트렌치코트',1,'Mango'],['니트, 스웨터',2,'H&M']],
+    [['블라우스',1,'COS'],['스커트',1,null],['정장재킷',1,'Theory']],
+  ];
+  const s = sets[Math.floor(Math.random() * sets.length)];
+  return s.map(([n, q, b], i) => ({ name: n, qty: q, brand: b, thumb: photos[i % photos.length] }));
+}
+
+// ═══════════════════════════════════════
+// RESULT RENDER
+// ═══════════════════════════════════════
+function renderResult() {
+  const body = document.getElementById('resultBody');
+  if (!items.length) {
+    body.innerHTML = `<div class="empty"><span class="empty-ico">🔍</span>의류를 인식하지 못했어요.<br>다시 촬영해주세요.</div>`;
+    return;
+  }
+  activeTab  = '일반';
+  premiumSet = new Set();
+  const t = totals();
+  body.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-price"><span id="sumLabel">총 예상 세탁비는</span> <span class="price-num" id="sumNum">${w(t.실결제)}</span><span id="sumUnit">원</span> 이예요</div>
+    </div>
+    <div class="upsell-card" id="upsellCard"></div>
+    <div class="sub-upsell-card" id="subUpsellCard"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active"   data-tab="일반" onclick="selectTab('일반')">일반 고객</button>
+      <button class="tab-btn inactive" data-tab="구독" onclick="selectTab('구독')">구독 회원</button>
+    </div>
+    <div class="table-card">
+      <div id="rowsWrap"></div>
+      <div class="table-foot" id="footWrap"></div>
+    </div>
+  `;
+  // 브랜드 자동 인식된 항목 premiumSet 선적용
+  premiumSet = new Set();
+  items.forEach((it, idx) => { if (it.autoPremium) premiumSet.add(idx); });
+  renderRows();
+  renderFoot();
+  renderUpsell();
+}
+
+function renderRows() {
+  const wrap = document.getElementById('rowsWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  items.forEach((it, idx) => {
+    const p = pLookup(it.name);
+    const q = it.qty;
+    const isPrem   = p && premiumSet.has(idx) && p.프리미엄 > 0;
+    const isAuto   = it.autoPremium;
+    const hasPremOption = p && p.프리미엄 > 0;
+
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.style.animationDelay = `${idx * 0.07}s`;
+
+    // 가격 블록
+    let priceHtml = '';
+    if (!p) {
+      priceHtml = `<div class="price-main" style="color:#bbb;font-size:12px">가격 조회 불가</div>`;
+    } else if (activeTab === '일반') {
+      priceHtml = isPrem
+        ? `<div class="price-main prem">${w(p.프리미엄 * q)}원</div>`
+        : `<div class="price-main">${w(p.정가 * q)}원</div>`;
+    } else {
+      if (isPrem) {
+        priceHtml = `<div class="price-main prem">${w(p.프리미엄 * q)}원</div><div class="price-sub">현금 결제</div>`;
+      } else {
+        const creditText = p.차감 * q > 0 ? `세탁권 ${p.차감 * q}개` : `${w(p.구독 * q)}원`;
+        const subText    = p.차감 * q > 0 ? `소진시 ${w(p.구독 * q)}원` : '';
+        priceHtml = `<div class="credit-main">${creditText}</div>${subText ? `<div class="credit-sub">${subText}</div>` : ''}`;
+      }
+    }
+
+    // 브랜드 뱃지
+    let badgesHtml = '';
+    if (it.brand) {
+      const bInfo = findPremiumBrand(it.brand);
+      const brandLabel = bInfo ? bInfo.kr : it.brand;
+      badgesHtml += `<span class="brand-badge">${brandLabel}</span>`;
+    }
+    if (isAuto && isPrem) {
+      badgesHtml += `<span class="auto-prem-lock">🔒 프리미엄 자동</span>`;
+    }
+
+    // 프리미엄 토글 (프리미엄 가격이 있는 품목에만 표시)
+    let toggleHtml = '';
+    if (hasPremOption) {
+      const pillClass = isAuto ? 'toggle-pill locked' : (isPrem ? 'toggle-pill on' : 'toggle-pill');
+      const labelClass = isPrem ? 'prem-toggle-label on' : 'prem-toggle-label';
+      const onclickAttr = isAuto ? '' : `onclick="togglePremium(${idx})"`;
+      toggleHtml = `
+        <div class="prem-toggle-area">
+          <span class="${labelClass}">프리미엄</span>
+          <button class="${pillClass}" ${onclickAttr} aria-label="프리미엄 토글"></button>
+        </div>`;
+    }
+
+    div.innerHTML = `
+      <div class="item-row-top">
+        <div class="item-thumb">
+          <img src="${it.thumb}" alt="${it.name}">
+          <button class="img-del-btn" onclick="delItem(${idx})">✕</button>
+        </div>
+        <div class="item-name">${it.name}</div>
+      </div>
+      ${badgesHtml ? `<div class="item-badges">${badgesHtml}</div>` : ''}
+      <div class="item-row-btm">
+        <div class="item-price-col">${priceHtml}</div>
+        ${toggleHtml}
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function renderFoot() {
+  const f = document.getElementById('footWrap');
+  if (!f) return;
+  const t = totals();
+  let inner = '';
+  if (activeTab === '일반') {
+    inner = `<div class="foot-label">합계</div>
+      <div class="foot-total"><div class="foot-price-main">${w(t.실결제)}원</div></div>`;
+  } else {
+    if (t.차감 > 0 && t.구독현금 > 0) {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total">
+          <div class="foot-price-main" style="color:#c05000">세탁권 ${t.차감}개</div>
+          <div class="foot-price-sub">+ ${w(t.구독현금)}원 현금 추가</div>
+        </div>`;
+    } else if (t.차감 > 0) {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total">
+          <div class="foot-price-main" style="color:#c05000">세탁권 ${t.차감}개</div>
+          <div class="foot-price-sub">소진시 ${w(t.구독)}원</div>
+        </div>`;
+    } else {
+      inner = `<div class="foot-label">합계</div>
+        <div class="foot-total"><div class="foot-price-main">${w(t.구독현금)}원</div></div>`;
+    }
+  }
+  f.innerHTML = inner;
+  updateSummary();
+}
+
+function totals() {
+  let 정가=0, 구독=0, 차감=0, 구독현금=0, 실결제=0;
+  items.forEach((it, idx) => {
+    const p = pLookup(it.name); if (!p) return;
+    const q = it.qty;
+    const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
+    정가 += p.정가 * q;
+    if (isPrem) {
+      구독현금 += p.프리미엄 * q;
+      실결제   += p.프리미엄 * q;
+    } else {
+      구독  += p.구독 * q;
+      차감  += p.차감 * q;
+      실결제 += p.정가 * q;
+    }
+  });
+  return { 정가, 구독, 차감, 구독현금, 실결제 };
+}
+
+function delItem(idx) {
+  items.splice(idx, 1);
+  premiumSet = new Set([...premiumSet].filter(i => i !== idx).map(i => i > idx ? i - 1 : i));
+  if (!items.length) {
+    renderResult();
+  } else {
+    renderRows();
+    renderFoot();
+    renderUpsell();
+  }
+}
+
+// ═══════════════════════════════════════
+// TAB & PREMIUM SELECTION
+// ═══════════════════════════════════════
+function selectTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    el.classList.toggle('active',   el.dataset.tab === tab);
+    el.classList.toggle('inactive', el.dataset.tab !== tab);
+  });
+  renderRows();
+  renderFoot();
+  renderUpsell();
+}
+
+function togglePremium(idx) {
+  if (items[idx]?.autoPremium) return; // 브랜드 자동 적용은 변경 불가
+  if (premiumSet.has(idx)) premiumSet.delete(idx);
+  else                      premiumSet.add(idx);
+  renderRows();
+  renderFoot();
+  updateSummary();
+}
+
+function renderPremiumSection() {
+  const sec = document.getElementById('premiumSection');
+  if (!sec) return;
+  const allEligible = items.map((it, idx) => ({ it, idx, p: pLookup(it.name) }))
+                          .filter(({ p }) => p && p.프리미엄 > 0);
+  const autoItems   = allEligible.filter(({ it }) => it.autoPremium);
+  const manualItems = allEligible.filter(({ it }) => !it.autoPremium);
+
+  let html = '';
+  // 자동 적용된 브랜드 프리미엄 안내
+  if (autoItems.length) {
+    html += `<div class="premium-card">
+      <div class="premium-card-title">🔒 브랜드 프리미엄 자동 적용</div>
+      ${autoItems.map(({ it, p }) => {
+        const bInfo = findPremiumBrand(it.brand);
+        return `<div class="prem-locked-row">
+          <span>${it.name} <span class="brand-badge">${bInfo ? bInfo.kr : it.brand}</span></span>
+          <span style="color:#7c5a00;font-weight:700">${w(p.프리미엄 * it.qty)}원</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  // 수동 추가 가능한 프리미엄 항목
+  if (manualItems.length) {
+    html += `<div class="premium-card">
+      <div class="premium-card-title">✦ 프리미엄 서비스 추가</div>
+      ${manualItems.map(({ it, idx, p }) => {
+        const on = premiumSet.has(idx);
+        return `<div class="prem-item-row">
+          <div class="prem-item-name">${it.name}</div>
+          <div class="prem-item-price">${w(p.프리미엄 * it.qty)}원</div>
+          <button class="prem-toggle-btn ${on ? 'remove' : 'add'}" onclick="togglePremium(${idx})">${on ? '취소' : '추가'}</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  if (!html) { sec.innerHTML = ''; return; }
+  sec.innerHTML = html;
+}
+
+function updateSummary() {
+  const t = totals();
+  const sn = document.getElementById('sumNum');
+  const su = document.getElementById('sumUnit');
+  const sl = document.getElementById('sumLabel');
+  if (!sn) return;
+  if (activeTab === '일반') {
+    sl && (sl.textContent = '총 예상 세탁비는');
+    sn.textContent = w(t.실결제);
+    su && (su.textContent = '원');
+  } else {
+    if (t.차감 > 0) {
+      sl && (sl.textContent = '총 필요 세탁권은');
+      sn.textContent = t.차감;
+      su && (su.textContent = '개');
+    } else {
+      sl && (sl.textContent = '총 예상 세탁비는');
+      sn.textContent = w(t.구독현금);
+      su && (su.textContent = '원');
+    }
+  }
+}
+
+
+// ═══════════════════════════════════════
+// UPSELLING
+// ═══════════════════════════════════════
+function getUpsell(total) {
+  if (total < 19500) {
+    const gap = 19500 - total;
+    return {
+      type: 'nudge', color: '#FF9500',
+      icon: '🚚',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 50% 할인!`,
+      sub: '배송비 7,400원 → 3,700원으로 줄어들어요',
+      progress: total / 19500
+    };
+  }
+  if (total >= 33000 && total <= 38000) {
+    const gap = 45000 - total;
+    return {
+      type: 'nudge', color: '#2BAE66',
+      icon: '🎉',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 무료!`,
+      sub: '45,000원 달성 시 배송비 0원 혜택이에요',
+      progress: total / 45000
+    };
+  }
+  if (total >= 48000 && total <= 53000) {
+    const gap = 60000 - total;
+    return {
+      type: 'nudge', color: '#7C3AED',
+      icon: '🛏️',
+      msg: `<strong>${w(gap)}원</strong>만 더 담으면 배송비 무료 + 이불 압축 포장!`,
+      sub: '60,000원 달성 시 이불 압축 포장 서비스도 드려요',
+      progress: total / 60000
+    };
+  }
+  if (total >= 61000 && total <= 70000) {
+    return {
+      type: 'achieve', color: '#2BAE66',
+      icon: '⭐',
+      msg: `<strong>런드리고X 스탠다드 20% 할인</strong> 혜택을 받으실 수 있어요!`,
+      sub: '지금 구독 신청하면 20% 할인된 가격으로 이용 가능해요',
+      progress: 1
+    };
+  }
+  return null;
+}
+
+function renderUpsell() {
+  const el    = document.getElementById('upsellCard');
+  const subEl = document.getElementById('subUpsellCard');
+  if (!el) return;
+  const t = totals();
+
+  if (activeTab === '일반') {
+    if (subEl) subEl.classList.remove('show');
+    const u = getUpsell(t.실결제);
+    if (!u) { el.classList.remove('show'); return; }
+    const barHtml = u.progress < 1
+      ? `<div class="upsell-bar-wrap"><div class="upsell-bar" style="width:${Math.min(u.progress*100,100).toFixed(1)}%;background:${u.color}"></div></div>`
+      : '';
+    el.className = `upsell-card show${u.type === 'achieve' ? ' upsell-achieve' : ''}`;
+    el.style.borderColor = u.color + '88';
+    el.innerHTML = `
+      <div class="upsell-top">
+        <span class="upsell-icon">${u.icon}</span>
+        <div class="upsell-body">
+          <div class="upsell-msg">${u.msg}</div>
+          <div class="upsell-sub">${u.sub}</div>
+        </div>
+      </div>
+      ${barHtml}
+    `;
+  } else {
+    el.classList.remove('show');
+    if (subEl) {
+      // 세탁권이 0인데 품목이 있으면 → 전부 프리미엄 현금 결제
+      if (t.차감 === 0 && t.구독현금 > 0) {
+        subEl.classList.remove('show');
+      } else {
+        subEl.classList.remove('show');
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function w(n) { return n.toLocaleString('ko-KR'); }
+
+function showLoad(msg) {
+  document.getElementById('loadSub').textContent = msg;
+  document.getElementById('loadingMask').classList.add('on');
+}
+function hideLoad() { document.getElementById('loadingMask').classList.remove('on'); }
+
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('on'), 2600);
+}
+</script>
+</body>
+</html>
