@@ -818,7 +818,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.11.0'; // 2026-06-08  프리미엄 브랜드 자동 인식·적용·잠금
+const VERSION = 'v1.12.0'; // 2026-06-10  다중 사진 품목-사진 매칭 수정
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1198,13 +1198,13 @@ async function callClaude() {
   const key = localStorage.getItem('anthropic_api_key');
   if (!key) throw new Error('API 키가 없습니다');
 
-  const content = photos.map(p => ({
-    type: 'image',
-    source: { type: 'base64', media_type: 'image/jpeg', data: p.split(',')[1] }
-  }));
+  const content = photos.map((p, idx) => [
+    { type: 'text', text: `[사진 ${idx + 1}]` },
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.split(',')[1] } }
+  ]).flat();
 
   content.push({ type: 'text', text:
-    `사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
+    `각 사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
     `아래 목록에 있는 이름을 정확히 그대로 사용하세요:\n${CATS}\n\n` +
     `[분류 기준]\n` +
     `- 셔츠: 캐주얼/일반 버튼다운 셔츠 → "일반셔츠" / 포멀 드레스셔츠 → "와이셔츠" / 라운드·V넥 티셔츠 + 폴로셔츠(카라티, 2~3개 반버튼) → "티셔츠" (칼라가 있어도 전체 버튼다운이 아니면 티셔츠로 분류, 세 가지 엄격 구분)\n` +
@@ -1214,8 +1214,9 @@ async function callClaude() {
     `HERMÈS, CHANEL, LOUIS VUITTON, GUCCI, PRADA, BURBERRY, CELINE, MONCLER, VALENTINO, FENDI, DIOR, Loro Piana, MIU MIU, Kiton, MaxMara, BALENCIAGA, BOTTEGA VENETA, THOM BROWNE, Polo, MOOSE KNUCKLES, CANADA GOOSE, STONE ISLAND, nobis, HERNO\n` +
     `브랜드 미확인 시 "브랜드" 필드 생략.\n\n` +
     `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
-    `{"items":[{"소분류":"재킷","수량":1,"브랜드":"GUCCI"}]}\n` +
-    `동일 품목이라도 합치지 말고 각각 별도 항목으로 나열하세요. 해당 품목 없으면 {"items":[]}`
+    `{"items":[{"소분류":"재킷","수량":1,"브랜드":"GUCCI","사진":1}]}\n` +
+    `- "사진" 필드에는 해당 품목이 나온 사진 번호(1부터 시작)를 반드시 기재하세요.\n` +
+    `- 동일 품목이라도 합치지 말고 각각 별도 항목으로 나열하세요. 해당 품목 없으면 {"items":[]}`
   });
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1258,12 +1259,14 @@ async function callClaude() {
   return (parsed.items || []).map((it, i) => {
     const name  = it.소분류;
     const brand = it.브랜드 || null;
+    // "사진" 필드(1-based)가 있으면 해당 사진, 없으면 순서대로 fallback
+    const photoIdx = it.사진 != null ? Math.min(Math.max(it.사진 - 1, 0), photos.length - 1) : (i % photos.length);
     return {
       name,
       qty:        it.수량 || 1,
       brand,
       autoPremium: isAutoPremium(name, brand),
-      thumb:      photos[i % photos.length]
+      thumb:      photos[photoIdx]
     };
   });
 }
