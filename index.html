@@ -400,8 +400,8 @@
       border-radius: 14px 14px 0 0; overflow: hidden;
     }
     .tab-hbtn {
-      flex: 1; height: 40px; border: none; background: #f5f5f5;
-      font-size: 13px; font-weight: 700; color: #aaa; cursor: pointer;
+      flex: 1; height: 46px; border: none; background: #f5f5f5;
+      font-size: 15px; font-weight: 700; color: #aaa; cursor: pointer;
       border-bottom: 2px solid transparent; transition: all 0.15s;
     }
     .tab-hbtn.active { background: #fff; border-bottom: 2px solid #fff; }
@@ -461,7 +461,6 @@
     .foot-divider-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 5px 0; font-size: 13px; color: #999;
-      border-top: 1px dashed #ebebeb;
     }
     .foot-divider-row .fdr-val { font-weight: 700; color: #555; }
     .foot-divider-row .fdr-val.green { color: #2BAE66; }
@@ -474,6 +473,7 @@
     .foot-total-lbl { font-size: 15px; font-weight: 800; color: #111; }
     .foot-total-val { font-size: 17px; font-weight: 800; color: #111; }
     .foot-total-val.green { color: #2BAE66; }
+    .foot-section-sep { border-top: 1px dashed #ebebeb; margin: 3px 0; }
     /* 잔여 세탁권 칩 */
     .remain-chip {
       background: #EFF6FF; border: 1px solid #BFDBFE;
@@ -638,6 +638,16 @@
       color: #7c5a00; background: #fff3cd;
       border-radius: 10px; padding: 2px 8px;
       display: inline-block; margin-top: 2px;
+    }
+    .brand-chip {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      background: #F3F4F6; color: #374151;
+      border-radius: 5px; padding: 2px 6px; white-space: nowrap;
+    }
+    .prem-chip {
+      display: inline-block; font-size: 11px; font-weight: 800;
+      background: #EDE9FE; color: #5B21B6;
+      border-radius: 5px; padding: 2px 6px; white-space: nowrap;
     }
     .auto-prem-lock {
       font-size: 10px; font-weight: 700;
@@ -814,7 +824,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.15.0'; // 2026-06-11  탭UI 수정 · 예상비용 배송포함 · 구독료/초과금 분리
+const VERSION = 'v1.16.0'; // 2026-06-11  브랜드 인식 강화 · 탭 가독성 · 프리미엄 배지 · 밑줄 위치
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1215,9 +1225,10 @@ async function callClaude() {
     `- 셔츠: 캐주얼/일반 버튼다운 셔츠 → "일반셔츠" / 포멀 드레스셔츠 → "와이셔츠" / 라운드·V넥 티셔츠 + 폴로셔츠(카라티, 2~3개 반버튼) → "티셔츠" (칼라가 있어도 전체 버튼다운이 아니면 티셔츠로 분류, 세 가지 엄격 구분)\n` +
     `- 패딩 길이: 모자 제외 100cm 이상 → "롱패딩점퍼" / 얇고 가벼운 패딩 → "경량패딩" / 그 외 → "일반패딩"\n\n` +
     `[브랜드 인식]\n` +
-    `아래 프리미엄 브랜드 로고·텍스트가 보이면 "브랜드" 필드에 영문명을 정확히 기재하세요:\n` +
-    `HERMÈS, CHANEL, LOUIS VUITTON, GUCCI, PRADA, BURBERRY, CELINE, MONCLER, VALENTINO, FENDI, DIOR, Loro Piana, MIU MIU, Kiton, MaxMara, BALENCIAGA, BOTTEGA VENETA, THOM BROWNE, Polo, MOOSE KNUCKLES, CANADA GOOSE, STONE ISLAND, nobis, HERNO\n` +
-    `브랜드 미확인 시 "브랜드" 필드 생략.\n\n` +
+    `의류·잡화에 브랜드 로고, 텍스트, 패턴이 보이면 반드시 "브랜드" 필드에 기재하세요.\n` +
+    `일반 브랜드 예시: NIKE, ADIDAS, ZARA, H&M, UNIQLO, POLO RALPH LAUREN, TOMMY HILFIGER, CALVIN KLEIN, GAP, LEVI'S, SUPREME, OFF-WHITE, THE NORTH FACE, PATAGONIA, ARC'TERYX, COLUMBIA 등 모든 브랜드 인식\n` +
+    `프리미엄 브랜드: HERMÈS, CHANEL, LOUIS VUITTON, GUCCI, PRADA, BURBERRY, CELINE, MONCLER, VALENTINO, FENDI, DIOR, Loro Piana, MIU MIU, Kiton, MaxMara, BALENCIAGA, BOTTEGA VENETA, THOM BROWNE, MOOSE KNUCKLES, CANADA GOOSE, STONE ISLAND, nobis, HERNO, Polo\n` +
+    `브랜드가 전혀 보이지 않을 때만 "브랜드" 필드 생략.\n\n` +
     `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
     `{"items":[{"소분류":"재킷","수량":1,"브랜드":"GUCCI","사진":1}]}\n` +
     `- "사진" 필드에는 해당 품목이 나온 사진 번호(1부터 시작)를 반드시 기재하세요.\n` +
@@ -1355,10 +1366,12 @@ function renderRows() {
 
     // 브랜드 / 프리미엄 배지
     let badgesHtml = '';
-    if (isPrem) {
+    if (it.brand && !isPrem) {
+      badgesHtml = `<span class="brand-chip">${it.brand}</span>`;
+    } else if (isPrem) {
       const bInfo = it.brand ? findPremiumBrand(it.brand) : null;
       const brandLabel = bInfo ? bInfo.kr : (it.brand || '프리미엄');
-      badgesHtml = `<span class="auto-prem-lock">🔒 ${brandLabel}</span>`;
+      badgesHtml = `<span class="brand-chip">🔒 ${brandLabel}</span><span class="prem-chip">프리미엄</span>`;
     }
 
     // 우측 가격/세탁권 영역
@@ -1410,6 +1423,7 @@ function renderFoot() {
     f.innerHTML = `
       <div class="foot-divider-row"><span>소계</span><span class="fdr-val">${w(t.정가)}원</span></div>
       <div class="foot-divider-row"><span>${dLabel}</span><span class="fdr-val">${w(delivery)}원</span></div>
+      <div class="foot-section-sep"></div>
       <div class="foot-total-row"><span class="foot-total-lbl">합계</span><span class="foot-total-val">${w(total)}원</span></div>
     `;
   } else {
@@ -1429,7 +1443,8 @@ function renderFoot() {
     f.innerHTML = `
       ${remainHtml}
       <div class="foot-divider-row"><span>세탁권</span><span class="fdr-val green">${ticketsStr}</span></div>
-      <div class="foot-divider-row"><span>배송비</span><span class="fdr-val green">${plan.deliveries}회 차감 (포함)</span></div>
+      <div class="foot-divider-row"><span>배송비</span><span class="fdr-val green">${plan.deliveries}회 차감</span></div>
+      <div class="foot-section-sep"></div>
       <div class="foot-divider-row"><span>구독료</span><span class="fdr-val blue">${w(plan.price)}원</span></div>
       ${overchargeHtml}
       <div class="foot-total-row"><span class="foot-total-lbl">합계</span><span class="foot-total-val${sub.soakedCost === 0 ? ' green' : ''}">${w(sub.totalCost)}원</span></div>
