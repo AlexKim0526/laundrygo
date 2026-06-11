@@ -89,61 +89,41 @@
       font-size: 21px; font-weight: 800; line-height: 1.35; color: #111;
       padding: 10px 0 14px;
     }
-    /* 히어로 카드 (애니메이션 유지, 스타일만 변경) */
+    /* 히어로 카드 - 정적 3단계 아이콘 */
     .explain-img-wrap {
       width: 100%; border-radius: 18px; overflow: hidden;
       background: #f5f9f5; border: 0.5px solid #d4edd9;
-      margin-bottom: 12px; position: relative;
-      aspect-ratio: 16 / 9;
+      margin-bottom: 12px;
+      padding: 22px 16px 16px;
     }
-    .hero-frame {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 10px;
-      padding: 16px; background: #f5f9f5;
-      opacity: 1; transition: opacity 0.3s ease;
+    .s2-steps-row {
+      display: flex; align-items: flex-start; justify-content: center; gap: 0;
     }
-    .hero-frame.hidden { opacity: 0; pointer-events: none; }
-    .hero-frame.warm { background: #fdfaf5; }
-    /* 프레임 아이콘 스타일 */
-    .hero-viewfinder {
-      width: 56px; height: 56px; border-radius: 14px;
-      background: #1a1a1a; position: relative;
+    .s2-step {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;
+    }
+    .s2-step-ico {
+      width: 52px; height: 52px; border-radius: 16px;
+      background: #fff; border: 1px solid #e8e8e8;
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
+      font-size: 22px;
     }
-    .hv-corner { position: absolute; width: 11px; height: 11px; border-color: #2BAE66; border-style: solid; }
-    .hv-corner.tl { top:3px; left:3px;  border-width: 2px 0 0 2px; }
-    .hv-corner.tr { top:3px; right:3px; border-width: 2px 2px 0 0; }
-    .hv-corner.bl { bottom:3px; left:3px;  border-width: 0 0 2px 2px; }
-    .hv-corner.br { bottom:3px; right:3px; border-width: 0 2px 2px 0; }
-    .hero-badge {
-      font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+    .s2-step-ico.active {
+      background: #e1f5ee; border-color: #9FE1CB;
     }
-    .hero-badge.green  { background: #e1f5ee; color: #0f6e56; }
-    .hero-badge.orange { background: #faeeda; color: #854f0b; }
-    .hero-frame-label  { font-size: 11px; color: #888; text-align: center; line-height: 1.5; }
-    .hero-spinner {
-      width: 36px; height: 36px;
-      border: 3px solid #e0e0e0; border-top-color: #2BAE66;
-      border-radius: 50%; animation: heroSpin 0.9s linear infinite;
+    .s2-step-lbl {
+      font-size: 12px; font-weight: 600; color: #999; text-align: center;
     }
-    @keyframes heroSpin { to { transform: rotate(360deg); } }
-    .hero-result-card {
-      background: #fff; border-radius: 12px; border: 0.5px solid #e8e8e8;
-      padding: 10px 12px; width: 100%;
+    .s2-step-lbl.active { color: #2BAE66; font-weight: 700; }
+    .s2-step-arrow {
+      font-size: 16px; color: #ccc; padding-top: 18px; flex-shrink: 0;
     }
-    .hero-result-total { font-size: 16px; font-weight: 800; color: #2BAE66; margin-bottom: 5px; }
-    .hero-result-item  { display: flex; justify-content: space-between; font-size: 10px; color: #888; padding: 2px 0; }
-    .hero-result-divider { height: 0.5px; background: #eee; margin: 4px 0; }
-    .hero-result-sum   { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #222; }
     .hero-dots {
-      position: absolute; bottom: 8px; left: 0; right: 0;
-      display: flex; gap: 5px; justify-content: center;
+      display: flex; gap: 5px; justify-content: center; margin-top: 14px;
     }
     .hero-dot {
       width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(0,0,0,0.15); transition: background 0.3s;
+      background: rgba(0,0,0,0.15);
     }
     .hero-dot.active { background: #2BAE66; width: 14px; border-radius: 3px; }
     /* 설명 인포 카드 */
@@ -154,28 +134,28 @@
     }
     .explain-info-title { font-size: 12px; font-weight: 700; color: #2BAE66; margin-bottom: 3px; }
     .explain-info-desc  { font-size: 11px; color: #444; line-height: 1.6; }
-    /* 카메라·앨범 버튼 */
+    /* 카메라·앨범 버튼 - 둘 다 아웃라인 */
     .btn-camera {
       width: 100%; height: 52px;
-      background: #2BAE66; color: #fff;
-      border: none;
+      background: #fff; color: #222;
+      border: 1.5px solid #ddd;
       font-size: 15px; font-weight: 700;
       border-radius: 14px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       margin-bottom: 8px;
       transition: background 0.15s;
     }
-    .btn-camera:hover { background: #249958; }
+    .btn-camera:hover { background: #f8f8f8; }
     .btn-album-s2 {
-      width: 100%; height: 46px;
-      background: #fff; color: #2BAE66;
-      border: 1.5px solid #2BAE66;
-      font-size: 14px; font-weight: 700;
+      width: 100%; height: 52px;
+      background: #fff; color: #222;
+      border: 1.5px solid #ddd;
+      font-size: 15px; font-weight: 700;
       border-radius: 14px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 7px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: background 0.15s;
     }
-    .btn-album-s2:hover { background: #edfaf3; }
+    .btn-album-s2:hover { background: #f8f8f8; }
 
     /* ═══════════════════════════════════════
        SCREEN 3 – 카메라
@@ -358,28 +338,27 @@
       display: none;
     }
     .cam-count-badge.show { display: block; }
-    /* 분석하기 버튼 (square green) */
+    /* 분석하기 래퍼 (버튼 + 라벨) */
+    .btn-analyze-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px;
+    }
+    .btn-analyze-wrap span {
+      font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.45);
+      transition: color 0.2s;
+    }
+    .btn-analyze-wrap.on span { color: rgba(255,255,255,0.85); }
     .btn-price {
+      width: 46px; height: 46px;
       background: rgba(255,255,255,0.1);
-      border: none;
-      border-radius: 12px;
-      font-size: 11px; font-weight: 700;
-      color: rgba(255,255,255,0.3);
+      border: none; border-radius: 14px;
+      font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.2);
       cursor: not-allowed; pointer-events: none;
       transition: background 0.2s, color 0.2s;
-      text-align: center; line-height: 1.35;
-      width: 56px; height: 56px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 3px;
-    }
-    .btn-price .analyze-ico {
-      font-size: 20px; display: block; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
     }
     .btn-price.on {
-      background: #2BAE66;
-      color: #fff;
+      background: #2BAE66; color: #fff;
       cursor: pointer; pointer-events: auto;
-      border-radius: 14px;
     }
 
     #albumInput { display: none; }
@@ -678,39 +657,26 @@
     <div class="body">
       <div class="explain-title">[선택] 사진을 찍어<br>세탁비를 확인해 보세요.</div>
       <div class="explain-img-wrap">
-        <!-- 프레임 0: 카메라 촬영 -->
-        <div class="hero-frame" id="heroF0">
-          <div class="hero-viewfinder">
-            <div class="hv-corner tl"></div><div class="hv-corner tr"></div>
-            <div class="hv-corner bl"></div><div class="hv-corner br"></div>
-            🧥
+        <div class="s2-steps-row">
+          <div class="s2-step">
+            <div class="s2-step-ico">📷</div>
+            <div class="s2-step-lbl">촬영</div>
           </div>
-          <div class="hero-badge green">카메라 촬영 중</div>
-          <div class="hero-frame-label">의류를 화면에 맞춰<br>촬영해 주세요</div>
-        </div>
-        <!-- 프레임 1: AI 분석 -->
-        <div class="hero-frame warm hidden" id="heroF1">
-          <div class="hero-spinner"></div>
-          <div class="hero-badge orange">AI 분석 중</div>
-          <div class="hero-frame-label">품목을 인식하고 있어요</div>
-        </div>
-        <!-- 프레임 2: 결과 -->
-        <div class="hero-frame hidden" id="heroF2">
-          <div class="hero-result-card">
-            <div class="hero-result-total">27,800원</div>
-            <div class="hero-result-item"><span>재킷</span><span>8,500원</span></div>
-            <div class="hero-result-item"><span>티셔츠</span><span>4,500원</span></div>
-            <div class="hero-result-item"><span>바지</span><span>5,800원</span></div>
-            <div class="hero-result-divider"></div>
-            <div class="hero-result-sum"><span>합계</span><span style="color:#2BAE66">27,800원</span></div>
+          <div class="s2-step-arrow">›</div>
+          <div class="s2-step">
+            <div class="s2-step-ico active">✦</div>
+            <div class="s2-step-lbl active">AI 인식</div>
           </div>
-          <div class="hero-badge green">세탁비 확인 완료</div>
+          <div class="s2-step-arrow">›</div>
+          <div class="s2-step">
+            <div class="s2-step-ico">🧾</div>
+            <div class="s2-step-lbl">견적 확인</div>
+          </div>
         </div>
-        <!-- 인디케이터 -->
         <div class="hero-dots">
-          <div class="hero-dot active" id="heroDot0"></div>
-          <div class="hero-dot" id="heroDot1"></div>
-          <div class="hero-dot" id="heroDot2"></div>
+          <div class="hero-dot active"></div>
+          <div class="hero-dot"></div>
+          <div class="hero-dot"></div>
         </div>
       </div>
       <div class="explain-info-card">
@@ -771,9 +737,10 @@
         <button id="captureBtn" onclick="capturePhoto()">
           <div class="cap-inner"></div>
         </button>
-        <button class="btn-price" id="priceBtn" onclick="doAnalyze()">
-          <span class="analyze-ico">✦</span>분석
-        </button>
+        <div class="btn-analyze-wrap" id="analyzeBtnWrap">
+          <button class="btn-price" id="priceBtn" onclick="doAnalyze()">→</button>
+          <span>분석하기</span>
+        </div>
       </div>
     </div>
 
@@ -1138,6 +1105,8 @@ function refreshThumbs() {
   const n = photos.length;
   badge.textContent = n ? `${n}개` : '';
   btn.classList.toggle('on', n > 0);
+  const wrap = document.getElementById('analyzeBtnWrap');
+  if (wrap) wrap.classList.toggle('on', n > 0);
 
   // 카운트 뱃지 (우측 상단)
   const countBadge = document.getElementById('camCountBadge');
