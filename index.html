@@ -392,28 +392,27 @@
       font-size: 20px; font-weight: 900; color: #FF3B30;
     }
 
-    /* Table card */
-    .table-card {
-      background: #fff; border-radius: 18px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-      margin-bottom: 14px;
-      overflow: hidden;
+    /* ── TABS (tab-header connected to card) ── */
+    .tab-header {
+      display: flex; margin: 8px 0 0;
+      background: #f5f5f5;
+      border: 1px solid #e8e8e8; border-bottom: none;
+      border-radius: 14px 14px 0 0; overflow: hidden;
     }
-    /* ── TABS ── */
-    .tab-bar { display: flex; gap: 6px; margin-bottom: 10px; }
-    .tab-btn {
-      flex: 1; padding: 10px 0; text-align: center;
-      font-size: 13px; font-weight: 700; border-radius: 12px;
-      border: none; cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+    .tab-hbtn {
+      flex: 1; height: 40px; border: none; background: #f5f5f5;
+      font-size: 13px; font-weight: 700; color: #aaa; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
     }
-    .tab-btn.active  { background: #111; color: #fff; }
-    .tab-btn.inactive { background: #fff; color: #999; border: 1.5px solid #e0e0e0; }
+    .tab-hbtn.active { background: #fff; border-bottom: 2px solid #fff; }
+    .tab-hbtn.tab-g.active { color: #111; }
+    .tab-hbtn.tab-s.active { color: #2BAE66; }
 
-    /* ── TABLE CARD ── */
+    /* ── TABLE CARD (connected below tab-header) ── */
     .table-card {
-      background: #fff; border-radius: 18px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      background: #fff;
+      border: 1px solid #e8e8e8; border-top: none;
+      border-radius: 0 0 14px 14px;
       margin-bottom: 10px; overflow: hidden;
       padding: 0 14px;
     }
@@ -504,6 +503,13 @@
     .sub-upsell-sub { font-size: 11px; margin-top: 2px; }
     .sub-upsell-card.save .sub-upsell-sub { color: #34D399; }
     .sub-upsell-card.more .sub-upsell-sub { color: #A78BFA; }
+    .sub-upsell-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .sub-plan-btn {
+      flex-shrink: 0; padding: 6px 10px; border-radius: 8px; border: none; cursor: pointer;
+      font-size: 11px; font-weight: 800; line-height: 1.4; text-align: center;
+      background: #065F46; color: #fff; white-space: nowrap;
+    }
+    .sub-plan-btn.more { background: #5B21B6; }
 
     /* Footer row */
     .table-foot {
@@ -808,7 +814,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.14.0'; // 2026-06-11  구독할인 탭 · 프리미엄 자동인식 · 탭-카드 연결 UI
+const VERSION = 'v1.15.0'; // 2026-06-11  탭UI 수정 · 예상비용 배송포함 · 구독료/초과금 분리
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1297,7 +1303,7 @@ function renderResult() {
   const t = totals();
   body.innerHTML = `
     <div class="summary-card">
-      <div class="summary-price"><span id="sumLabel">총 예상 세탁비는</span> <span class="price-num" id="sumNum">${w(t.정가)}</span><span id="sumUnit">원</span> 이예요</div>
+      <div class="summary-price"><span id="sumLabel">총 예상 비용은</span> <span class="price-num" id="sumNum">${w(t.정가)}</span><span id="sumUnit">원</span> 이예요</div>
     </div>
     <div class="upsell-card" id="upsellCard"></div>
     <div class="sub-upsell-card" id="subUpsellCard"></div>
@@ -1418,16 +1424,14 @@ function renderFoot() {
       remainHtml = `<div class="remain-chip"><span class="remain-chip-lbl">잔여 세탁권</span><span class="remain-chip-val">${sub.ticketsRemain}개 (세탁 추가가능)</span></div>`;
     }
 
-    let soakedHtml = '';
-    if (sub.soakedCost > 0) {
-      soakedHtml = `<div class="foot-divider-row"><span>소진시 추가 결제</span><span class="fdr-val amber">${w(sub.soakedCost)}원</span></div>`;
-    }
-
+    const overchargeHtml = sub.soakedCost > 0
+      ? `<div class="foot-divider-row"><span>초과금</span><span class="fdr-val amber">${w(sub.soakedCost)}원</span></div>` : '';
     f.innerHTML = `
       ${remainHtml}
       <div class="foot-divider-row"><span>세탁권</span><span class="fdr-val green">${ticketsStr}</span></div>
-      ${soakedHtml}
       <div class="foot-divider-row"><span>배송비</span><span class="fdr-val green">${plan.deliveries}회 차감 (포함)</span></div>
+      <div class="foot-divider-row"><span>구독료</span><span class="fdr-val blue">${w(plan.price)}원</span></div>
+      ${overchargeHtml}
       <div class="foot-total-row"><span class="foot-total-lbl">합계</span><span class="foot-total-val${sub.soakedCost === 0 ? ' green' : ''}">${w(sub.totalCost)}원</span></div>
     `;
   }
@@ -1595,13 +1599,14 @@ function updateSummary() {
   const sl = document.getElementById('sumLabel');
   if (!sn) return;
   if (activeTab === '일반') {
-    sl && (sl.textContent = '총 예상 세탁비는');
-    sn.textContent = w(t.정가);
+    const total = t.정가 + getDeliveryFee(t.정가);
+    sl && (sl.textContent = '총 예상 비용은');
+    sn.textContent = w(total);
     su && (su.textContent = '원');
   } else {
     const plan = selectPlan(t.정가);
     const sub = calcSub(plan);
-    sl && (sl.textContent = '총 예상 세탁비는');
+    sl && (sl.textContent = '총 예상 비용은');
     sn.textContent = w(sub.totalCost);
     su && (su.textContent = '원');
   }
@@ -1673,16 +1678,26 @@ function renderUpsell() {
       // 구독이 더 저렴 → 절약 배너 (초록)
       subEl.className = 'sub-upsell-card show save';
       subEl.innerHTML = `
-        <div class="sub-upsell-title">💚 구독하면 <strong>${w(diff)}원</strong> 절약!</div>
-        <div class="sub-upsell-sub">${plan.name} 플랜 ${w(plan.price)}원 · 세탁권 ${plan.tickets}개 + 배송 ${plan.deliveries}회 포함</div>
+        <div class="sub-upsell-row">
+          <div>
+            <div class="sub-upsell-title">💚 구독하면 <strong>${w(diff)}원</strong> 절약!</div>
+            <div class="sub-upsell-sub">${plan.name} 플랜 ${w(plan.price)}원 · 세탁권 ${plan.tickets}개 + 배송 ${plan.deliveries}회 포함</div>
+          </div>
+          <button class="sub-plan-btn" onclick="alert('구독플랜 페이지로 이동')">구독플랜<br>보기 →</button>
+        </div>
       `;
     } else {
       // 정가가 더 저렴 또는 구독이 더 비쌈 → 세탁권 혜택 배너 (보라)
       const extra = subTotal - regularTotal;
       subEl.className = 'sub-upsell-card show more';
       subEl.innerHTML = `
-        <div class="sub-upsell-title">🎟️ <strong>${w(extra)}원</strong> 더 내고 세탁권 ${plan.tickets}개 받기</div>
-        <div class="sub-upsell-sub">${plan.name} 플랜 · 배송 ${plan.deliveries}회 포함 · 남은 세탁권은 이달 내 사용 가능</div>
+        <div class="sub-upsell-row">
+          <div>
+            <div class="sub-upsell-title">🎟️ <strong>${w(extra)}원</strong> 더 내고 세탁권 ${plan.tickets}개 받기</div>
+            <div class="sub-upsell-sub">${plan.name} 플랜 · 배송 ${plan.deliveries}회 포함 · 남은 세탁권은 이달 내 사용 가능</div>
+          </div>
+          <button class="sub-plan-btn more" onclick="alert('구독플랜 페이지로 이동')">구독플랜<br>보기 →</button>
+        </div>
       `;
     }
     // 배송비 넛지 배너는 숨김
