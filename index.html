@@ -840,7 +840,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.17.0'; // 2026-06-11  구독플랜 카드선택 · 프리미엄 세탁권제외 · 절약배너 잔여권
+const VERSION = 'v1.18.0'; // 2026-06-11  구독탭 프리미엄 가격 분리 집계
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1458,14 +1458,18 @@ function renderFoot() {
 
     const overchargeHtml = sub.soakedCost > 0
       ? `<div class="foot-divider-row"><span>초과금</span><span class="fdr-val amber">${w(sub.soakedCost)}원</span></div>` : '';
+    const premiumHtml = sub.premiumCost > 0
+      ? `<div class="foot-divider-row"><span>프리미엄 가격</span><span class="fdr-val" style="color:#6D28D9;font-weight:800">${w(sub.premiumCost)}원</span></div>` : '';
+    const isAllGreen = sub.soakedCost === 0 && sub.premiumCost === 0;
     f.innerHTML = `
       ${remainHtml}
       <div class="foot-divider-row"><span>세탁권</span><span class="fdr-val green">${ticketsStr}</span></div>
       <div class="foot-divider-row"><span>배송비</span><span class="fdr-val green">${plan.deliveries}회 차감</span></div>
       <div class="foot-section-sep"></div>
       <div class="foot-divider-row"><span>구독료</span><span class="fdr-val blue">${w(plan.price)}원</span></div>
+      ${premiumHtml}
       ${overchargeHtml}
-      <div class="foot-total-row"><span class="foot-total-lbl">합계</span><span class="foot-total-val${sub.soakedCost === 0 ? ' green' : ''}">${w(sub.totalCost)}원</span></div>
+      <div class="foot-total-row"><span class="foot-total-lbl">합계</span><span class="foot-total-val${isAllGreen ? ' green' : ''}">${w(sub.totalCost)}원</span></div>
     `;
   }
 }
@@ -1534,43 +1538,50 @@ function choosePlan(name) {
 function calcSub(plan) {
   const rows = items.map((it, idx) => {
     const p = pLookup(it.name);
-    if (!p) return { it, idx, p: null, tickets: 0, soakedPrice: 0, regularPrice: 0 };
+    if (!p) return { it, idx, p: null, isPrem: false, tickets: 0, soakedPrice: 0, regularPrice: 0, premPrice: 0 };
     const isPrem = premiumSet.has(idx) && p.프리미엄 > 0;
     return {
       it, idx, p, isPrem,
-      tickets: p.차감 * it.qty,
-      soakedPrice: isPrem ? p.프리미엄 * it.qty : p.구독 * it.qty,
+      tickets: isPrem ? 0 : p.차감 * it.qty,   // 프리미엄은 세탁권 차감 불가
+      soakedPrice: p.구독 * it.qty,             // 비프리미엄 소진시 가격
+      premPrice: isPrem ? p.프리미엄 * it.qty : 0, // 프리미엄 가격
       regularPrice: isPrem ? p.프리미엄 * it.qty : p.정가 * it.qty,
     };
   });
 
-  // 비싼 품목부터 세탁권 배정, 저렴한 품목이 소진시 가격 적용
+  // 비싼 품목부터 세탁권 배정 (프리미엄 제외)
   const sorted = [...rows].sort((a, b) => b.regularPrice - a.regularPrice);
   let tLeft = plan.tickets;
   const useTicketSet = new Set();
   sorted.forEach(x => {
-    if (x.tickets > 0 && tLeft >= x.tickets) {
+    if (!x.isPrem && x.tickets > 0 && tLeft >= x.tickets) {
       useTicketSet.add(x.idx);
       tLeft -= x.tickets;
     }
   });
 
-  let ticketsUsed = 0, soakedCost = 0;
+  let ticketsUsed = 0, soakedCost = 0, premiumCost = 0;
   const finalRows = rows.map(x => {
+    if (x.isPrem) {
+      premiumCost += x.premPrice;
+    } else {
+      const useTicket = useTicketSet.has(x.idx);
+      if (useTicket) ticketsUsed += x.tickets;
+      else           soakedCost += x.soakedPrice;
+    }
     const useTicket = useTicketSet.has(x.idx);
-    if (useTicket) ticketsUsed += x.tickets;
-    else           soakedCost += x.soakedPrice;
     return { ...x, useTicket };
   });
 
   return {
     plan,
-    totalTicketsNeeded: rows.reduce((s, x) => s + x.tickets, 0),
+    totalTicketsNeeded: rows.filter(x => !x.isPrem).reduce((s, x) => s + x.tickets, 0),
     ticketsUsed,
     ticketsRemain: plan.tickets - ticketsUsed,
     soakedCost,
+    premiumCost,
     finalRows,
-    totalCost: plan.price + soakedCost,
+    totalCost: plan.price + soakedCost + premiumCost,
   };
 }
 
