@@ -845,7 +845,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.20.0'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
+const VERSION = 'v1.21.0'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1510,10 +1510,12 @@ const PLANS = [
 ];
 
 function selectPlan(regularSubtotal) {
-  const target = regularSubtotal + getDeliveryFee(regularSubtotal);
-  return PLANS.reduce((best, p) =>
-    Math.abs(p.price - target) < Math.abs(best.price - target) ? p : best
-  );
+  // 3개 플랜 중 실제 총비용(plan.price + overflow + premium)이 가장 낮은 플랜 추천
+  return PLANS.reduce((best, p) => {
+    const costP = calcSub(p).totalCost;
+    const costB = calcSub(best).totalCost;
+    return costP < costB ? p : best;
+  });
 }
 
 function renderPlanSelector() {
