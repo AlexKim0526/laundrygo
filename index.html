@@ -377,167 +377,171 @@
     #screen4 { background: #f5f5f5; }
     #screen4 .body { flex: 1; overflow-y: auto; padding: 14px 14px 0; }
 
-    /* Summary card */
+    /* ── Summary card ── */
     .summary-card {
       background: #fff; border-radius: 18px;
-      padding: 18px 18px 16px;
-      margin-bottom: 10px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      padding: 20px 20px 18px; margin-bottom: 10px;
     }
-    .summary-price {
-      font-size: 20px; font-weight: 700; color: #111;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .summary-price .price-num {
-      font-size: 20px; font-weight: 900; color: #FF3B30;
-    }
+    .summary-price { font-size: 14px; color: #999; margin-bottom: 4px; }
+    .summary-price .price-num { font-size: 28px; font-weight: 900; color: #1AC073; }
+    .summary-price .price-unit { font-size: 22px; font-weight: 800; color: #111; }
+    .summary-price .price-sub { font-size: 13px; color: #bbb; margin-top: 2px; display: block; }
 
-    /* ── TABS (tab-header connected to card) ── */
+    /* ── Pill 탭 ── */
     .tab-header {
-      display: flex; margin: 8px 0 0;
-      background: #f5f5f5;
-      border: 1px solid #e8e8e8; border-bottom: none;
-      border-radius: 14px 14px 0 0; overflow: hidden;
+      display: flex; margin: 10px 0 8px;
+      background: #F2F2F2; border-radius: 13px; padding: 3px;
     }
     .tab-hbtn {
-      flex: 1; height: 46px; border: none; background: #f5f5f5;
-      font-size: 15px; font-weight: 700; color: #aaa; cursor: pointer;
-      border-bottom: 2px solid transparent; transition: all 0.15s;
+      flex: 1; height: 42px; border: none; background: transparent;
+      font-size: 15px; font-weight: 700; color: #aaa;
+      cursor: pointer; border-radius: 11px; transition: all 0.15s;
     }
-    .tab-hbtn.active { background: #fff; border-bottom: 2px solid #fff; }
-    .tab-hbtn.tab-g.active { color: #111; }
-    .tab-hbtn.tab-s.active { color: #2BAE66; }
+    .tab-hbtn.active {
+      background: #fff; color: #111;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.10);
+    }
+    .tab-hbtn.tab-s.active { color: #1AC073; }
 
-    /* ── TABLE CARD (connected below tab-header) ── */
+    /* ── TABLE CARD ── */
     .table-card {
-      background: #fff;
-      border: 1px solid #e8e8e8; border-top: none;
-      border-radius: 0 0 14px 14px;
-      margin-bottom: 10px; overflow: hidden;
-      padding: 0 14px;
+      background: #fff; border-radius: 18px;
+      margin-bottom: 10px; overflow: hidden; padding: 0 16px;
     }
+
     /* ── ITEM ROW ── */
     .item-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 0; border-bottom: 1px solid #f2f2f2;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid #F5F5F5;
       animation: fadeUp 0.25s ease forwards; opacity: 0;
     }
     .item-row:last-child { border-bottom: none; }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(5px); }
+      from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: none; }
     }
     .item-thumb {
-      width: 57px; height: 57px; border-radius: 12px;
-      flex-shrink: 0; position: relative; background: #f0f0f0;
+      width: 72px; height: 72px; border-radius: 14px;
+      flex-shrink: 0; background: #F0F0F0; overflow: hidden;
     }
-    .item-thumb img { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; display: block; }
+    .item-thumb img { width: 100%; height: 100%; border-radius: 14px; object-fit: cover; display: block; }
     .item-info { flex: 1; min-width: 0; }
-    .item-name { font-size: 15px; font-weight: 700; color: #111; word-break: keep-all; line-height: 1.3; }
-    .item-badges { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
-    /* 우측: 가격 영역 */
-    .item-right { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-    .price-main       { font-size: 15px; font-weight: 800; color: #111; white-space: nowrap; }
+    .item-name { font-size: 16px; font-weight: 700; color: #111; word-break: keep-all; line-height: 1.3; }
+    .item-badges { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; }
+    .item-right { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .price-main       { font-size: 16px; font-weight: 800; color: #111; white-space: nowrap; }
     .price-main.prem  { color: #6D28D9; }
-    /* 구독탭 세탁권 표시 */
+
+    /* 구독탭 세탁권 */
     .ticket-badge {
-      display: inline-block; font-size: 11px; font-weight: 800;
-      background: #E1F5EE; color: #065F46;
-      border-radius: 5px; padding: 2px 7px; white-space: nowrap;
+      display: inline-block; font-size: 12px; font-weight: 700;
+      background: #E6FBF1; color: #065F46;
+      border-radius: 7px; padding: 3px 9px; white-space: nowrap;
     }
     .ticket-badge.shortage { background: #FEF3C7; color: #92400E; }
-    .soaked-price { font-size: 11px; color: #9CA3AF; white-space: nowrap; margin-top: 1px; }
+    .soaked-price { font-size: 11px; color: #B0B0B0; white-space: nowrap; margin-top: 1px; }
     .soaked-price.amber { color: #D97706; font-weight: 700; }
-    /* 삭제 버튼 (행 맨 우측) */
+
+    /* 배지 */
+    .brand-chip {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      background: #F2F2F2; color: #555;
+      border-radius: 6px; padding: 2px 7px; white-space: nowrap;
+    }
+    .prem-chip {
+      display: inline-block; font-size: 11px; font-weight: 800;
+      background: #EDE9FE; color: #5B21B6;
+      border-radius: 6px; padding: 2px 7px; white-space: nowrap;
+    }
+
+    /* 삭제 버튼 */
     .item-del-btn {
-      flex-shrink: 0;
-      width: 26px; height: 26px; border-radius: 7px;
-      border: 1px solid #eee; background: #fafafa;
-      color: #ccc; font-size: 12px; cursor: pointer;
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 8px;
+      border: 1px solid #EBEBEB; background: #FAFAFA;
+      color: #C8C8C8; font-size: 13px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
+
     /* 합계 푸터 */
-    .table-foot { padding: 0 0 4px; }
+    .table-foot { padding: 2px 0 10px; }
     .foot-divider-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 5px 0; font-size: 13px; color: #999;
+      padding: 7px 0; font-size: 14px; color: #999;
     }
-    .foot-divider-row .fdr-val { font-weight: 700; color: #555; }
-    .foot-divider-row .fdr-val.green { color: #2BAE66; }
+    .foot-divider-row .fdr-val { font-weight: 600; color: #555; }
+    .foot-divider-row .fdr-val.green { color: #1AC073; }
     .foot-divider-row .fdr-val.amber { color: #D97706; }
     .foot-divider-row .fdr-val.blue  { color: #2563EB; }
     .foot-total-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 0 4px; border-top: 1.5px solid #111;
+      padding: 12px 0 4px; border-top: 1.5px solid #111; margin-top: 4px;
     }
-    .foot-total-lbl { font-size: 15px; font-weight: 800; color: #111; }
-    .foot-total-val { font-size: 17px; font-weight: 800; color: #111; }
-    .foot-total-val.green { color: #2BAE66; }
-    .foot-section-sep { border-top: 1px dashed #ebebeb; margin: 3px 0; }
+    .foot-total-lbl { font-size: 17px; font-weight: 800; color: #111; }
+    .foot-total-val { font-size: 19px; font-weight: 900; color: #111; }
+    .foot-total-val.green { color: #1AC073; }
+    .foot-section-sep { border-top: 1px dashed #EBEBEB; margin: 4px 0; }
+
     /* 잔여 세탁권 칩 */
     .remain-chip {
       background: #EFF6FF; border: 1px solid #BFDBFE;
-      border-radius: 8px; padding: 6px 10px;
+      border-radius: 10px; padding: 10px 14px;
       display: flex; justify-content: space-between; align-items: center;
-      margin: 6px 0;
+      margin: 8px 0;
     }
-    .remain-chip-lbl { font-size: 11px; font-weight: 700; color: #1E40AF; }
-    .remain-chip-val { font-size: 12px; font-weight: 800; color: #2563EB; }
+    .remain-chip-lbl { font-size: 13px; font-weight: 700; color: #1D4ED8; }
+    .remain-chip-val { font-size: 14px; font-weight: 800; color: #2563EB; }
+
     /* 구독 플랜 선택기 */
     .plan-selector {
-      display: flex; gap: 7px; padding: 12px 0 6px;
-      border-bottom: 1px solid #f0f0f0; margin-bottom: 2px;
+      display: flex; gap: 8px; padding: 14px 0 10px;
+      border-bottom: 1px solid #F5F5F5; margin-bottom: 4px;
     }
     .plan-card {
-      flex: 1; border-radius: 12px; border: 1.5px solid #e8e8e8;
-      background: #fafafa; padding: 9px 7px 8px;
+      flex: 1; border-radius: 13px; border: 1.5px solid #E8E8E8;
+      background: #FAFAFA; padding: 10px 6px 9px;
       cursor: pointer; text-align: center; transition: all 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
     .plan-card.active {
-      border-color: #2BAE66; background: #F0FDF4;
-      box-shadow: 0 2px 8px rgba(43,174,102,0.15);
+      border-color: #1AC073; background: #F0FDF6;
+      box-shadow: 0 2px 8px rgba(26,192,115,0.15);
     }
     .plan-card.auto-tag::after {
       content: '추천'; font-size: 9px; font-weight: 800;
-      background: #2BAE66; color: #fff;
+      background: #1AC073; color: #fff;
       border-radius: 4px; padding: 1px 4px; margin-left: 3px;
       vertical-align: middle;
     }
-    .plan-card-name { font-size: 12px; font-weight: 800; color: #555; margin-bottom: 3px; }
+    .plan-card-name { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 4px; }
     .plan-card.active .plan-card-name { color: #065F46; }
-    .plan-card-price { font-size: 13px; font-weight: 900; color: #111; }
-    .plan-card.active .plan-card-price { color: #2BAE66; }
-    .plan-card-info { font-size: 10px; color: #aaa; margin-top: 2px; line-height: 1.3; }
+    .plan-card-price { font-size: 14px; font-weight: 900; color: #111; }
+    .plan-card.active .plan-card-price { color: #1AC073; }
+    .plan-card-info { font-size: 10px; color: #C0C0C0; margin-top: 3px; line-height: 1.4; }
     .plan-card.active .plan-card-info { color: #34D399; }
-    /* 구독 upsell (정가 탭 하단) */
+
+    /* 구독 절약 배너 */
     .sub-upsell-card {
-      border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; display: none;
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: none;
     }
     .sub-upsell-card.show { display: block; }
-    .sub-upsell-card.save { background: #F0FDF4; border: 1px solid #BBF7D0; }
-    .sub-upsell-card.more { background: #F5F3FF; border: 1px solid #DDD6FE; }
-    .sub-upsell-title { font-size: 14px; font-weight: 800; line-height: 1.4; }
+    .sub-upsell-card.save { background: #F0FDF6; border: 1.5px solid #A7F3D0; }
+    .sub-upsell-card.more { background: #F5F3FF; border: 1.5px solid #DDD6FE; }
+    .sub-upsell-title { font-size: 15px; font-weight: 800; line-height: 1.4; }
     .sub-upsell-card.save .sub-upsell-title { color: #065F46; }
     .sub-upsell-card.more .sub-upsell-title { color: #5B21B6; }
-    .sub-upsell-sub { font-size: 11px; margin-top: 2px; }
+    .sub-upsell-sub { font-size: 12px; margin-top: 3px; }
     .sub-upsell-card.save .sub-upsell-sub { color: #34D399; }
     .sub-upsell-card.more .sub-upsell-sub { color: #A78BFA; }
-    .sub-upsell-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .sub-upsell-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .sub-plan-btn {
-      flex-shrink: 0; padding: 6px 10px; border-radius: 8px; border: none; cursor: pointer;
-      font-size: 11px; font-weight: 800; line-height: 1.4; text-align: center;
-      background: #065F46; color: #fff; white-space: nowrap;
+      flex-shrink: 0; padding: 9px 12px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 800; line-height: 1.4; text-align: center;
+      background: #1AC073; color: #fff; white-space: nowrap;
     }
     .sub-plan-btn.more { background: #5B21B6; }
 
-    /* Footer row */
-    .table-foot {
-      padding: 12px 8px;
-      background: #fafafa;
-      border-top: 2px solid #efefef;
-      align-items: center;
-    }
+    /* Footer row (legacy - kept for upsell card) */
+    .table-foot { padding: 2px 0 10px; }
     .foot-label { font-size: 15px; font-weight: 800; color: #111; text-align: center; white-space: nowrap; }
     .foot-정가  { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
     .foot-sub   { text-align: center; font-size: 15px; font-weight: 800; color: #333; white-space: nowrap; }
@@ -548,9 +552,9 @@
     .upsell-card {
       border-radius: 14px;
       margin-bottom: 10px;
-      padding: 13px 14px 12px;
-      background: #fff;
-      border: 1.5px solid #FFD97A;
+      padding: 14px 16px 13px;
+      background: #FFF7ED;
+      border: 1.5px solid #FED7AA;
       box-shadow: 0 1px 6px rgba(0,0,0,0.05);
       display: none;
     }
@@ -560,18 +564,19 @@
     }
     .upsell-icon { font-size: 22px; flex-shrink: 0; line-height: 1.3; }
     .upsell-body { flex: 1; min-width: 0; }
-    .upsell-msg  { font-size: 14px; color: #222; line-height: 1.45; }
-    .upsell-msg strong { color: #FF6B00; }
-    .upsell-sub  { font-size: 12px; color: #888; margin-top: 3px; }
+    .upsell-msg  { font-size: 14px; color: #9A3412; font-weight: 600; line-height: 1.45; }
+    .upsell-msg strong { color: #C2410C; }
+    .upsell-sub  { font-size: 12px; color: #C2410C; opacity: 0.75; margin-top: 3px; }
     .upsell-bar-wrap {
       margin-top: 10px; height: 6px;
-      background: #f0f0f0; border-radius: 6px; overflow: hidden;
+      background: #FED7AA; border-radius: 6px; overflow: hidden;
     }
     .upsell-bar {
       height: 100%; border-radius: 6px;
       transition: width 0.5s ease;
     }
-    .upsell-achieve .upsell-msg strong { color: #2BAE66; }
+    .upsell-achieve .upsell-msg { color: #065F46; }
+    .upsell-achieve .upsell-msg strong { color: #1AC073; }
 
     /* Empty */
     .empty {
@@ -840,7 +845,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.19.0'; // 2026-06-12  구독오퍼 vs 업셀링 분기 · CSV 로직 적용
+const VERSION = 'v1.20.0'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1332,7 +1337,7 @@ function renderResult() {
   const t = totals();
   body.innerHTML = `
     <div class="summary-card">
-      <div class="summary-price"><span id="sumLabel">총 예상 비용은</span> <span class="price-num" id="sumNum">${w(t.정가)}</span><span id="sumUnit">원</span> 이예요</div>
+      <div class="summary-price" id="sumLabel">총 예상 비용은</div><div class="summary-price"><span class="price-num" id="sumNum">${w(t.정가)}</span><span class="price-unit" id="sumUnit">원</span><span class="price-sub">이예요</span></div>
     </div>
     <div class="upsell-card" id="upsellCard"></div>
     <div class="sub-upsell-card" id="subUpsellCard"></div>
@@ -1666,17 +1671,14 @@ function updateSummary() {
   const t = totals();
   const sn = document.getElementById('sumNum');
   const su = document.getElementById('sumUnit');
-  const sl = document.getElementById('sumLabel');
   if (!sn) return;
   if (activeTab === '일반') {
     const total = t.정가 + getDeliveryFee(t.정가);
-    sl && (sl.textContent = '총 예상 비용은');
     sn.textContent = w(total);
     su && (su.textContent = '원');
   } else {
     const plan = activePlan || selectPlan(t.정가);
     const sub = calcSub(plan);
-    sl && (sl.textContent = '총 예상 비용은');
     sn.textContent = w(sub.totalCost);
     su && (su.textContent = '원');
   }
