@@ -1353,6 +1353,7 @@ function renderResult() {
   renderRows();
   renderFoot();
   renderUpsell();
+  updateSummary();
 }
 
 function renderRows() {
@@ -1367,6 +1368,9 @@ function renderRows() {
     if (!activePlan) activePlan = selectPlan(t.정가);
     subCalc = calcSub(activePlan);
     renderPlanSelector();
+  } else {
+    const ps = document.getElementById('planSelector');
+    if (ps) ps.innerHTML = '';
   }
 
   items.forEach((it, idx) => {
