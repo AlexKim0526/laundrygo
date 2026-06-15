@@ -853,7 +853,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.22.0'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
+const VERSION = 'v1.22.1'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1345,6 +1345,10 @@ function renderResult() {
   const t = totals();
   body.innerHTML = `
     <div class="result-wrap-card">
+      <div class="tab-header">
+        <button class="tab-hbtn tab-g active" data-tab="일반" onclick="selectTab('일반')">정가</button>
+        <button class="tab-hbtn tab-s"        data-tab="구독" onclick="selectTab('구독')">구독가</button>
+      </div>
       <div class="summary-card">
         <div class="summary-price" id="sumLabel">총 예상비용은</div>
         <div class="summary-price">
@@ -1354,10 +1358,6 @@ function renderResult() {
       </div>
       <div class="sub-upsell-incard" id="subUpsellCard"></div>
       <div class="upsell-incard" id="upsellCard"></div>
-      <div class="tab-header">
-        <button class="tab-hbtn tab-g active" data-tab="일반" onclick="selectTab('일반')">정가</button>
-        <button class="tab-hbtn tab-s"        data-tab="구독" onclick="selectTab('구독')">구독가</button>
-      </div>
       <div class="table-card">
         <div id="planSelector"></div>
         <div id="rowsWrap"></div>
