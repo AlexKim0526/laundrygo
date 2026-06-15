@@ -382,17 +382,34 @@
     /* ── Summary card ── */
     .summary-card {
       background: #fff; border-radius: 18px;
-      padding: 20px 20px 18px; margin-bottom: 10px;
+      padding: 14px 20px 12px; margin-bottom: 10px;
+      text-align: center;
     }
+    .summary-eyebrow { font-size: 14px; color: #888; margin-bottom: 4px; }
+    .summary-price-row { display: flex; align-items: baseline; justify-content: center; gap: 2px; margin-bottom: 3px; }
     .summary-price { font-size: 16px; color: #999; margin-bottom: 4px; }
-    .summary-price .price-num { font-size: 30px; font-weight: 900; color: #1AC073; }
-    .summary-price .price-unit { font-size: 22px; font-weight: 800; color: #111; }
-    .summary-price .price-sub { font-size: 16px; color: #bbb; margin-top: 2px; display: block; }
+    .summary-price .price-num { font-size: 26px; font-weight: 900; color: #1AC073; }
+    .summary-price .price-unit { font-size: 18px; font-weight: 700; color: #111; }
+    .summary-price .price-sub { font-size: 13px; color: #bbb; margin-top: 2px; display: block; }
 
     /* ── 업셀 (summary 바로 아래) ── */
-    .sub-upsell-incard { margin-bottom: 10px; display: none; }
+    .sub-upsell-incard {
+      margin-bottom: 10px; display: none;
+      border-radius: 12px;
+      border: 1.5px solid #A7F3D0;
+      border-left: 4px solid #1AC073;
+      background: #F0FDF6;
+      padding: 14px 14px;
+    }
     .sub-upsell-incard.show { display: block; }
-    .upsell-incard { margin-bottom: 10px; display: none; }
+    .upsell-incard {
+      margin-bottom: 10px; display: none;
+      border-radius: 12px;
+      border: 1.5px solid #FED7AA;
+      border-left: 4px solid #F97316;
+      background: #FFF7ED;
+      padding: 14px 14px;
+    }
     .upsell-incard.show { display: block; }
 
     /* ── Pill 탭 ── */
@@ -852,7 +869,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.22.2'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
+const VERSION = 'v1.23.0'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1348,11 +1365,11 @@ function renderResult() {
       <button class="tab-hbtn tab-s"        data-tab="구독" onclick="selectTab('구독')">구독가</button>
     </div>
     <div class="summary-card">
-      <div class="summary-price" id="sumLabel">총 예상비용은</div>
-      <div class="summary-price">
+      <div class="summary-eyebrow">총 예상비용은</div>
+      <div class="summary-price-row">
         <span class="price-num" id="sumNum">${w(t.정가)}</span><span class="price-unit" id="sumUnit">원</span>
-        <span class="price-sub">이예요.</span>
       </div>
+      <div class="summary-price"><span class="price-sub">이예요.</span></div>
     </div>
     <div class="sub-upsell-incard" id="subUpsellCard"></div>
     <div class="upsell-incard" id="upsellCard"></div>
