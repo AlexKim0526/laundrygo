@@ -107,6 +107,7 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
 .modal-btns button { flex: 1; padding: 8px; }
 #importOkBtn { background: #3b5bdb; color: #fff; }
 #importCancelBtn { background: #eee; color: #333; }
+  #resetBtn { background: #ff6b6b; color: #fff; }
 
   /* Batch processing */
   #batchBar { background: #0f172a; color: #e2e8f0; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #1e293b; }
@@ -160,7 +161,7 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
 
 <!-- Header -->
 <div id="header">
-  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.4</span></h1>
+  <h1>🔍 브랜드 인식 체크 <span style="font-size:11px;font-weight:400;color:#999;margin-left:6px;">v2.5</span></h1>
   <div id="stats">
     <div class="stat-card brand">
       <div class="label">🏷️ 브랜드 인식률</div>
@@ -204,6 +205,7 @@ select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size
     <input id="jumpInput" type="number" min="1" placeholder="페이지" />
     <button id="exportBtn">📤 내보내기</button>
     <button id="importBtn">📥 병합 가져오기</button>
+    <button id="resetBtn">🗑️ 데이터 초기화</button>
   </div>
 </div>
 
@@ -610,6 +612,15 @@ document.getElementById('importOkBtn').addEventListener('click', () => {
     renderPage();
     showToast(count.toLocaleString()+'건 병합 완료!');
   } catch(e) { alert('JSON 형식 오류: ' + e.message); }
+});
+
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('체크한 모든 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+  results = {};
+  saveResults();
+  renderPage();
+  showToast('데이터가 초기화되었습니다.');
 });
 
 // ── API Key ───────────────────────────────────────────────
