@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>런드리고X 구독 안내</title>
+<style>
+  :root{
+    --green:#15B886;
+    --green-dark:#0F8A66;
+    --green-50:#E8F7F1;
+    --green-100:#D2F0E5;
+    --ink:#1A1D1B;
+    --gray-600:#6B7280;
+    --gray-400:#9AA0A6;
+    --gray-100:#F4F5F6;
+    --line:#ECEEF0;
+    --bg:#EDEFF1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:'Apple SD Gothic Neo','Pretendard','Malgun Gothic',-apple-system,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;
+    display:flex;justify-content:center;
+  }
+  .phone{
+    width:100%;max-width:430px;background:#fff;min-height:100vh;
+    position:relative;padding-bottom:96px;
+  }
+  .topbar{
+    position:sticky;top:0;z-index:20;background:#fff;
+    display:flex;align-items:center;gap:8px;
+    padding:16px 18px;border-bottom:1px solid var(--line);
+  }
+  .topbar .chev{font-size:20px;color:#333;line-height:1;}
+  .topbar h1{font-size:16px;font-weight:600;}
+  .logo{padding:24px 22px 8px;}
+  .logo .mark{display:flex;align-items:center;gap:8px;}
+  .logo .x{font-size:30px;font-weight:800;color:var(--green);line-height:1;}
+  .logo .name{font-size:24px;font-weight:700;letter-spacing:-0.5px;}
+  .logo .name b{color:var(--green);}
+  section{padding:22px 22px 6px;}
+  .eyebrow{font-size:13px;color:var(--green-dark);font-weight:600;margin-bottom:6px;}
+  h2.title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:8px;}
+  .lead{font-size:14px;color:var(--gray-600);line-height:1.6;}
+  .divider{height:8px;background:var(--gray-100);border:none;margin:20px 0 0;}
+  .hero h2{font-size:24px;font-weight:800;letter-spacing:-0.6px;line-height:1.35;margin-bottom:10px;}
+  .hero .save{display:inline-block;background:var(--green-50);color:var(--green-dark);
+    font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;margin-top:4px;}
+  .step{display:flex;gap:14px;align-items:flex-start;padding:14px 0;position:relative;}
+  .step:not(:last-child)::after{content:"";position:absolute;left:17px;top:46px;bottom:-2px;width:2px;background:var(--green-100);}
+  .step .num{flex:none;width:34px;height:34px;border-radius:50%;background:var(--green);
+    color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;z-index:1;}
+  .step .body h3{font-size:15px;font-weight:600;margin-bottom:3px;}
+  .step .body p{font-size:13px;color:var(--gray-600);line-height:1.55;}
+  .step .body .hl{color:var(--green-dark);font-weight:600;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .item{border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .item .t{font-size:13px;color:var(--ink);margin-bottom:6px;line-height:1.4;}
+  .item .c{font-size:14px;font-weight:700;color:var(--green-dark);}
+  .more{width:100%;margin-top:12px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:14px;font-size:14px;color:#333;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;}
+  .more .arr{color:var(--gray-400);font-size:15px;}
+  #moreItems{display:none;}
+  #moreItems.open{display:grid;}
+  .tier{border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px;position:relative;}
+  .tier.best{border:2px solid var(--green);}
+  .tier .badge{position:absolute;top:-11px;left:16px;background:var(--green);color:#fff;
+    font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;}
+  .tier .row1{display:flex;justify-content:space-between;align-items:baseline;}
+  .tier .nm{font-size:17px;font-weight:700;}
+  .tier .pr{font-size:16px;font-weight:700;}
+  .tier .pr small{font-size:12px;color:var(--gray-400);font-weight:500;}
+  .tier .ticket{font-size:13px;color:var(--green-dark);font-weight:600;margin-top:4px;}
+  .tier .desc{font-size:12px;color:var(--gray-600);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+  .note{font-size:11px;color:var(--gray-400);margin-top:12px;line-height:1.5;}
+  .calc{width:100%;margin-top:14px;background:var(--green-50);border:1px solid var(--green-100);
+    border-radius:12px;padding:14px;font-size:14px;color:var(--green-dark);font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+  .btable{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;table-layout:fixed;}
+  .btable th,.btable td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--line);}
+  .btable thead th{color:var(--gray-600);font-weight:500;font-size:12px;}
+  .btable thead th.best{background:var(--green);color:#fff;font-weight:600;border-radius:8px 8px 0 0;}
+  .btable tbody td.best{background:var(--green-50);color:var(--green-dark);font-weight:700;}
+  .btable tbody td.label{text-align:left;color:#333;font-weight:500;padding-left:6px;}
+  .btable tbody tr:last-child td.best{border-radius:0 0 8px 8px;}
+  .btable .dash{color:var(--gray-400);}
+  details{border-bottom:1px solid var(--line);}
+  details summary{list-style:none;cursor:pointer;padding:16px 2px;font-size:14px;font-weight:500;
+    display:flex;justify-content:space-between;align-items:center;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary .ic{color:var(--gray-400);font-size:14px;transition:transform .2s;}
+  details[open] summary .ic{transform:rotate(180deg);}
+  details .ans{padding:0 2px 16px;font-size:13px;color:var(--gray-600);line-height:1.65;}
+  .cta{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+    background:#fff;border-top:1px solid var(--line);padding:14px 22px 22px;z-index:30;}
+  .cta button{width:100%;background:var(--green);color:#fff;border:none;border-radius:14px;
+    padding:16px;font-size:16px;font-weight:700;cursor:pointer;}
+  .cta a{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--gray-600);
+    text-decoration:underline;text-underline-offset:3px;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="topbar">
+    <span class="chev">&#8249;</span>
+    <h1>런드리고 구독</h1>
+  </div>
+
+  <div class="logo">
+    <div class="mark">
+      <span class="x">X</span>
+      <span class="name">런드리고<b>X</b></span>
+    </div>
+  </div>
+
+  <section class="hero">
+    <h2>세탁 고민,<br>이제는 끝</h2>
+    <p class="lead">의류부터 이불·신발·생활빨래까지, 맡기면 새것처럼.<br>정기적으로 이용하면 정가보다 더 저렴해요.</p>
+    <span class="save">정가보다 20% 이상 저렴</span>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <p class="eyebrow">이렇게 이용해요</p>
+    <h2 class="title">'세탁권'으로 이용해요</h2>
+    <p class="lead">품목마다 가격을 따로 계산하지 않아요. 매달 받는 세탁권으로 간편하게 맡기세요.</p>
+
+    <div style="margin-top:8px">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <h3>매달 세탁권을 받아요</h3>
+          <p>선택한 등급에 따라 <span class="hl">매달 6~14장</span>의 세탁권이 채워져요.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <h3>맡길 때 품목만큼 차감돼요</h3>
+          <p>티셔츠 1장, 코트 2장처럼 <span class="hl">품목별로 정해진 만큼만</span> 사용돼요.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <h3>무료배송으로 받아요</h3>
+          <p>집 앞에서 수거하고, 깨끗하게 세탁해 다시 가져다드려요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <p class="eyebrow">품목별 세탁권</p>
+    <h2 class="title">이만큼의 세탁권이 필요해요</h2>
+    <p class="lead">자주 맡기는 품목 기준이에요.</p>
+
+    <div class="grid2">
+      <div class="item"><div class="t">티셔츠 · 니트 · 셔츠<br>일반 운동화</div><div class="c">세탁권 1장</div></div>
+      <div class="item"><div class="t">코트 · 일반 패딩<br>다운점퍼</div><div class="c">세탁권 2장</div></div>
+      <div class="item"><div class="t">일반 이불<br>커버류</div><div class="c">세탁권 2장</div></div>
+      <div class="item"><div class="t">롱패딩<br>극세사 이불</div><div class="c">세탁권 3장</div></div>
+    </div>
+
+    <div class="grid2" id="moreItems">
+      <div class="item"><div class="t">후드티 · 맨투맨<br>바지 · 점퍼</div><div class="c">세탁권 1장</div></div>
+      <div class="item"><div class="t">축구화 · 아동화<br>운동화</div><div class="c">세탁권 1장</div></div>
+      <div class="item"><div class="t">구스 이불<br>토퍼류</div><div class="c">세탁권 3장</div></div>
+      <div class="item"><div class="t">골프화 · 등산화<br>전체 세무화</div><div class="c">세탁권 2장</div></div>
+    </div>
+
+    <button class="more" id="moreBtn" onclick="toggleItems()">품목별 세탁권 모두 보기 <span class="arr" id="moreArr">&#8250;</span></button>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <p class="eyebrow">내 세탁량에 맞는 등급</p>
+    <h2 class="title">한 달 세탁량으로 골라요</h2>
+    <p class="lead">등급에 따라 매달 받는 세탁권 수가 달라져요.</p>
+
+    <div class="tier">
+      <div class="row1"><span class="nm">베이직</span><span class="pr">35,200원~</span></div>
+      <div class="ticket">매달 세탁권 6장 · 무료배송권 1장</div>
+      <div class="desc">롱패딩 2벌 맡기면 정가 대비 16,400원 절약</div>
+    </div>
+
+    <div class="tier">
+      <div class="row1"><span class="nm">스탠다드</span><span class="pr">52,240원~</span></div>
+      <div class="ticket">매달 세탁권 10장 · 무료배송권 1장</div>
+      <div class="desc">코트 3벌 맡기면 정가 대비 28,960원 절약</div>
+    </div>
+
+    <div class="tier best">
+      <span class="badge">가장 많이 선택</span>
+      <div class="row1"><span class="nm">시그니처</span><span class="pr">70,480원~</span></div>
+      <div class="ticket">매달 세탁권 14장 · 무료배송권 2장</div>
+      <div class="desc">패딩·코트 4벌 맡기면 정가 대비 41,320원 절약</div>
+    </div>
+
+    <p class="note">* 12개월 약정 기준 월 가격이며, 실제 절약액은 선택 품목에 따라 달라집니다.</p>
+
+    <button class="calc" onclick="alert('내 세탁량으로 등급을 추천해드려요')">&#9201; 30초 만에 내 등급 계산하기</button>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <p class="eyebrow">약정 혜택</p>
+    <h2 class="title">길게 약정할수록 커져요</h2>
+    <p class="lead">3·6·12개월을 미리 결제하면 더 많은 혜택을 받아요.</p>
+
+    <table class="btable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>월</th>
+          <th>3개월+</th>
+          <th>6개월+</th>
+          <th class="best">12개월+</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="label">구독료 할인</td><td class="dash">&ndash;</td><td>10%</td><td>15%</td><td class="best">20%</td></tr>
+        <tr><td class="label">쿠폰</td><td class="dash">&ndash;</td><td>매달</td><td>매달</td><td class="best">매달</td></tr>
+        <tr><td class="label">수선</td><td class="dash">&ndash;</td><td>20% 할인</td><td>20% 할인</td><td class="best">20% 할인</td></tr>
+        <tr><td class="label">보강</td><td class="dash">&ndash;</td><td>3벌 무료</td><td>3벌 무료</td><td class="best">3벌 무료</td></tr>
+        <tr><td class="label">이불 세탁</td><td class="dash">&ndash;</td><td class="dash">&ndash;</td><td>1벌 무료</td><td class="best">1벌 무료</td></tr>
+        <tr><td class="label">무료배송</td><td class="dash">&ndash;</td><td class="dash">&ndash;</td><td class="dash">&ndash;</td><td class="best">1회 추가</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2 class="title" style="margin-bottom:6px">자주 묻는 질문</h2>
+    <details>
+      <summary>이용·결제는 어떻게 하나요?<span class="ic">&#9662;</span></summary>
+      <div class="ans">구독을 신청하면 매달 결제일에 자동으로 결제되고, 동시에 세탁권이 채워져요. 앱에서 수거를 신청한 뒤 문 앞에 빨래를 두면 수거해 가요.</div>
+    </details>
+    <details>
+      <summary>품목별 세탁권은 어떻게 차감되나요?<span class="ic">&#9662;</span></summary>
+      <div class="ans">맡긴 품목에 따라 1~3장씩 차감돼요. 예를 들어 티셔츠는 1장, 코트는 2장, 롱패딩은 3장이에요. 남은 세탁권은 앱에서 언제든 확인할 수 있어요.</div>
+    </details>
+    <details>
+      <summary>구독을 잠시 멈출 수 있나요?<span class="ic">&#9662;</span></summary>
+      <div class="ans">네, 여행이나 출장 등으로 이용이 어려운 달에는 일시정지를 신청할 수 있어요. 정지 기간만큼 구독 종료일이 미뤄져요.</div>
+    </details>
+    <details>
+      <summary>해지·환불 규정이 궁금해요<span class="ic">&#9662;</span></summary>
+      <div class="ans">언제든 해지할 수 있어요. 사용하지 않은 세탁권은 정가 기준으로 환불되며, 약정 할인 혜택을 받은 경우 일부 차감될 수 있어요.</div>
+    </details>
+    <details>
+      <summary>세탁물이 손상되면 보상되나요?<span class="ic">&#9662;</span></summary>
+      <div class="ans">세탁 과정에서 손상이 발생하면 관련 규정에 따라 보상해드려요. 접수 시 사진과 함께 문의하시면 빠르게 안내해드려요.</div>
+    </details>
+  </section>
+
+  <div class="cta">
+    <button onclick="alert('구독 플랜 선택 화면으로 이동')">구독 플랜 선택하기</button>
+    <a href="#" onclick="return false">맞춤형 플랜 추천받기</a>
+  </div>
+
+</div>
+
+<script>
+function toggleItems(){
+  var box=document.getElementById('moreItems');
+  var arr=document.getElementById('moreArr');
+  var btn=document.getElementById('moreBtn');
+  var open=box.classList.toggle('open');
+  arr.innerHTML = open ? '&#8249;' : '&#8250;';
+  arr.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+  btn.childNodes[0].nodeValue = open ? '접기 ' : '품목별 세탁권 모두 보기 ';
+}
+</script>
+</body>
+</html>
