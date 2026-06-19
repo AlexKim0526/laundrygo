@@ -628,7 +628,60 @@
     .load-title { font-size: 16px; font-weight: 700; }
     .load-sub { font-size: 13px; color: rgba(255,255,255,0.65); }
 
-        /* ── VERSION BADGE ── */
+    
+    /* ── ITEM DETAIL SHEET ── */
+    .detail-overlay {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,0.5);
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .detail-overlay.on { display: flex; }
+    .detail-sheet {
+      background: #fff; border-radius: 24px 24px 0 0;
+      width: 100%; max-width: 430px;
+      padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+      max-height: 88vh; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .detail-overlay.on .detail-sheet { transform: translateY(0); }
+    .detail-handle { width: 40px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 12px auto 14px; }
+    .detail-img {
+      display: block; width: calc(100% - 32px); height: 200px;
+      object-fit: cover; border-radius: 14px;
+      margin: 0 16px 14px; background: #f0f0f0;
+    }
+    .detail-rows { padding: 0 16px; }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 0.5px solid #f2f2f2; font-size: 13px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-lbl { color: #999; font-size: 12px; }
+    .detail-val { font-weight: 700; color: #1a1a1a; font-size: 13px; }
+    .detail-val.sub { font-weight: 400; color: #888; font-size: 11px; }
+    .market-section { padding: 0 16px; margin-top: 12px; }
+    .market-title {
+      font-size: 11px; color: #888; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .market-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .market-card {
+      background: #f8f8f8; border-radius: 12px; padding: 10px 12px;
+      border: 0.5px solid #ebebeb; text-decoration: none; display: block;
+    }
+    .mc-lbl { font-size: 11px; color: #888; margin-bottom: 3px; }
+    .mc-price { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px; min-height: 18px; }
+    .mc-loading { font-size: 11px; color: #bbb; }
+    .mc-link { font-size: 11px; color: #1AC073; display: flex; align-items: center; gap: 2px; }
+    .detail-close-btn {
+      display: block; width: calc(100% - 32px); margin: 16px 16px 0;
+      height: 48px; border-radius: 14px; background: #1AC073;
+      color: #fff; border: none; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .item-thumb { cursor: pointer; }
+
+    /* ── VERSION BADGE ── */
     .version-badge {
       display: inline-block;
       font-size: 11px; font-weight: 600;
@@ -809,7 +862,7 @@
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.23.3'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
+const VERSION = 'v1.24.0'; // 품목 상세 시트 + 시세 조회 // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1320,7 +1373,7 @@ function renderRows() {
     }
 
     div.innerHTML = `
-      <div class="item-thumb"><img src="${it.thumb}" alt="${it.name}"></div>
+      <div class="item-thumb" onclick="openItemDetail(${idx})"><img src="${it.thumb}" alt="${it.name}"></div>
       <div class="item-info">
         <div class="item-name">${it.name}</div>
         ${badgesHtml ? `<div class="item-badges">${badgesHtml}</div>` : ''}
@@ -1714,6 +1767,76 @@ function showLoad(msg) {
 function hideLoad() { document.getElementById('loadingMask').classList.remove('on'); }
 
 let _tt;
+// ═══════════════════════════════════════
+// ITEM DETAIL SHEET
+// ═══════════════════════════════════════
+function wMan(n) {
+  if (!n || n <= 0) return '-';
+  if (n >= 100000000) return Math.round(n/100000000) + '억';
+  if (n >= 10000) return Math.round(n/10000) + '만';
+  return w(n);
+}
+
+function openItemDetail(idx) {
+  const it = items[idx];
+  const p  = pLookup(it.name);
+
+  document.getElementById('detailImg').src = it.thumb || '';
+  document.getElementById('detailName').textContent = it.name;
+  document.getElementById('detailBrand').textContent = it.brand || '-';
+
+  if (p) {
+    document.getElementById('detailPrice').textContent = w(p.정가) + '원';
+    if (p.프리미엄 > 0 && p.차감 === 0) {
+      document.getElementById('detailSubPrice').textContent = '구독권 사용 불가 (프리미엄)';
+    } else if (p.차감 > 0) {
+      document.getElementById('detailSubPrice').textContent = `세탁권 ${p.차감}개 (소진 시 ${w(p.구독)}원)`;
+    } else {
+      document.getElementById('detailSubPrice').textContent = w(p.구독) + '원';
+    }
+  } else {
+    document.getElementById('detailPrice').textContent = '-';
+    document.getElementById('detailSubPrice').textContent = '-';
+  }
+
+  const q = encodeURIComponent((it.brand ? it.brand + ' ' : '') + it.name);
+  document.getElementById('detailMinCard').href  = `https://search.shopping.naver.com/search/all?query=${q}`;
+  document.getElementById('detailUsedCard').href = `https://m.bunjang.co.kr/search/products?q=${q}`;
+
+  document.getElementById('detailMinPrice').innerHTML  = '<span class="mc-loading">조회 중...</span>';
+  document.getElementById('detailUsedPrice').innerHTML = '<span class="mc-loading">조회 중...</span>';
+
+  document.getElementById('detailOverlay').classList.add('on');
+  fetchPriceEstimate(it.name, it.brand);
+}
+
+function closeDetail(e) {
+  if (e && e.target !== document.getElementById('detailOverlay')) return;
+  document.getElementById('detailOverlay').classList.remove('on');
+}
+
+async function fetchPriceEstimate(name, brand) {
+  try {
+    const res = await fetch('/api/price-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, brand: brand || null })
+    });
+    if (!res.ok) throw new Error('오류');
+    const d = await res.json();
+
+    const minEl  = document.getElementById('detailMinPrice');
+    const usedEl = document.getElementById('detailUsedPrice');
+
+    minEl.textContent  = d.최저가  ? `${wMan(d.최저가.min)}~${wMan(d.최저가.max)}원`  : '직접 확인';
+    usedEl.textContent = d.중고가 ? `${wMan(d.중고가.min)}~${wMan(d.중고가.max)}원` : '직접 확인';
+  } catch (_) {
+    document.getElementById('detailMinPrice').textContent  = '직접 확인';
+    document.getElementById('detailUsedPrice').textContent = '직접 확인';
+  }
+}
+
+
 function toast(msg) {
   const el = document.getElementById('toastEl');
   el.textContent = msg; el.classList.add('on');
@@ -1722,6 +1845,47 @@ function toast(msg) {
 }
 </script>
 
+<!-- ITEM DETAIL SHEET -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detailSheet">
+    <div class="detail-handle"></div>
+    <img class="detail-img" id="detailImg" src="" alt="품목 이미지">
+    <div class="detail-rows">
+      <div class="detail-row">
+        <span class="detail-lbl">품목명</span>
+        <span class="detail-val" id="detailName">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">브랜드</span>
+        <span class="detail-val" id="detailBrand">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">정가</span>
+        <span class="detail-val" id="detailPrice">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">구독가</span>
+        <span class="detail-val sub" id="detailSubPrice">-</span>
+      </div>
+    </div>
+    <div class="market-section">
+      <div class="market-title">📊 상품 시세 (AI 추정)</div>
+      <div class="market-cards">
+        <a class="market-card" id="detailMinCard" href="#" target="_blank" rel="noopener">
+          <div class="mc-lbl">최저가</div>
+          <div class="mc-price" id="detailMinPrice"><span class="mc-loading">조회 중...</span></div>
+          <div class="mc-link">네이버쇼핑 ↗</div>
+        </a>
+        <a class="market-card" id="detailUsedCard" href="#" target="_blank" rel="noopener">
+          <div class="mc-lbl">중고가</div>
+          <div class="mc-price" id="detailUsedPrice"><span class="mc-loading">조회 중...</span></div>
+          <div class="mc-link">번개장터 ↗</div>
+        </a>
+      </div>
+    </div>
+    <button class="detail-close-btn" onclick="closeDetail()">닫기</button>
+  </div>
+</div>
 <div class="toast" id="toastEl"></div>
 </body>
 </html>

@@ -114,6 +114,73 @@ app.post('/api/analyze', async (req, res) => {
   apiReq.end();
 });
 
+
+/**
+ * POST /api/price-estimate
+ * body: { name: "품목명", brand: "브랜드명" | null }
+ * returns: { 최저가: { min, max } | null, 중고가: { min, max } | null }
+ */
+app.post('/api/price-estimate', (req, res) => {
+  const { name, brand } = req.body;
+  if (!name) return res.status(400).json({ error: '품목명이 없습니다.' });
+
+  const brandStr = brand ? `브랜드: ${brand}` : '브랜드: 없음 (일반 제품)';
+  const prompt = `다음 의류/패션 품목의 한국 시장 현재 기준 예상 가격 범위를 알려주세요.
+품목: ${name}
+${brandStr}
+
+아래 JSON 형식으로만 응답 (다른 텍스트 없이):
+{"최저가":{"min":숫자,"max":숫자},"중고가":{"min":숫자,"max":숫자}}
+
+규칙:
+- 금액은 원(KRW) 단위 정수
+- 브랜드 없는 일반 품목(티셔츠·양말 등)이나 가격 특정 불가한 경우 해당 항목을 null로 반환
+- 예시: {"최저가":{"min":300000,"max":800000},"중고가":{"min":100000,"max":300000}}`;
+
+  const bodyStr = JSON.stringify({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 200,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  const options = {
+    hostname: 'api.anthropic.com',
+    path: '/v1/messages',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'Content-Length': Buffer.byteLength(bodyStr)
+    }
+  };
+
+  const apiReq = https.request(options, (apiRes) => {
+    let data = '';
+    apiRes.on('data', chunk => { data += chunk; });
+    apiRes.on('end', () => {
+      try {
+        const d = JSON.parse(data);
+        if (apiRes.statusCode !== 200) return res.json({ 최저가: null, 중고가: null });
+        const raw = d?.content?.[0]?.text ?? '';
+        const m = raw.match(/\{[\s\S]*\}/);
+        if (!m) return res.json({ 최저가: null, 중고가: null });
+        const parsed = JSON.parse(m[0]);
+        res.json({
+          최저가: parsed.최저가 || null,
+          중고가: parsed.중고가 || null
+        });
+      } catch (_) {
+        res.json({ 최저가: null, 중고가: null });
+      }
+    });
+  });
+
+  apiReq.on('error', () => res.json({ 최저가: null, 중고가: null }));
+  apiReq.write(bodyStr);
+  apiReq.end();
+});
+
 // 헬스체크
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
