@@ -628,44 +628,58 @@
     .load-title { font-size: 16px; font-weight: 700; }
     .load-sub { font-size: 13px; color: rgba(255,255,255,0.65); }
 
-    /* ── API MODAL ── */
-    .modal-wrap {
-      position: fixed; inset: 0; z-index: 800;
-      background: rgba(0,0,0,0.55);
+    
+    /* ── ITEM DETAIL SHEET ── */
+    .detail-overlay {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,0.5);
       display: none; align-items: flex-end; justify-content: center;
-      padding: 0;
     }
-    .modal-wrap.on { display: flex; }
-    .modal-sheet {
-      background: #fff;
-      border-radius: 24px 24px 0 0;
+    .detail-overlay.on { display: flex; }
+    .detail-sheet {
+      background: #fff; border-radius: 24px 24px 0 0;
       width: 100%; max-width: 430px;
-      padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+      padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+      max-height: 88vh; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
     }
-    .modal-handle {
-      width: 40px; height: 4px; background: #e0e0e0;
-      border-radius: 2px; margin: 0 auto 20px;
+    .detail-overlay.on .detail-sheet { transform: translateY(0); }
+    .detail-handle { width: 40px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 12px auto 14px; }
+    .detail-img {
+      display: block; width: calc(100% - 32px); height: 200px;
+      object-fit: cover; border-radius: 14px;
+      margin: 0 16px 14px; background: #f0f0f0;
     }
-    .modal-ico { font-size: 32px; text-align: center; margin-bottom: 10px; }
-    .modal-title { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 6px; }
-    .modal-desc { font-size: 13px; color: #777; text-align: center; line-height: 1.6; margin-bottom: 20px; }
-    .modal-desc a { color: #2BAE66; }
-    .modal-input {
-      width: 100%; padding: 14px;
-      border: 1.5px solid #ddd; border-radius: 12px;
-      font-size: 14px; outline: none; margin-bottom: 6px;
-      transition: border-color 0.15s;
+    .detail-rows { padding: 0 16px; }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 0.5px solid #f2f2f2; font-size: 13px;
     }
-    .modal-input:focus { border-color: #2BAE66; }
-    .modal-hint { font-size: 11px; color: #bbb; line-height: 1.5; margin-bottom: 18px; }
-    .modal-btn {
-      width: 100%; height: 52px; border-radius: 14px;
-      font-size: 15px; font-weight: 700; border: none; cursor: pointer;
-      margin-bottom: 8px; transition: background 0.15s;
+    .detail-row:last-child { border-bottom: none; }
+    .detail-lbl { color: #999; font-size: 12px; }
+    .detail-val { font-weight: 700; color: #1a1a1a; font-size: 13px; }
+    .detail-val.sub { font-weight: 400; color: #888; font-size: 11px; }
+    .market-section { padding: 0 16px; margin-top: 12px; }
+    .market-title {
+      font-size: 11px; color: #888; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 4px;
     }
-    .modal-btn.pri { background: #2BAE66; color: #fff; }
-    .modal-btn.pri:hover { background: #249958; }
-    .modal-btn.sec { background: #f4f4f4; color: #666; }
+    .market-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .market-card {
+      background: #f8f8f8; border-radius: 12px; padding: 10px 12px;
+      border: 0.5px solid #ebebeb; text-decoration: none; display: block;
+    }
+    .mc-lbl { font-size: 11px; color: #888; margin-bottom: 3px; }
+    .mc-price { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px; min-height: 18px; }
+    .mc-loading { font-size: 11px; color: #bbb; }
+    .mc-link { font-size: 11px; color: #1AC073; display: flex; align-items: center; gap: 2px; }
+    .detail-close-btn {
+      display: block; width: calc(100% - 32px); margin: 16px 16px 0;
+      height: 48px; border-radius: 14px; background: #1AC073;
+      color: #fff; border: none; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .item-thumb { cursor: pointer; }
 
     /* ── VERSION BADGE ── */
     .version-badge {
@@ -843,32 +857,12 @@
   <div class="load-sub" id="loadSub">품목을 인식하고 있어요...</div>
 </div>
 
-<!-- API MODAL -->
-<div class="modal-wrap" id="apiModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-ico">🔑</div>
-    <div class="modal-title">API 키 설정</div>
-    <div class="modal-desc">
-      Claude Vision으로 의류를 인식합니다.<br>
-      <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>에서 발급받으세요.
-    </div>
-    <input class="modal-input" id="apiKeyInput" type="password" placeholder="sk-ant-...">
-    <div class="modal-hint">⚠️ API 키는 이 기기에만 저장되며 외부로 전송되지 않아요.</div>
-    <button class="modal-btn pri" onclick="saveKey()">저장하고 시작하기</button>
-    <button class="modal-btn sec" onclick="useDemo()">API 없이 데모 모드로 체험</button>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toastEl"></div>
-
 <script>
 // ═══════════════════════════════════════
 // ═══════════════════════════════════════
 // VERSION
 // ═══════════════════════════════════════
-const VERSION = 'v1.23.3'; // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
+const VERSION = 'v1.24.0'; // 품목 상세 시트 + 시세 조회 // 2026-06-12  톤앤매너 리디자인 · 72px썸네일 · pill탭 · #1AC073
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('versionBadge');
   if (el) el.textContent = VERSION;
@@ -1023,7 +1017,6 @@ let stream      = null;
 let photos      = [];   // data-URL strings
 let photosLoading = 0; // 앨범 비동기 로드 중인 사진 수
 let items       = [];   // { name, qty, thumb }
-let demoMode    = false;
 let curScreen   = 'screen2';
 let activeTab   = '일반';    // '일반' | '구독'
 let activePlan  = null;      // 현재 선택된 구독 플랜
@@ -1032,22 +1025,9 @@ let premiumSet  = new Set(); // 프리미엄 선택된 item 인덱스
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-window.addEventListener('load', () => {
-  if (!localStorage.getItem('anthropic_api_key')) {
-    document.getElementById('apiModal').classList.add('on');
-  }
-});
 
-function saveKey() {
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if (!k.startsWith('sk-ant-')) { toast('sk-ant- 로 시작하는 키를 입력해주세요'); return; }
-  localStorage.setItem('anthropic_api_key', k);
-  document.getElementById('apiModal').classList.remove('on');
-}
-function useDemo() {
-  demoMode = true;
-  document.getElementById('apiModal').classList.remove('on');
-}
+
+
 
 // ═══════════════════════════════════════
 // HERO ANIMATION (Screen 2)
@@ -1244,7 +1224,7 @@ async function doAnalyze() {
   if (!photos.length) { hideLoad(); return; }
   showLoad('품목을 인식하고 있어요...');
   try {
-    items = demoMode ? await mockAnalyze() : await callClaude();
+    items = await callClaude();
     hideLoad();
     renderResult();
     navTo('screen4');
@@ -1255,73 +1235,28 @@ async function doAnalyze() {
 }
 
 async function callClaude() {
-  const key = localStorage.getItem('anthropic_api_key');
-  if (!key) throw new Error('API 키가 없습니다');
+  // 사진 base64 추출 (data URL → raw base64)
+  const b64Photos = photos.map(p => p.split(',')[1]);
 
-  const content = photos.map((p, idx) => [
-    { type: 'text', text: `[사진 ${idx + 1}]` },
-    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.split(',')[1] } }
-  ]).flat();
-
-  content.push({ type: 'text', text:
-    `각 사진에서 세탁이 필요한 의류/신발/잡화를 모두 찾아주세요.\n` +
-    `아래 목록에 있는 이름을 정확히 그대로 사용하세요:\n${CATS}\n\n` +
-    `[분류 기준]\n` +
-    `- 셔츠: 캐주얼/일반 버튼다운 셔츠 → "일반셔츠" / 포멀 드레스셔츠 → "와이셔츠" / 라운드·V넥 티셔츠 + 폴로셔츠(카라티, 2~3개 반버튼) → "티셔츠" (칼라가 있어도 전체 버튼다운이 아니면 티셔츠로 분류, 세 가지 엄격 구분)\n` +
-    `- 패딩 길이: 모자 제외 100cm 이상 → "롱패딩점퍼" / 얇고 가벼운 패딩 → "경량패딩" / 그 외 → "일반패딩"\n\n` +
-    `[브랜드 인식]\n` +
-    `의류·잡화에 브랜드 로고, 텍스트, 패턴이 보이면 반드시 "브랜드" 필드에 기재하세요.\n` +
-    `일반 브랜드 예시: NIKE, ADIDAS, ZARA, H&M, UNIQLO, POLO RALPH LAUREN, TOMMY HILFIGER, CALVIN KLEIN, GAP, LEVI'S, SUPREME, OFF-WHITE, THE NORTH FACE, PATAGONIA, ARC'TERYX, COLUMBIA 등 모든 브랜드 인식\n` +
-    `프리미엄 브랜드: HERMÈS, CHANEL, LOUIS VUITTON, GUCCI, PRADA, BURBERRY, CELINE, MONCLER, VALENTINO, FENDI, DIOR, Loro Piana, MIU MIU, Kiton, MaxMara, BALENCIAGA, BOTTEGA VENETA, THOM BROWNE, MOOSE KNUCKLES, CANADA GOOSE, STONE ISLAND, nobis, HERNO, Polo\n` +
-    `브랜드가 전혀 보이지 않을 때만 "브랜드" 필드 생략.\n\n` +
-    `반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력:\n` +
-    `{"items":[{"소분류":"재킷","수량":1,"브랜드":"GUCCI","사진":1}]}\n` +
-    `- "사진" 필드에는 해당 품목이 나온 사진 번호(1부터 시작)를 반드시 기재하세요.\n` +
-    `- 동일 품목이라도 합치지 말고 각각 별도 항목으로 나열하세요. 해당 품목 없으면 {"items":[]}`
-  });
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('/api/analyze', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content }]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photos: b64Photos })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API 오류 (${res.status})`);
+    throw new Error(err.error || `서버 오류 (${res.status})`);
   }
 
   const d = await res.json();
 
-  // 응답 구조 방어
-  const raw = d?.content?.[0]?.text ?? '';
-  if (!raw) throw new Error('AI 응답이 비어있습니다. 다시 시도해주세요.');
-
-  // 모델이 마크다운 코드블록으로 감싸는 경우도 처리
-  const m = raw.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error('품목을 인식하지 못했습니다. 다시 촬영해주세요.');
-
-  let parsed;
-  try {
-    parsed = JSON.parse(m[0]);
-  } catch (_) {
-    throw new Error('응답 파싱 실패. 다시 시도해주세요.');
-  }
-
-  return (parsed.items || []).map((it, i) => {
+  return (d.items || []).map((it, i) => {
     const name  = it.소분류;
     const brand = it.브랜드 || null;
-    // "사진" 필드(1-based)가 있으면 해당 사진, 없으면 순서대로 fallback
-    const photoIdx = it.사진 != null ? Math.min(Math.max(it.사진 - 1, 0), photos.length - 1) : (i % photos.length);
+    const photoIdx = it.사진 != null
+      ? Math.min(Math.max(it.사진 - 1, 0), photos.length - 1)
+      : (i % photos.length);
     return {
       name,
       qty:        it.수량 || 1,
@@ -1330,17 +1265,6 @@ async function callClaude() {
       thumb:      photos[photoIdx]
     };
   });
-}
-
-async function mockAnalyze() {
-  await new Promise(r => setTimeout(r, 2400));
-  const sets = [
-    [['재킷',1,'Zara'],['티셔츠',1,'Uniqlo'],['바지',1,null]],
-    [['코트, 트렌치코트',1,'Mango'],['니트, 스웨터',2,'H&M']],
-    [['블라우스',1,'COS'],['스커트',1,null],['정장재킷',1,'Theory']],
-  ];
-  const s = sets[Math.floor(Math.random() * sets.length)];
-  return s.map(([n, q, b], i) => ({ name: n, qty: q, brand: b, thumb: photos[i % photos.length] }));
 }
 
 // ═══════════════════════════════════════
@@ -1449,7 +1373,7 @@ function renderRows() {
     }
 
     div.innerHTML = `
-      <div class="item-thumb"><img src="${it.thumb}" alt="${it.name}"></div>
+      <div class="item-thumb" onclick="openItemDetail(${idx})"><img src="${it.thumb}" alt="${it.name}"></div>
       <div class="item-info">
         <div class="item-name">${it.name}</div>
         ${badgesHtml ? `<div class="item-badges">${badgesHtml}</div>` : ''}
@@ -1804,6 +1728,7 @@ function renderUpsell() {
       <div class="sub-upsell-row">
         <div>
           <div class="sub-upsell-title">💚 구독하면 <strong>${w(diff)}원</strong> 절약!</div>
+          <div class="sub-upsell-sub">(구독가 ${w(sub.totalCost)}원)</div>
         </div>
         <button class="sub-plan-btn" onclick="selectTab('구독')">구독가 보기</button>
       </div>
@@ -1842,6 +1767,76 @@ function showLoad(msg) {
 function hideLoad() { document.getElementById('loadingMask').classList.remove('on'); }
 
 let _tt;
+// ═══════════════════════════════════════
+// ITEM DETAIL SHEET
+// ═══════════════════════════════════════
+function wMan(n) {
+  if (!n || n <= 0) return '-';
+  if (n >= 100000000) return Math.round(n/100000000) + '억';
+  if (n >= 10000) return Math.round(n/10000) + '만';
+  return w(n);
+}
+
+function openItemDetail(idx) {
+  const it = items[idx];
+  const p  = pLookup(it.name);
+
+  document.getElementById('detailImg').src = it.thumb || '';
+  document.getElementById('detailName').textContent = it.name;
+  document.getElementById('detailBrand').textContent = it.brand || '-';
+
+  if (p) {
+    document.getElementById('detailPrice').textContent = w(p.정가) + '원';
+    if (p.프리미엄 > 0 && p.차감 === 0) {
+      document.getElementById('detailSubPrice').textContent = '구독권 사용 불가 (프리미엄)';
+    } else if (p.차감 > 0) {
+      document.getElementById('detailSubPrice').textContent = `세탁권 ${p.차감}개 (소진 시 ${w(p.구독)}원)`;
+    } else {
+      document.getElementById('detailSubPrice').textContent = w(p.구독) + '원';
+    }
+  } else {
+    document.getElementById('detailPrice').textContent = '-';
+    document.getElementById('detailSubPrice').textContent = '-';
+  }
+
+  const q = encodeURIComponent((it.brand ? it.brand + ' ' : '') + it.name);
+  document.getElementById('detailMinCard').href  = `https://search.shopping.naver.com/search/all?query=${q}`;
+  document.getElementById('detailUsedCard').href = `https://m.bunjang.co.kr/search/products?q=${q}`;
+
+  document.getElementById('detailMinPrice').innerHTML  = '<span class="mc-loading">조회 중...</span>';
+  document.getElementById('detailUsedPrice').innerHTML = '<span class="mc-loading">조회 중...</span>';
+
+  document.getElementById('detailOverlay').classList.add('on');
+  fetchPriceEstimate(it.name, it.brand);
+}
+
+function closeDetail(e) {
+  if (e && e.target !== document.getElementById('detailOverlay')) return;
+  document.getElementById('detailOverlay').classList.remove('on');
+}
+
+async function fetchPriceEstimate(name, brand) {
+  try {
+    const res = await fetch('/api/price-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, brand: brand || null })
+    });
+    if (!res.ok) throw new Error('오류');
+    const d = await res.json();
+
+    const minEl  = document.getElementById('detailMinPrice');
+    const usedEl = document.getElementById('detailUsedPrice');
+
+    minEl.textContent  = d.최저가  ? `${wMan(d.최저가.min)}~${wMan(d.최저가.max)}원`  : '직접 확인';
+    usedEl.textContent = d.중고가 ? `${wMan(d.중고가.min)}~${wMan(d.중고가.max)}원` : '직접 확인';
+  } catch (_) {
+    document.getElementById('detailMinPrice').textContent  = '직접 확인';
+    document.getElementById('detailUsedPrice').textContent = '직접 확인';
+  }
+}
+
+
 function toast(msg) {
   const el = document.getElementById('toastEl');
   el.textContent = msg; el.classList.add('on');
@@ -1849,5 +1844,48 @@ function toast(msg) {
   _tt = setTimeout(() => el.classList.remove('on'), 2600);
 }
 </script>
+
+<!-- ITEM DETAIL SHEET -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detailSheet">
+    <div class="detail-handle"></div>
+    <img class="detail-img" id="detailImg" src="" alt="품목 이미지">
+    <div class="detail-rows">
+      <div class="detail-row">
+        <span class="detail-lbl">품목명</span>
+        <span class="detail-val" id="detailName">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">브랜드</span>
+        <span class="detail-val" id="detailBrand">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">정가</span>
+        <span class="detail-val" id="detailPrice">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-lbl">구독가</span>
+        <span class="detail-val sub" id="detailSubPrice">-</span>
+      </div>
+    </div>
+    <div class="market-section">
+      <div class="market-title">📊 상품 시세 (AI 추정)</div>
+      <div class="market-cards">
+        <a class="market-card" id="detailMinCard" href="#" target="_blank" rel="noopener">
+          <div class="mc-lbl">최저가</div>
+          <div class="mc-price" id="detailMinPrice"><span class="mc-loading">조회 중...</span></div>
+          <div class="mc-link">네이버쇼핑 ↗</div>
+        </a>
+        <a class="market-card" id="detailUsedCard" href="#" target="_blank" rel="noopener">
+          <div class="mc-lbl">중고가</div>
+          <div class="mc-price" id="detailUsedPrice"><span class="mc-loading">조회 중...</span></div>
+          <div class="mc-link">번개장터 ↗</div>
+        </a>
+      </div>
+    </div>
+    <button class="detail-close-btn" onclick="closeDetail()">닫기</button>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
 </body>
 </html>
