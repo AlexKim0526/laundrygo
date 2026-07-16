@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프로덕트 개선을 통한 CS 셀프처리율 제고 — 워크숍 통합자료</title>
+<style>
+:root{
+  --bg:#f6f5f1; --card:#ffffff; --ink:#22201b; --sub:#5f5e57; --mut:#8a887f;
+  --line:#e5e3db; --line2:#d4d1c6;
+  --accent:#185fa5; --accent-bg:#e6f1fb;
+  --warn:#854f0b; --warn-bg:#faeeda;
+  --ok:#0f6e56; --ok-bg:#e1f5ee;
+  --red:#a32d2d; --red-bg:#fcebeb;
+  --purple:#534ab7; --purple-bg:#eeedfe;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 24px 80px}
+header.top{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:32px}
+header.top .kicker{font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.02em}
+header.top h1{font-size:30px;font-weight:700;margin:6px 0 8px;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--sub);font-size:14px}
+section{margin:44px 0}
+h2{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+h2 .n{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;background:var(--ink);color:#fff;border-radius:8px;font-size:15px;margin-right:10px;vertical-align:2px}
+.lead{color:var(--sub);font-size:15px;margin:2px 0 20px}
+h3{font-size:17px;font-weight:700;margin:26px 0 10px}
+p{margin:10px 0}
+.grid{display:grid;gap:14px}
+.cols-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.cols-3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.cols-4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .lab{font-size:13px;color:var(--sub);margin:0}
+.stat .big{font-size:28px;font-weight:700;margin:2px 0 0;letter-spacing:-.01em}
+.stat .big small{font-size:14px;font-weight:500;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{background:#efeee8;font-weight:600;font-size:13px;color:var(--sub)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.bar-td{position:relative}
+.bar{height:8px;border-radius:4px;background:var(--accent);display:inline-block;vertical-align:middle}
+.tier{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:20px}
+.t-h{background:var(--ok-bg);color:var(--ok)} .t-m{background:var(--warn-bg);color:var(--warn)} .t-l{background:#eeece5;color:var(--mut)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px}
+.p-accent{background:var(--accent-bg);color:var(--accent)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-bg);border-radius:0 8px 8px 0;padding:12px 16px;margin:16px 0;font-size:14px}
+.callout.ok{border-color:var(--ok);background:var(--ok-bg)}
+.callout b{font-weight:700}
+ul.clean{margin:10px 0;padding-left:20px} ul.clean li{margin:5px 0}
+.op{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.op .oph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.op .rank{font-size:20px;font-weight:800}
+.op .ttl{font-size:16px;font-weight:700}
+.op .vol{margin-left:auto;font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums}
+.op .cause{font-size:14px;color:var(--sub);margin:2px 0 8px}
+.op .fix{font-size:14px;margin:0}
+.op .fix b{color:var(--accent)}
+/* mockups */
+.flowblk{margin:26px 0}
+.flowblk .fh{font-size:17px;font-weight:700;margin:0 0 2px}
+.flowblk .fs{font-size:13px;color:var(--sub);margin:0 0 14px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:6px;margin-bottom:8px}
+.tag.as{background:var(--warn-bg);color:var(--warn)} .tag.to{background:var(--ok-bg);color:var(--ok)}
+.ph{background:#fff;border:1px solid var(--line2);border-radius:20px;padding:14px;min-height:340px}
+.bar2{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:12px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:12px}
+.rw{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--sub)}
+.rw b{color:var(--ink);font-weight:600}
+.mut{font-size:12px;color:var(--mut)}
+.note{font-size:11px;color:var(--mut);margin-top:10px;line-height:1.55;border-top:1px dashed var(--line);padding-top:8px}
+.btn{border:1px solid var(--line2);border-radius:8px;padding:8px;text-align:center;font-size:12px;margin-top:8px}
+.btn.pri{background:var(--accent-bg);color:var(--accent);border:none;font-weight:600}
+.btnq{color:var(--mut);text-decoration:underline;font-size:11px;text-align:center;margin-top:8px}
+.divk{border-top:1px solid var(--line);margin:8px 0}
+.step{display:flex;gap:9px;align-items:flex-start;position:relative}
+.step .dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none;z-index:1;color:#fff;font-weight:700}
+.step .ln{position:absolute;left:8.5px;top:18px;bottom:-4px;width:2px;background:var(--line)}
+.step.done .dot{background:var(--ok)} .step.now .dot{background:var(--accent)}
+.step.todo .dot{background:#fff;border:1px solid var(--line2);color:var(--mut)}
+.step .lab{font-size:12px;padding-bottom:12px} .step .lab b{display:block;font-weight:600}
+.step.todo .lab,.step.todo .lab b{color:var(--mut)}
+.eta{background:var(--accent-bg);color:var(--accent);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;margin-bottom:12px}
+.badge{display:inline-block;background:var(--warn-bg);color:var(--warn);font-size:11px;padding:4px 9px;border-radius:6px;margin-top:8px}
+.calloutm{border:1px solid var(--ok);background:var(--ok-bg);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--ok);margin:10px 0}
+.cpn{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px}
+.cpn .t{font-size:12px;font-weight:600} .cpn .d{font-size:11px;color:var(--mut);margin-top:2px}
+.cpn.on{border-color:var(--accent);background:var(--accent-bg)} .cpn.on .t,.cpn.on .d{color:var(--accent)}
+.cpn.off .t{color:var(--mut)}
+.reason{font-size:11px;color:var(--warn);background:var(--warn-bg);border-radius:6px;padding:4px 7px;margin-top:6px}
+.chk{width:15px;height:15px;border-radius:50%;border:1px solid var(--line2);float:right}
+.chk.sel{background:var(--accent);border:none;color:#fff;text-align:center;line-height:15px;font-size:10px}
+.item{display:flex;gap:9px;align-items:center;padding:7px 0}
+.item .th{width:32px;height:32px;border-radius:6px;background:#efeee8;flex:none}
+.item .nm{font-size:12px;flex:1} .item .nm span{display:block;font-size:11px;color:var(--mut)}
+.spill{font-size:11px;padding:2px 8px;border-radius:20px;background:#efeee8;color:var(--sub)}
+.spill.w{background:var(--warn-bg);color:var(--warn)} .spill.g{background:var(--ok-bg);color:var(--ok)}
+.linkq{font-size:11px;color:var(--accent);margin-top:2px;display:inline-block}
+footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--mut)}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px;margin-bottom:8px}
+.toc ol{margin:6px 0;padding-left:22px} .toc li{margin:3px 0;font-size:14px}
+.toc a{color:var(--accent);text-decoration:none}
+@media print{body{background:#fff}.card,.ph,.stat{break-inside:avoid}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="kicker">전사 워크숍 · 토론자료</div>
+  <h1>프로덕트 개선을 통한 CS 셀프처리율 제고</h1>
+  <p>분석 대상: CS_문의답변 내역_20260106.csv · 2026년 1~6월 1:1 문의 23,461건 &nbsp;|&nbsp; 앱 현황: Figma(04_MY·03_수거신청) 직접 확인</p>
+</header>
+
+<div class="toc">
+  <b>목차</b>
+  <ol>
+    <li><a href="#s1">전체 CS 카테고리 지도</a></li>
+    <li><a href="#s2">셀프처리·프로덕트개선 잠재력</a></li>
+    <li><a href="#s3">우선순위 Top 9</a></li>
+    <li><a href="#s4">앱 현황 진단 (Figma 확인)</a></li>
+    <li><a href="#s5">플로우별 AS-IS / TO-BE 목업 (Top 5)</a></li>
+    <li><a href="#s6">토론 포인트 · 남은 정보</a></li>
+  </ol>
+</div>
+
+<div class="callout"><b>한 줄 결론.</b> 전체 CS의 약 <b>37%(≈8,800건)</b>는 품질 결함이 아니라 “셀프처리가 막혀서(해지·환불·재수거)”, “정보가 안 보여서(과금·배송상태)”, “쓰는 법을 몰라서” 생기는 문의로, <b>프로덕트 개선으로 인입 자체를 줄일 수 있는 영역</b>입니다.</div>
+
+<!-- 1 -->
+<section id="s1">
+  <h2><span class="n">1</span>전체 CS 카테고리 지도</h2>
+  <p class="lead">문의를 5개 클러스터로 재그룹핑했습니다. 물량이 가장 큰 건 ‘품질’이지만, 셀프처리로 줄일 여지가 큰 건 ‘결제·요금·구독’입니다.</p>
+
+  <div class="grid cols-4" style="margin-bottom:18px">
+    <div class="stat"><p class="lab">전체 문의</p><p class="big">23,461<small> 건</small></p></div>
+    <div class="stat"><p class="lab">분석 기간</p><p class="big">6<small> 개월(’26.1~6)</small></p></div>
+    <div class="stat"><p class="lab">셀프처리 전환 가능</p><p class="big" style="color:var(--ok)">~37<small>%</small></p></div>
+    <div class="stat"><p class="lab">최대 여지 클러스터</p><p class="big" style="color:var(--accent);font-size:20px">결제·요금·구독</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>클러스터</th><th class="num">건수</th><th class="num">비중</th><th>구성(주요 세부유형)</th></tr></thead>
+    <tbody>
+      <tr><td>세탁·수선 품질</td><td class="num">6,815</td><td class="num">29.0%</td><td>변형·변색·손상(1,872), 오염 미제거(1,480), 세탁동의·미세탁(822), 품목 오류(709)…</td></tr>
+      <tr><td>수거·배송·런드렛</td><td class="num">6,683</td><td class="num">28.5%</td><td>배송지연(1,552), 미수거·오수거(1,356), 런드렛 이용(1,327), 분실접수(535)…</td></tr>
+      <tr><td>결제·요금·구독</td><td class="num">6,474</td><td class="num">27.6%</td><td>결제·과금(2,514), 월정액 가입·변경·해지(1,770), 쿠폰·포인트(673), 증빙서류(455)…</td></tr>
+      <tr><td>서비스·회원·기타</td><td class="num">1,054</td><td class="num">4.5%</td><td>서비스 이용방법(633), 서비스 오류(167), 회원가입·정보변경(113)…</td></tr>
+      <tr><td>프리미엄·스토어·이벤트</td><td class="num">~590</td><td class="num">2.5%</td><td>프리미엄 서비스·세탁동의, 스토어·유모차·이벤트…</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 2 -->
+<section id="s2">
+  <h2><span class="n">2</span>셀프처리·프로덕트개선 잠재력</h2>
+  <p class="lead">각 카테고리를 문의 원인의 성격으로 3단계 평가했습니다. (감축률은 원인 분석·표본 기반 <b>토론용 추정치</b> — A/B 검증 필요)</p>
+
+  <div class="grid cols-3" style="margin-bottom:16px">
+    <div class="stat"><p class="lab"><span class="tier t-h">H 높음</span> 55~70% 감축</p><p class="big">~5,500<small> 건</small></p></div>
+    <div class="stat"><p class="lab"><span class="tier t-m">M 중간</span> 30~50% 감축</p><p class="big">~2,550<small> 건</small></p></div>
+    <div class="stat"><p class="lab"><span class="tier t-l">L 낮음</span> 품질·사고(사람 처리)</p><p class="big">~760<small> 건</small></p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>클러스터</th><th class="num">전체</th><th class="num">디플렉션 가능(추정)</th><th>상대 규모</th></tr></thead>
+    <tbody>
+      <tr><td>결제·요금·구독</td><td class="num">6,474</td><td class="num"><b>~3,660</b></td><td class="bar-td"><span class="bar" style="width:100%"></span></td></tr>
+      <tr><td>수거·배송·런드렛</td><td class="num">6,683</td><td class="num">~2,500</td><td class="bar-td"><span class="bar" style="width:68%"></span></td></tr>
+      <tr><td>세탁·수선 품질</td><td class="num">6,815</td><td class="num">~1,850</td><td class="bar-td"><span class="bar" style="width:50%"></span></td></tr>
+      <tr><td>서비스·회원·기타</td><td class="num">1,054</td><td class="num">~610</td><td class="bar-td"><span class="bar" style="width:17%"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>해석.</b> 품질 클러스터(29%)는 셀프처리 대상이 아니라 <b>공정 개선의 별도 트랙</b>입니다. 셀프처리율 제고는 결제·구독·배송정보에서 성과가 큽니다.</div>
+</section>
+
+<!-- 3 -->
+<section id="s3">
+  <h2><span class="n">3</span>우선순위 Top 9</h2>
+  <p class="lead">물량 × 디플렉션 가능성 기준. 상위 3종만으로 전체 CS의 약 15% 감축이 가능합니다.</p>
+
+  <div class="op"><div class="oph"><span class="rank">1</span><span class="ttl">월정액 해지·변경·환불</span><span class="tier t-h">H</span><span class="vol">1,770건 · 감축 ~1,240</span></div>
+    <p class="cause">해지·환불·즉시변경이 앱에서 셀프로 어렵거나 없어 전량 CS 유입.</p>
+    <p class="fix"><b>개선.</b> 원터치 해지·즉시 변경·환불 플로우, 환불 예상액 실시간 계산, 미이용 환불 조건 사전 안내.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">2</span><span class="ttl">결제/과금 투명화</span><span class="tier t-h">H</span><span class="vol">2,514건 · 감축 ~1,380</span></div>
+    <p class="cause">차감·과금 근거가 불투명해 “왜 이렇게 과금됐나” 검증 요청.</p>
+    <p class="fix"><b>개선.</b> 품목별 차감·과금 명세, 결제 전 미리보기, 쿠폰명·미적용 사유 노출.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">3</span><span class="ttl">배송 실시간 추적 + ETA</span><span class="tier t-h">H</span><span class="vol">1,552건 · 감축 ~850</span></div>
+    <p class="cause">진행 단계·도착 예정·분할배송이 안 보여 불안성 문의.</p>
+    <p class="fix"><b>개선.</b> 단계 진행바 + ETA, 분할·지연 선제 알림톡.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">4</span><span class="ttl">런드렛 이용 온보딩</span><span class="tier t-m">M~H</span><span class="vol">1,327건 · 감축 ~600</span></div>
+    <p class="cause">첫 이용·이용법 정보 부족, 세탁 진행 중 수거 제한 UX.</p>
+    <p class="fix"><b>개선.</b> 첫 이용 가이드, 수거 제약 사유·가능시점 안내, 셀프 회수.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">5</span><span class="ttl">세탁동의·미세탁</span><span class="tier t-h">H</span><span class="vol">822건 · 감축 ~450</span></div>
+    <p class="cause">세탁불가 사유가 구체적으로 안 보여 “왜?” 문의.</p>
+    <p class="fix"><b>개선.</b> 미세탁 사유+대안 명시, 세탁 진행/거부 셀프 결정.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">6</span><span class="ttl">서비스 이용방법(FAQ)</span><span class="tier t-h">H</span><span class="vol">633건 · 감축 ~440</span></div>
+    <p class="cause">FAQ로 답 가능한 정형 질문이 CS로 유입.</p>
+    <p class="fix"><b>개선.</b> 맥락형 FAQ·챗봇, 헌옷 포인트·보관 상태 셀프 조회.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">7</span><span class="ttl">쿠폰/포인트</span><span class="tier t-h">H</span><span class="vol">673건 · 감축 ~400</span></div>
+    <p class="cause">쿠폰 적용 조건·차감 규칙 불투명 → “조건 미충족이 뭔가”.</p>
+    <p class="fix"><b>개선.</b> 미적용 사유 인라인, 적용 가능 쿠폰 우선 노출·자동 추천.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">8</span><span class="ttl">세탁 품목 오류</span><span class="tier t-h">H</span><span class="vol">709건 · 감축 ~390</span></div>
+    <p class="cause">품목 오분류 + 셀프 정정 수단 부재.</p>
+    <p class="fix"><b>개선.</b> 분류 근거 표시, 셀프 정정·이의 버튼, 자동 재과금.</p></div>
+
+  <div class="op"><div class="oph"><span class="rank">9</span><span class="ttl">런드렛 반납</span><span class="tier t-h">H</span><span class="vol">443건 · 감축 ~265</span></div>
+    <p class="cause">반납 플로우·비용 규정이 불명확.</p>
+    <p class="fix"><b>개선.</b> 셀프 반납 예약(일정·비용 사전 표시), 해지 플로우 연결.</p></div>
+</section>
+
+<!-- 4 -->
+<section id="s4">
+  <h2><span class="n">4</span>앱 현황 진단 (Figma 직접 확인)</h2>
+  <p class="lead">실제 화면과 기획 스펙을 정독한 결과, 개선 방향이 “기능 신설”이 아니라 “발견성·투명성·가시성 보완”으로 좁혀집니다.</p>
+
+  <div class="grid cols-2">
+    <div class="card"><h3 style="margin-top:0">월정액 (구독 관리)</h3>
+      <p style="font-size:14px;margin:0">이미 <b>[일시정지]·[요금제 변경]</b> 버튼, 구독 정보·잔여 세탁권, 리텐션 할인 카드가 존재. <b>해지하기는 최하단 작은 링크</b>. 신규 리디자인 진행 중.</p>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0">→ 문제는 ①해지 발견성 낮음 ②즉시·미이용 <b>환불이 셀프 불가</b> ③즉시 변경+차액정산 불명확.</p></div>
+    <div class="card"><h3 style="margin-top:0">이용내역 (결제/과금)</h3>
+      <p style="font-size:14px;margin:0">품목별 상태·금액 + <b>문의하기</b> 버튼, 결제정보 섹션 존재. PD가 이미 <b>‘쿠폰명 노출’·‘보관서비스 결제 추가’</b> 과제 진행 중.</p>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0">→ 세탁권 차감 근거·쿠폰 미적용 사유가 요약에 안 보임.</p></div>
+    <div class="card"><h3 style="margin-top:0">배송 상태 (수거신청)</h3>
+      <p style="font-size:14px;margin:0">홈은 <b>상태 기반 UI</b> — [수거신청 완료]·[수거 중] 상태별 문구·CTA·미배출 안내 존재. <b>수거 단계에 집중</b>.</p>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0">→ 세탁중~배송중 구간의 <b>진행 타임라인·ETA·분할배송</b>이 없음. “수거신청 불가(월정액)” 케이스도 확인.</p></div>
+    <div class="card"><h3 style="margin-top:0">쿠폰</h3>
+      <p style="font-size:14px;margin:0">쿠폰 유형이 <b>5종 이상</b>(요금제할인·품목할인·서비스이용금액·1회/자유이용·결제예정)으로 조건이 제각각.</p>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0">→ 복잡성 자체가 “조건 미충족” 혼란의 근본. 미적용 사유 미표시.</p></div>
+  </div>
+  <div class="callout ok"><b>환불 정책(확정).</b> ①결제 후 21일 내 세탁권 미사용 → 즉시해지+전액환불 ②사용 시 사용금액(할인미적용) 차감 후 부분환불 ③즉시해지보다 <b>해지 예약 유도</b>가 원칙. 세 규칙 모두 시스템이 아는 값이라 <b>정책 변경 없이 셀프 자동화 가능</b>.</div>
+</section>
+
+<!-- 5 -->
+<section id="s5">
+  <h2><span class="n">5</span>플로우별 AS-IS / TO-BE 목업</h2>
+  <p class="lead">Top 5 플로우. 화면 속 브랜드·금액·품목은 설명용 예시입니다.</p>
+
+  <!-- Flow 1 배송 -->
+  <div class="flowblk">
+    <p class="fh">1. 배송 상태 추적</p>
+    <p class="fs">텍스트 한 줄 상태 → 단계별 진행 타임라인 + 도착 예정(ETA) + 분할배송 표시</p>
+    <div class="pair">
+      <div><span class="tag as">AS-IS</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>런드리고</span></div>
+          <div class="hd">수거 중</div>
+          <div style="font-size:13px;margin:24px 0 6px">세탁물을 수거하러 가고 있어요.</div>
+          <div class="mut">밤 10시 이후 문 앞에 세탁물이 없으면 방문비용 3,800원이 결제됩니다.</div>
+          <div class="btn">수거신청 내역</div>
+          <div class="note">현재 상태 문구만 표시 · 지금 어느 단계인지, 언제 도착하는지, 일부만 오는지 알 수 없음 → “언제 오나요/일부만 왔어요” 문의</div></div></div>
+      <div><span class="tag to">TO-BE</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>런드리고</span></div>
+          <div class="hd">세탁 중</div>
+          <div class="eta">도착 예정 · 내일(수) 오전 7시까지</div>
+          <div class="step done"><div class="dot">✓</div><span class="ln"></span><div class="lab"><b>수거 완료</b>어제 23:10</div></div>
+          <div class="step now"><div class="dot"></div><span class="ln"></span><div class="lab"><b>세탁 중</b>진행 중 · 검수 대기</div></div>
+          <div class="step todo"><div class="dot"></div><span class="ln"></span><div class="lab"><b>검수</b></div></div>
+          <div class="step todo"><div class="dot"></div><span class="ln"></span><div class="lab"><b>배송 중</b></div></div>
+          <div class="step todo"><div class="dot"></div><div class="lab"><b>배송 완료</b></div></div>
+          <div class="badge">일부 품목(코트) 세탁 지연 · 목요일 별도 배송</div></div></div>
+    </div>
+  </div>
+
+  <!-- Flow 2 월정액 -->
+  <div class="flowblk">
+    <p class="fh">2. 월정액 해지 · 환불</p>
+    <p class="fs">최하단 ‘해지하기’ 링크 + 환불 불가 → 환불 자격 자동판정 + 예상 환불액 실시간 표시(해지 예약 우선 유지)</p>
+    <div class="pair">
+      <div><span class="tag as">AS-IS</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>구독 관리</span></div>
+          <div class="hd">구독 관리</div>
+          <div class="rw"><span>구독 요금제</span><b>런드리고X 프리미엄</b></div>
+          <div class="rw"><span>요금제 금액</span><b>29,900원</b></div>
+          <div class="rw"><span>이용 상태</span><b>구독중</b></div>
+          <div class="rw"><span>세탁권 / 수거배송</span><b>15장 / 2장</b></div>
+          <div class="divk"></div>
+          <div style="display:flex;gap:8px"><div class="btn" style="flex:1">구독 일시정지</div><div class="btn" style="flex:1">요금제 변경</div></div>
+          <div class="btnq">해지하기</div>
+          <div class="note">해지는 최하단 작은 링크 → 발견성 낮음. 즉시·미이용 환불 경로 없음 → “해지·환불해주세요” 문의</div></div></div>
+      <div><span class="tag to">TO-BE</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>구독 해지</span></div>
+          <div class="hd">구독 해지</div>
+          <div class="calloutm"><b>전액 환불 가능</b><br>결제 후 12일차 · 세탁권 미사용 → 29,900원 전액 환불</div>
+          <div class="rw"><span>결제일</span><b>7/4 (12일 전)</b></div>
+          <div class="rw"><span>세탁권 사용</span><b>0장 / 15장</b></div>
+          <div class="rw"><span>예상 환불액</span><b style="color:var(--ok)">29,900원</b></div>
+          <div class="btn" style="margin-top:12px">해지 예약 (다음 결제일까지 이용)</div>
+          <div class="btn pri">지금 즉시 해지하고 환불받기</div>
+          <div class="note">21일·세탁권 사용여부를 시스템이 자동 판정. 기본은 해지 예약 유도, 자격 시에만 즉시 환불 노출 · 부분환불이면 차감액·예상액 실시간 계산</div></div></div>
+    </div>
+  </div>
+
+  <!-- Flow 3 결제 -->
+  <div class="flowblk">
+    <p class="fh">3. 결제 / 과금 명세</p>
+    <p class="fs">요약 금액만 표시 → 품목별 세탁권 차감·현금 과금·쿠폰 적용/미적용 사유를 항목 단위로 분해</p>
+    <div class="pair">
+      <div><span class="tag as">AS-IS</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>결제 정보</span></div>
+          <div class="hd">결제 정보</div>
+          <div class="rw"><span>세탁권 차감</span><b>2장</b></div>
+          <div class="rw"><span>추가 결제금액</span><b>8,000원</b></div>
+          <div class="rw"><span>할인 혜택</span><b>-5,000원</b></div>
+          <div class="divk"></div>
+          <div class="rw"><span><b>총 결제금액</b></span><b>3,000원</b></div>
+          <div class="note">무엇 때문에 2장 차감됐는지, 어떤 쿠폰이 적용/미적용됐는지 안 보임 → “왜 이렇게 과금됐나요” 검증 문의</div></div></div>
+      <div><span class="tag to">TO-BE</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>결제 정보</span></div>
+          <div class="hd">결제 상세</div>
+          <div class="rw"><span>셔츠 3벌 (생활빨래)</span><b>세탁권 1장</b></div>
+          <div class="rw"><span>코트 1벌 (개별클리닝)</span><b>세탁권 1장</b></div>
+          <div class="rw"><span>이불 1채 (초과분)</span><b>8,000원</b></div>
+          <div class="divk"></div>
+          <div class="rw" style="color:var(--ok)"><span>쿠폰 · 5천원 할인권</span><b>-5,000원</b></div>
+          <div class="rw" style="color:var(--mut)"><span>운동화 세탁 쿠폰</span><b>미적용 · 대상 품목 없음</b></div>
+          <div class="divk"></div>
+          <div class="rw"><span><b>총 결제금액</b></span><b>3,000원</b></div>
+          <div class="note">품목→차감/과금 매핑 + 쿠폰 적용·미적용 사유 명시(PD ‘쿠폰명 노출’ 과제 연계). 수거신청 마지막 단계에 동일 미리보기 제공</div></div></div>
+    </div>
+  </div>
+
+  <!-- Flow 4 쿠폰 -->
+  <div class="flowblk">
+    <p class="fh">4. 쿠폰 / 포인트</p>
+    <p class="fs">쿠폰이 그냥 회색 처리 → 적용 가능 쿠폰 우선 노출 + 미적용 사유 인라인 표시</p>
+    <div class="pair">
+      <div><span class="tag as">AS-IS</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>쿠폰 선택</span></div>
+          <div class="hd">쿠폰 선택</div>
+          <div class="cpn"><div class="t">첫 이용 3,000원 할인<span class="chk"></span></div><div class="d">~7/31까지</div></div>
+          <div class="cpn off"><div class="t">운동화 세탁 쿠폰<span class="chk"></span></div><div class="d">~8/15까지</div></div>
+          <div class="cpn off"><div class="t">이불 20% 할인<span class="chk"></span></div><div class="d">~7/20까지</div></div>
+          <div class="cpn"><div class="t">5천원 할인권<span class="chk"></span></div><div class="d">~9/1까지</div></div>
+          <div class="note">쓸 수 없는 쿠폰이 왜 회색인지 설명이 없음. 만료·조건이 뒤섞여 정렬됨 → “쿠폰이 왜 적용 안 되나요 / 조건 미충족이 뭔가요” 문의</div></div></div>
+      <div><span class="tag to">TO-BE</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>쿠폰 선택</span></div>
+          <div class="hd">쿠폰 선택 <span class="spill" style="margin-left:auto">적용 가능 2</span></div>
+          <div class="mut" style="margin-bottom:6px">지금 주문에 쓸 수 있는 쿠폰</div>
+          <div class="cpn on"><div class="t">5천원 할인권 · 최대 할인<span class="chk sel">✓</span></div><div class="d">이 주문 -5,000원 · ~9/1</div></div>
+          <div class="cpn"><div class="t">첫 이용 3,000원 할인<span class="chk"></span></div><div class="d">이 주문 -3,000원 · ~7/31</div></div>
+          <div class="divk"></div>
+          <div class="mut" style="margin-bottom:6px">지금은 쓸 수 없는 쿠폰</div>
+          <div class="cpn off"><div class="t">운동화 세탁 쿠폰</div><div class="reason">대상 품목(운동화)이 이번 주문에 없음</div></div>
+          <div class="cpn off"><div class="t">이불 20% 할인</div><div class="reason">최소 금액 30,000원 미충족 (현재 22,000원)</div></div>
+          <div class="calloutm"><b>자동 추천</b> · 가장 유리한 쿠폰을 미리 선택해 드렸어요</div></div></div>
+    </div>
+  </div>
+
+  <!-- Flow 5 품목 -->
+  <div class="flowblk">
+    <p class="fh">5. 세탁 품목 오분류</p>
+    <p class="fs">오분류를 바꿀 방법이 없어 CS로 접수 → 품목 근거 표시 + 셀프 정정/이의 버튼(자동 재과금)</p>
+    <div class="pair">
+      <div><span class="tag as">AS-IS</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>이용내역</span></div>
+          <div class="hd">세탁물 상세</div>
+          <div class="item"><div class="th"></div><div class="nm">원피스<span>트렌치코트로 분류 · 18,000원</span></div><span class="spill">완료</span></div>
+          <div class="item"><div class="th"></div><div class="nm">유니클로 경량패딩<span>일반패딩으로 분류 · 12,000원</span></div><span class="spill">완료</span></div>
+          <div class="divk"></div>
+          <div class="rw"><span><b>합계</b></span><b>30,000원</b></div>
+          <div class="btn">문의하기</div>
+          <div class="note">분류가 틀려도 고객이 바꿀 방법은 ‘문의하기’뿐. 왜 그렇게 분류됐는지 근거도 없음 → “왜 트렌치코트로 과금됐나요” 문의·재과금 수작업</div></div></div>
+      <div><span class="tag to">TO-BE</span>
+        <div class="ph"><div class="bar2"><span>9:41</span><span>이용내역</span></div>
+          <div class="hd">세탁물 상세</div>
+          <div class="item"><div class="th"></div><div class="nm">원피스 <span>AI 분류: 트렌치코트 · 18,000원</span><span class="linkq">분류 근거 사진 보기</span></div><span class="spill w">확인 요청</span></div>
+          <div class="btn" style="margin:6px 0 4px">이 품목 분류가 달라요 · 정정 요청</div>
+          <div class="divk"></div>
+          <div class="item"><div class="th"></div><div class="nm">유니클로 경량패딩<span>정정됨: 경량패딩 · 8,000원</span></div><span class="spill g">정정 완료</span></div>
+          <div class="calloutm"><b>자동 재정산</b> · 정정 승인 시 차액 4,000원이 포인트로 즉시 환급</div>
+          <div class="note">분류 근거(AI 스캐너 사진)를 노출하고, 셀프 정정 요청 시 재과금·차액 환급을 자동 처리 → 오분류 문의와 수작업 재과금 동시 감축</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="s6">
+  <h2><span class="n">6</span>토론 포인트 · 남은 정보</h2>
+  <div class="grid cols-2">
+    <div class="card"><h3 style="margin-top:0">워크숍 토론 포인트</h3>
+      <ul class="clean">
+        <li><b>‘셀프처리율’ 정의·목표치</b> — 인입 감소율? 앱 내 자기해결율? Top 3만으로 15%p가 현실적 1차 목표.</li>
+        <li><b>품질(29%)은 대상 아님</b> — 공정 개선 별도 트랙으로 분리, 워크숍은 결제·구독·배송정보에 집중.</li>
+        <li><b>‘대신 눌러주는 처리’의 프로덕트화</b> — 해지·환불·재수거·반납을 앱 버튼으로(즉효성 최고).</li>
+        <li><b>‘왜?’를 없애는 투명성</b> — 과금·차감·미세탁·쿠폰 사유를 선제 노출.</li>
+        <li><b>측정 체계</b> — 배포 후 카테고리별 인입 변화 대시보드(A/B·전후 비교).</li>
+      </ul></div>
+    <div class="card"><h3 style="margin-top:0">추가로 있으면 좋은 정보</h3>
+      <ul class="clean">
+        <li><b>세탁권 차감 기준</b> — 품목·수량·용량별 규칙(결제 명세 설계·“왜 2장 차감” 정답지).</li>
+        <li><b>쿠폰 유형별 적용 조건</b> — 5종 각각의 조건(미적용 사유 표기용).</li>
+        <li><b>리디자인 배포 상태</b> — 구독관리 신규안·‘쿠폰명 노출’·보관서비스 결제가 배포됐는지/예정인지.</li>
+        <li><b>카테고리별 처리시간·비용</b> — 감축 건수를 절감 공수로 환산해 ROI 우선순위 확정.</li>
+      </ul>
+      <p style="font-size:12px;color:var(--mut);margin:8px 0 0">✅ 확보: 03_수거신청 열람 · 월정액 환불 정책</p></div>
+  </div>
+</section>
+
+<footer>
+  런드리고 CS 셀프처리율 제고 워크숍 통합자료 · 데이터 CS_문의답변 내역_20260106.csv(’26.1~6, 23,461건) · 앱 현황 Figma(04_MY·03_수거신청) 직접 확인.<br>
+  디플렉션 감축률·표본 비율은 원인 분석과 표본 정독 기반 추정치로, 배포 후 A/B·전후 비교로 검증 필요.
+</footer>
+
+</div>
+</body>
+</html>
