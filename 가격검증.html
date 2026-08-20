@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>브랜드·가격 검증</title>
+<style>
+:root{
+  --bg:#eceef1; --card:#fff; --line:#e2e5ea; --line2:#f0f1f4;
+  --txt:#141821; --sub:#6b7280; --dim:#9ca3af;
+  --ok:#0f9d58; --err:#e5484d; --hold:#e08b00; --accent:#141821;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px;
+  --r:14px; --r-in:9px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+  font-size:15px; line-height:1.5; color:var(--txt); background:var(--bg);
+  word-break:keep-all; overflow-wrap:anywhere; -webkit-font-smoothing:antialiased;
+  padding-bottom:96px;
+}
+.num{font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
+button{font:inherit; cursor:pointer}
+
+/* ── header ─────────────────────────────── */
+.hdr{
+  position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:saturate(180%) blur(12px); border-bottom:1px solid var(--line);
+  padding:calc(var(--s3) + env(safe-area-inset-top)) var(--s4) 0;
+}
+.hdr-in{max-width:1240px; margin:0 auto}
+.hdr-top{display:flex; align-items:flex-end; gap:var(--s4); flex-wrap:wrap}
+h1{font-size:17px; font-weight:800; letter-spacing:-.4px; margin:0}
+h1 span{display:block; font-size:11.5px; font-weight:600; color:var(--sub); letter-spacing:0; margin-top:2px}
+.spacer{flex:1}
+.count{font-size:13px; color:var(--sub); font-weight:600}
+.count b{color:var(--txt); font-size:15px}
+.bar{height:3px; background:var(--line); border-radius:2px; overflow:hidden; margin:10px 0 0; display:flex}
+.bar i{height:100%; transition:width .25s ease-out}
+.tools{display:flex; gap:var(--s2); align-items:center; flex-wrap:wrap; padding:var(--s3) 0}
+.chip{
+  border:1px solid var(--line); background:var(--card); color:var(--sub);
+  border-radius:20px; padding:7px 13px; font-size:13px; font-weight:600; letter-spacing:-.2px;
+  min-height:34px; transition:background .2s ease-out,color .2s ease-out,border-color .2s ease-out;
+}
+.chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.chip .n{font-variant-numeric:tabular-nums; opacity:.65; margin-left:5px}
+input[type=search],input[type=text]{
+  font:inherit; font-size:14px; border:1px solid var(--line); background:var(--card);
+  border-radius:10px; padding:8px 12px; min-height:34px; color:var(--txt); outline:none;
+}
+input[type=search]{width:190px}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid #2f6fed; outline-offset:2px}
+select{font:inherit; font-size:13px; border:1px solid var(--line); background:var(--card); border-radius:10px; padding:8px 10px; min-height:34px}
+
+/* ── grid ───────────────────────────────── */
+main{max-width:1240px; margin:0 auto; padding:var(--s4)}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(196px,1fr)); gap:var(--s3)}
+.item{
+  background:var(--card); border-radius:var(--r); overflow:hidden; position:relative;
+  border:1px solid transparent; transition:border-color .2s ease-out;
+}
+.item.s-ok{border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.item.s-price,.item.s-brand,.item.s-both{border-color:color-mix(in srgb,var(--err) 45%,transparent)}
+.item.s-hold{border-color:color-mix(in srgb,var(--hold) 50%,transparent)}
+.thumb{
+  display:block; width:100%; aspect-ratio:1/1; border:0; padding:0; background:#f6f7f9;
+  position:relative; overflow:hidden;
+}
+.thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.thumb .fail{
+  position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+  font-size:12px; color:var(--dim); padding:var(--s3); text-align:center;
+}
+.thumb.broken .fail{display:flex}
+.idx{
+  position:absolute; top:8px; left:8px; background:rgba(20,24,33,.72); color:#fff;
+  font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px;
+  font-variant-numeric:tabular-nums; backdrop-filter:blur(4px);
+}
+.mark{
+  position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%;
+  display:none; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:800;
+}
+.item.s-ok .mark{display:flex; background:var(--ok)}
+.item.s-price .mark,.item.s-brand .mark,.item.s-both .mark{display:flex; background:var(--err)}
+.item.s-hold .mark{display:flex; background:var(--hold)}
+.meta{padding:10px var(--s3) var(--s3)}
+.brand{font-size:13.5px; font-weight:700; letter-spacing:-.2px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.price{font-size:16px; font-weight:800; letter-spacing:-.4px; margin-top:1px}
+.price em{font-style:normal; font-size:12px; font-weight:600; color:var(--sub); margin-left:2px}
+.flag{
+  display:inline-block; margin-top:6px; font-size:11px; font-weight:700; color:var(--hold);
+  background:color-mix(in srgb,var(--hold) 12%,#fff); border-radius:5px; padding:2px 6px;
+}
+.empty{text-align:center; color:var(--sub); padding:64px var(--s4); font-size:14px}
+.empty b{display:block; color:var(--txt); font-size:15px; margin-bottom:6px}
+
+/* ── review panel ───────────────────────── */
+.ovl{position:fixed; inset:0; z-index:100; background:rgba(20,24,33,.55); backdrop-filter:blur(3px); display:none}
+.ovl.on{display:block}
+.panel{
+  position:absolute; inset:auto 0 0 0; background:var(--bg); border-radius:18px 18px 0 0;
+  max-height:96vh; overflow:auto; padding:var(--s4) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
+}
+@media(min-width:900px){
+  .panel{inset:0; border-radius:0; display:grid; grid-template-columns:minmax(0,1.15fr) 380px; gap:var(--s4); padding:var(--s4); max-height:none}
+  .pv{position:relative; background:#0f1116; border-radius:var(--r); overflow:hidden; display:flex; align-items:center; justify-content:center}
+  .pv img{max-width:100%; max-height:100%; object-fit:contain}
+  .pside{overflow:auto}
+}
+.pv{position:relative; background:#0f1116; border-radius:var(--r); overflow:hidden; text-align:center; min-height:180px}
+.pv img{max-width:100%; max-height:56vh; display:block; margin:0 auto; object-fit:contain}
+.pv .fail{color:#8b919e; font-size:13px; padding:48px var(--s4)}
+.nav{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:64px; border:0; border-radius:8px;
+  background:rgba(255,255,255,.14); color:#fff; font-size:18px; backdrop-filter:blur(6px)}
+.nav.prev{left:10px} .nav.next{right:10px}
+.nav:disabled{opacity:.25; cursor:default}
+.pside .card{background:var(--card); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s3)}
+.pbrand{font-size:20px; font-weight:800; letter-spacing:-.5px}
+.pprice{font-size:30px; font-weight:800; letter-spacing:-1.1px; margin-top:2px}
+.pprice em{font-style:normal; font-size:14px; font-weight:600; color:var(--sub); margin-left:3px}
+.plabel{font-size:11.5px; font-weight:700; color:var(--sub); letter-spacing:.2px}
+.hist{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.hist span{font-size:12px; font-weight:700; background:var(--bg); border-radius:6px; padding:3px 7px; font-variant-numeric:tabular-nums}
+.hist span.cur{background:var(--accent); color:#fff}
+.acts{display:grid; grid-template-columns:1fr 1fr; gap:var(--s2)}
+.act{
+  border:1px solid var(--line); background:var(--card); border-radius:11px; padding:13px 10px;
+  font-size:14px; font-weight:700; letter-spacing:-.2px; color:var(--txt); text-align:left;
+  transition:background .2s ease-out,border-color .2s ease-out,color .2s ease-out;
+}
+.act kbd{float:right; font:inherit; font-size:11px; color:var(--dim); background:var(--bg); border-radius:4px; padding:1px 5px}
+.act.full{grid-column:1/-1}
+.act[aria-pressed="true"] kbd{color:rgba(255,255,255,.6); background:rgba(255,255,255,.16)}
+.act.ok[aria-pressed="true"]{background:var(--ok); border-color:var(--ok); color:#fff}
+.act.err[aria-pressed="true"]{background:var(--err); border-color:var(--err); color:#fff}
+.act.hold[aria-pressed="true"]{background:var(--hold); border-color:var(--hold); color:#fff}
+.field{margin-top:var(--s3)}
+.field label{display:block; font-size:11.5px; font-weight:700; color:var(--sub); margin-bottom:5px}
+.field input{width:100%}
+.ptop{display:flex; align-items:center; gap:var(--s2); margin-bottom:var(--s3)}
+.ptop .pos{font-size:12.5px; font-weight:700; color:var(--sub); font-variant-numeric:tabular-nums}
+.x{margin-left:auto; border:1px solid var(--line); background:var(--card); border-radius:9px; padding:7px 12px; font-size:13px; font-weight:700}
+.src{font-size:11.5px; color:var(--dim); word-break:break-all; margin-top:10px; display:block}
+
+/* ── bottom bar ─────────────────────────── */
+.actionbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  background:color-mix(in srgb,var(--bg) 94%,transparent); backdrop-filter:blur(12px);
+  border-top:1px solid var(--line); padding:10px var(--s4) calc(10px + env(safe-area-inset-bottom));
+}
+.actionbar-in{max-width:1240px; margin:0 auto; display:flex; gap:var(--s2); align-items:center}
+.btn{border:0; border-radius:11px; background:var(--accent); color:#fff; font-size:14px; font-weight:700; padding:12px 18px; letter-spacing:-.2px}
+.btn.ghost{background:var(--card); color:var(--txt); border:1px solid var(--line)}
+.hint{font-size:12px; color:var(--sub); margin-right:auto}
+.toast{
+  position:fixed; left:50%; bottom:88px; transform:translateX(-50%); z-index:70; pointer-events:none;
+  background:var(--accent); color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px;
+  opacity:0; transition:opacity .2s ease-out;
+}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important; transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="hdr-top">
+      <h1>브랜드·가격 검증<span id="src">브랜드_가격.xlsx · 300건</span></h1>
+      <div class="spacer"></div>
+      <div class="count">검수 완료 <b class="num" id="done">0</b> / <span class="num" id="total">0</span></div>
+    </div>
+    <div class="bar" id="bar"></div>
+    <div class="tools">
+      <button class="chip" data-filter="all" aria-pressed="true">전체<span class="n" id="c-all">0</span></button>
+      <button class="chip" data-filter="none" aria-pressed="false">미검수<span class="n" id="c-none">0</span></button>
+      <button class="chip" data-filter="ok" aria-pressed="false">정상<span class="n" id="c-ok">0</span></button>
+      <button class="chip" data-filter="price" aria-pressed="false">가격 오류<span class="n" id="c-price">0</span></button>
+      <button class="chip" data-filter="brand" aria-pressed="false">브랜드 오류<span class="n" id="c-brand">0</span></button>
+      <button class="chip" data-filter="both" aria-pressed="false">둘 다 오류<span class="n" id="c-both">0</span></button>
+      <button class="chip" data-filter="hold" aria-pressed="false">보류<span class="n" id="c-hold">0</span></button>
+      <input type="search" id="q" placeholder="브랜드 검색" autocomplete="off">
+      <select id="sort">
+        <option value="orig">원본 순서</option>
+        <option value="brand">브랜드순</option>
+        <option value="phigh">가격 높은순</option>
+        <option value="plow">가격 낮은순</option>
+        <option value="spread">브랜드 내 가격 편차순</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden><b>해당하는 항목이 없습니다</b>필터나 검색어를 바꿔보세요.</div>
+</main>
+
+<div class="ovl" id="ovl">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="검수 패널">
+    <div class="pv">
+      <img id="pImg" alt="">
+      <div class="fail" id="pFail" hidden>이미지를 불러오지 못했습니다. 아래 원본 주소를 확인해주세요.</div>
+      <button class="nav prev" id="prev" aria-label="이전">←</button>
+      <button class="nav next" id="next" aria-label="다음">→</button>
+    </div>
+    <div class="pside">
+      <div class="ptop">
+        <span class="pos num" id="pPos">1 / 300</span>
+        <button class="x" id="close">닫기 (Esc)</button>
+      </div>
+      <div class="card">
+        <div class="plabel">등록된 브랜드</div>
+        <div class="pbrand" id="pBrand">—</div>
+        <div class="plabel" style="margin-top:12px">등록된 가격</div>
+        <div class="pprice num" id="pPrice">—<em>원</em></div>
+        <div id="pHistWrap" hidden>
+          <div class="plabel" style="margin-top:14px">같은 브랜드에 등록된 가격대</div>
+          <div class="hist num" id="pHist"></div>
+        </div>
+        <span class="src" id="pSrc"></span>
+      </div>
+      <div class="card">
+        <div class="plabel" style="margin-bottom:9px">판정</div>
+        <div class="acts">
+          <button class="act ok" data-set="ok" aria-pressed="false">정상<kbd>1</kbd></button>
+          <button class="act err" data-set="price" aria-pressed="false">가격 오류<kbd>2</kbd></button>
+          <button class="act err" data-set="brand" aria-pressed="false">브랜드 오류<kbd>3</kbd></button>
+          <button class="act err" data-set="both" aria-pressed="false">둘 다 오류<kbd>4</kbd></button>
+          <button class="act hold full" data-set="hold" aria-pressed="false">판단 보류<kbd>5</kbd></button>
+        </div>
+        <div class="field">
+          <label for="pFix">수정 제안 가격 (원)</label>
+          <input type="text" id="pFix" inputmode="numeric" placeholder="예: 129,000">
+        </div>
+        <div class="field">
+          <label for="pMemo">메모</label>
+          <input type="text" id="pMemo" placeholder="예: 정품 라벨 기준 다른 모델">
+        </div>
+        <div class="field" style="font-size:12px;color:var(--sub)">
+          판정하면 자동으로 다음 항목으로 넘어갑니다. ← → 로 이동, Esc 로 닫기.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="actionbar">
+  <div class="actionbar-in">
+    <span class="hint" id="hint">이미지를 클릭하면 크게 보면서 검수합니다.</span>
+    <button class="btn ghost" id="load">이어서 검수</button>
+    <button class="btn ghost" id="reset">판정 초기화</button>
+    <button class="btn" id="export">결과 내보내기 (CSV)</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="file" accept=".json" hidden>
+
+<script>
+const DATA = [{"brand": "HOKA", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_fd7e798272214292a1ac5b89ebde0251.jpeg"}, {"brand": "On", "price": 198000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_e2b3da301b5a4bca9ecfe9cb368e2f0b.jpeg"}, {"brand": "셀린느", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_a82972b2757640f6bac6ae0e58eb7aa4.jpeg"}, {"brand": "MARITHE + FRANCOIS GIRBAUD", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_deb353dce02f47b593aa60a18b17afbf.jpeg"}, {"brand": "루이비통", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_3e30a8a3a0414cd88aaf75eac3d5c3a6.jpeg"}, {"brand": "루이비통", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_4925df066aad40a9a6d7f8c2f0ac3efd.jpeg"}, {"brand": "루이비통", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_e26c94e9ab92418cb6a357d8a90f5ec4.jpeg"}, {"brand": "타미 진스", "price": 58000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_ff69ac7fdac64ee497ecde3de8e81e37.jpeg"}, {"brand": "루이비통", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820100010_8eb811af1ac34514ab10f6bed433dd4e.jpeg"}, {"brand": "루이비통", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095909_a0d038cafa764bcb9f5872e42113dfb3.jpeg"}, {"brand": "나이키", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095809_ccc722b26b5048879bcc081bb897b9eb.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095809_ea9054879bf840e9bc122d2c8b22b5f5.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095809_40e0133ba1c54177919b28a4e610f966.jpeg"}, {"brand": "LEATHERY", "price": 185000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095809_328ec4a69bf34d748ff2dd7eba6fb376.jpeg"}, {"brand": "On", "price": 185000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095809_9d99c97943b74217a24ff3bba88f780b.jpeg"}, {"brand": "버버리", "price": 550000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095709_83b3e4e6d6914443847555d4640a3a24.jpeg"}, {"brand": "버버리", "price": 550000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095709_16f43c2d34164b44b9746a6c59784c8d.jpeg"}, {"brand": "폴로 랄프로렌", "price": 159000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095709_a27197d6c61648d79a29ec7b427dcfe2.jpeg"}, {"brand": "나이키", "price": 219000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095609_61cb8e50f0564f1291e5979b11f18a56.jpeg"}, {"brand": "ARC'TERYX", "price": 230000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095609_263a61368d7c4a47a6e0fd999471c2e0.jpeg"}, {"brand": "TRENDS", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095609_29a6ae1c1e344fcfa8c180f139ae09c4.jpeg"}, {"brand": "아디다스", "price": 109000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095609_a9973ddc315249b08af64c6aefda9813.jpeg"}, {"brand": "뉴발란스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095509_95cc1d98c1db40059905633fbb7cf01b.jpeg"}, {"brand": "나이키", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095509_6e14df6192d04bbfa3913e4317587b03.jpeg"}, {"brand": "스케쳐스", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095509_ed8d8f970ebe4ed2baee7add7b1d8c80.jpeg"}, {"brand": "미즈노", "price": 130000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095509_f37de132591d49f1b806ed50af15757d.jpeg"}, {"brand": "나이키", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095409_edde9080742843a091ff308f1b3da1bb.jpeg"}, {"brand": "Onitsuka Tiger", "price": 140000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095409_63c8a210b77e4f7e8706ea1e5d541653.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095409_2a2f3e0c1da147ab9e26d62e52e84989.jpeg"}, {"brand": "Le Mouton", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095409_cc1cae5e3b5a4afaa709c0a1ca716242.jpeg"}, {"brand": "Le Mouton", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095309_cd5e3c2a20fc46ca97166658e6942acc.jpeg"}, {"brand": "리복", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095309_6ad62711621f49cd935657dd0c052aeb.jpeg"}, {"brand": "SKECHERS", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095309_b99980fc21f44caa8e0bbf06e0bfede5.jpeg"}, {"brand": "AUTRY", "price": 210000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095309_d655cf1f40be4103935643ae8fe8ba2b.jpeg"}, {"brand": "스투시", "price": 65000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095209_260815ea362c44519efe0728b3751831.jpeg"}, {"brand": "아디다스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095209_8ea7660b07584a04a1b070c0dceed0fe.jpeg"}, {"brand": "adidas", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095209_59c6cbcb7be34933b8b90d289ca60762.jpeg"}, {"brand": "MAESTRO", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095209_0a0b6d0c18ec43bb9da10f15543e82f6.jpeg"}, {"brand": "오니츠카타이거", "price": 145000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_2fd8eba40e1e4ab48e53f4fd858379c0.jpeg"}, {"brand": "컨버스", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_009d5068595442a2bcd57ebb98c65426.jpeg"}, {"brand": "NINE mile 9", "price": 35000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_8c2d5870ddae4cad80344728a16d8231.jpeg"}, {"brand": "나이키", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_d1754253726342dcbd5984bce7708f6c.jpeg"}, {"brand": "NOVELLER", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_f7d26e08ef3d495b99df13db9c8b25eb.jpeg"}, {"brand": "아디다스", "price": 109000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_ad0f8cc377e34a4191bda7a17be3b617.jpeg"}, {"brand": "Salomon", "price": 180000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095109_ccffc0d2437e4ab9aacc3419c1fb26c7.jpeg"}, {"brand": "리복", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095009_e99325c0b07147f29503bfc23959fc8f.jpeg"}, {"brand": "OluKai", "price": 130000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095009_d542287dfee5416a80605d0df5da347b.jpeg"}, {"brand": "나이키", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820095009_f0219e5dc23a4a99963e588903cf8573.jpeg"}, {"brand": "뉴발란스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094909_115bc7c42e1544d2bb85e78e3b167f95.jpeg"}, {"brand": "타미힐피거", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094909_78cd1dbdacfc40508957e04fcc49f9da.jpeg"}, {"brand": "DAKS", "price": 450000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094909_ed7c273d01a94833a1d739cb267d6725.jpeg"}, {"brand": "BIMBA Y LOLA", "price": 65000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094909_c64def46d5994d3c8aba94b08c4b1890.jpeg"}, {"brand": "SALOTTO", "price": 75000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094909_4e652254e1c340fe9bb9ebb5b5af4dd8.jpeg"}, {"brand": "라코스테", "price": 158000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094809_6844d99488ca46b19e2e06eb9d787877.jpeg"}, {"brand": "뉴발란스", "price": 149000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094809_3cb880a7e13e4a138eadae30c4287e85.jpeg"}, {"brand": "VANS", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094709_eb2ece8122e0488583aa450839a60ee7.jpeg"}, {"brand": "DAKS", "price": 450000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094709_44a2d09f5dc74bd399ecb5c4c97ee623.jpeg"}, {"brand": "Onitsuka Tiger", "price": 140000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094709_9917d02dd049442b8d01d96c08e3afd5.jpeg"}, {"brand": "AUTRY", "price": 249000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094709_392e4aa01e8f401f9e1ec0cc519efe65.jpeg"}, {"brand": "DAKS", "price": 550000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094609_c235ff875f5249c3ae2549415a83731d.jpeg"}, {"brand": "AUTRY", "price": 250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094609_0f89606321744a67a1d05154e21a1066.jpeg"}, {"brand": "W.ANGLE", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094609_80a20f8565e543ae936b279cbd48cbf9.jpeg"}, {"brand": "나이키", "price": 109000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094609_f8a8ee3f894f46878eb6fb109fb7d347.jpeg"}, {"brand": "아디다스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094509_eb587a6bbf7e4970b30d91c8545ce95e.jpeg"}, {"brand": "TIME", "price": 450000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094509_83a970e0f5494383a5d96594485e4be2.jpeg"}, {"brand": "ECCO", "price": 280000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094509_7b39f8d93bcb4901b7e106064f15f930.jpeg"}, {"brand": "에르메스", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094409_41f7d12fb3d14fffb64fef63fee248fc.jpeg"}, {"brand": "나이키", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094309_0fc87c9c6be44b6f82cef97f73eca8d0.jpeg"}, {"brand": "NIKE", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094309_9b3b64dd2862404d864cdb95b0c08766.jpeg"}, {"brand": "나이키", "price": 179000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094309_00df286728af4b8f80613ce040a802a9.jpeg"}, {"brand": "로로피아나", "price": 3500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_3a33f44742e34e3c88391f72abd667c6.jpeg"}, {"brand": "Salomon", "price": 185000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_f06352acbacb45e694736a3f6139fa1a.jpeg"}, {"brand": "HOKA", "price": 320000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_967d736bf0dd46a1aea2a8e74e6707d4.jpeg"}, {"brand": "HOKA", "price": 320000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_1d2227d3f5aa468bb24015ddf4f62b0c.jpeg"}, {"brand": "HOKA", "price": 320000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_a4ec3a5173c2479187b9b035677bafba.jpeg"}, {"brand": "HOKA", "price": 320000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_11560914a7ed4ed4b181dd2a85c4fea3.jpeg"}, {"brand": "Berwick", "price": 298000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_3461f81801274c0bbc3ff722ff18045b.jpeg"}, {"brand": "HOKA", "price": 320000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094209_0e640084dca141a9bdbb7ae4e324862e.jpeg"}, {"brand": "브룩스", "price": 159000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094109_97758a971b464ad8b1570234c0cb0ed6.jpeg"}, {"brand": "뉴발란스", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094109_b947b8bf7362492787de2a38973b493e.jpeg"}, {"brand": "아디다스", "price": 109000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094109_163b0496388d4df5ade357fb75851e19.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094109_fb910442ecc0484e910bef89be853757.jpeg"}, {"brand": "노스페이스", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094109_d988ccf9661c4219ab181e4960fd1456.jpeg"}, {"brand": "뉴발란스", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094009_93f62a366d344a8fb321f8bd4c668c78.jpeg"}, {"brand": "아디다스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094009_050b59e80d884425850b4d941d852254.jpeg"}, {"brand": "스케쳐스", "price": 99000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820094009_61921024661c417c879975c4d8797238.jpeg"}, {"brand": "Onitsuka Tiger", "price": 160000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093909_f98cfe86902d47e3851ef7863e1dbb48.jpeg"}, {"brand": "LANSMERE", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093909_a1179058787b49148bfbdb9b47dfd114.jpeg"}, {"brand": "Rockfish Weatherwear", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093909_eaf06f92ad9b48d5b563fbb77366ea86.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093909_3e63f02d66734031b5d93227c588be48.jpeg"}, {"brand": "Nike", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093809_9b91de51f8d44d968ce2f26d4fefe451.jpeg"}, {"brand": "LANSHERE", "price": 180000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093809_97e18b8cbe3344f5b6b1c1a5cb3e6975.jpeg"}, {"brand": "나이키", "price": 85000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093709_74ced652bf554ac39997f3a2515d2f93.jpeg"}, {"brand": "아식스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093709_d95148d14c5e48ac9cfac2bd77d3ace2.jpeg"}, {"brand": "SKECHERS", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093709_f6c61b88d95843e2ade307b793259cbe.jpeg"}, {"brand": "나이키", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093709_474d3b4c5856425c86a7f20e872b1096.jpeg"}, {"brand": "HOKA", "price": 199000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093709_e55094711737434cb32054216cba2e57.jpeg"}, {"brand": "뉴발란스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093609_6902140762b34246b20f4b37d5652109.jpeg"}, {"brand": "라코스테", "price": 135000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093609_8054f84a68c546af8857f0783fcd3a42.jpeg"}, {"brand": "나이키", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093509_f6d429f388464eefab7848cf23ae530c.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093509_e629d657e3a04b6297f0ac99e6a62ae6.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093509_8f5edf7e10aa452fb9a219e4a6047492.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093509_1009062df658455a8a76023a904f064f.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093509_6ad2898e3bcf4c8e81afbe8a4a912ab3.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_fd6e606d33704153b14f463229c48a2b.jpeg"}, {"brand": "ZARA", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_bcfb0a486a9a4ddcaad5261e7e140ed5.jpeg"}, {"brand": "ZARA", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_585b17e4790a479a9b108a671d982624.jpeg"}, {"brand": "SKECHERS", "price": 95000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_2960e1431069458e937b6ddcbe41539b.jpeg"}, {"brand": "ZARA", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_64d2ca2dd624430388f99f4a0eda2edc.jpeg"}, {"brand": "ZARA", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_7448391fd4a646a197c5f1d3e83df611.jpeg"}, {"brand": "뉴발란스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_bcd5b35b6d2547939cc83501d90d7425.jpeg"}, {"brand": "asics", "price": 120000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093409_64fb3f14be7e4740a91901e340dc52a4.jpeg"}, {"brand": "컨버스", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093309_cea27d8c478544caaed336bb50a7e1ac.jpeg"}, {"brand": "나이키", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093309_c6d2e694b4f8435690f03ed7dd1da348.jpeg"}, {"brand": "HOKA", "price": 199000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093309_f1e66e7d0386499f8da3c9ca07a5f11e.jpeg"}, {"brand": "톰브라운", "price": 650000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093309_031f2f8778e4414f8c709a83379965e5.jpeg"}, {"brand": "FILA", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093209_cd0778d6e239425989105d08c44ebb8a.jpeg"}, {"brand": "컨버스", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093209_cca131cb68cc4a039947b6094ee6834c.jpeg"}, {"brand": "Clarks", "price": 158000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093209_cd335696ec604f63b83ae26647ba65ba.jpeg"}, {"brand": "MIZUNO", "price": 125000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093109_7102e8864de94e78a82c5ad695fae4ab.jpeg"}, {"brand": "아디다스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093109_32ad7a84dc0e489ca610663e5964d750.jpeg"}, {"brand": "Guy Laroche", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093109_eb7c6619c44447139997ea2ded8c767c.jpeg"}, {"brand": "발렌시아가", "price": 750000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093009_589dffe6b92749f085bec8446bfde449.jpeg"}, {"brand": "발렌시아가", "price": 750000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093009_8649147c22eb4a9ab82f9dcc2e507884.jpeg"}, {"brand": "나이키", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093009_d1ef56fbbf2c4ed9a9b989d0231d7afb.jpeg"}, {"brand": "아디다스", "price": 89000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820093009_d6fb208bf103463f8dcfb2045502af8c.jpeg"}, {"brand": "아디다스", "price": 30000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_4e4342f7c09248469060f7abf4793280.jpeg"}, {"brand": "로로피아나", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_420649bcab434b11845fcfdf66be1116.jpeg"}, {"brand": "나이키", "price": 95000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_7a5fe1e2886f430e8cc1520c971bd345.jpeg"}, {"brand": "로로피아나", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_80b5ecee2dae411cad6f332d8f49471b.jpeg"}, {"brand": "로로피아나", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_d593e1c8329e423386de1bf6f8f83a41.jpeg"}, {"brand": "K2", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_197774e8facb4cd6b40ed333b9b30703.jpeg"}, {"brand": "아디다스", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092909_ae3a330f77214783be277727332c3385.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_96e7799e54dc4227a1edcb96f8b77476.jpeg"}, {"brand": "아디다스", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_9ca82e2e17c74264b296883c56b98a4f.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_afe65fa67653482cb798ff7f856a7552.jpeg"}, {"brand": "아디다스", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_64832600f5b3486bab631708eb9091cf.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_f6a8915967dc4dcabd77afdf47e84d75.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_2df3d5be30a14c6693ef9a43cdca41bd.jpeg"}, {"brand": "Reebok", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_be4ffc21802c4496b3a1cf68cb0a1ea4.jpeg"}, {"brand": "아디다스", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_d583c0b1425d4b41a8d46ab81553efcd.jpeg"}, {"brand": "Crocs", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092809_3c7670d1432842bb9a28b2e48c227f59.jpeg"}, {"brand": "마르디 메크르디", "price": 65000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092709_4270931f18294d418e144996343ee9de.jpeg"}, {"brand": "마르디 메크르디", "price": 65000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092709_fbd0536d6bf94490868fdac58c0b23f9.jpeg"}, {"brand": "로로피아나", "price": 2500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092709_7263ff1d80a54fcf9d4b54ee5c73362e.jpeg"}, {"brand": "로로피아나", "price": 2500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092709_48edfb1fb082418684a5d9398884f317.jpeg"}, {"brand": "New Balance", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092709_8623a1519c244d2db5f7c3527e5f5b00.jpeg"}, {"brand": "SAINT LAURENT", "price": 580000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092609_f62c10d510ed48dcb8eb2773d58eb340.jpeg"}, {"brand": "SAINT LAURENT", "price": 580000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092609_bf67bba0d10b41378a04f87a21f43fa8.jpeg"}, {"brand": "GEOX", "price": 180000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092609_00c2f2921ee04455ab6b2ff17c1be8ee.jpeg"}, {"brand": "로로피아나", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092609_f6aee291a5674497bfa4f5dc19181bd2.jpeg"}, {"brand": "로로피아나", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092609_b28d634f9e024a97aefa4402305bbfae.jpeg"}, {"brand": "디올", "price": 2500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092509_45302212b9eb46be8986e9b32885026d.jpeg"}, {"brand": "TOM FORD", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092509_56b0e464d1eb4e39942fb20bc10a89b4.jpeg"}, {"brand": "TOM FORD", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092509_e63ff194b77c4865a7889c9362217681.jpeg"}, {"brand": "TOM FORD", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092509_376d964bf5144996aff023849d77cf60.jpeg"}, {"brand": "TOM FORD", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092509_3cb5069cd7fe43c8882fa0457eab6503.jpeg"}, {"brand": "버버리", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092409_12fb026701cc433d8706be771397a88b.jpeg"}, {"brand": "TOM FORD", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092409_e65a0018314e4e2da3f0ea7f4cab8b9d.jpeg"}, {"brand": "버버리", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092409_13cc16cd0c304afc8ce3931eae325bba.jpeg"}, {"brand": "버버리", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092409_db0c231787c443a0ad54a6c226a2c5d2.jpeg"}, {"brand": "발렌시아가", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_c6eca618981b4522aa8eb2e839991795.jpeg"}, {"brand": "발렌시아가", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_210e06c4f00b48f1ac789bb25bf41061.jpeg"}, {"brand": "발렌시아가", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_9057c21466204589bc181fd0b8acd125.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_057fb3351a4b4751a2eb3b736bb0ebc6.jpeg"}, {"brand": "발렌시아가", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_4a22d06d914546b39869cebc9d561118.jpeg"}, {"brand": "GRAND SPARKS", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_ce520e1d4b5c4d56b713c507d8edfbec.jpeg"}, {"brand": "아식스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_fa99c68bff914a15bccbdfb52d93e8b5.jpeg"}, {"brand": "에르메스", "price": 750000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_9ee9b4f04c6d4ec48e296ec3c9f64384.jpeg"}, {"brand": "에르메스", "price": 750000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_49c8e0fcff5d49339d28b585f005af04.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092309_b0c29c07481147dfafb76cd7980cb2ef.jpeg"}, {"brand": "아디다스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_3abf7b93d3164a5da25ec409cacb7cc0.jpeg"}, {"brand": "나이키", "price": 119000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_7791fff6eb8842b09e3a84c188b8fc3a.jpeg"}, {"brand": "보테가베네타", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_567a1136370e4a82b3aa16e1aaea9315.jpeg"}, {"brand": "미즈노", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_1cc0ee4599ab4391abad4f7e039c5b26.jpeg"}, {"brand": "보테가베네타", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_e3155a3308b04d6d98cb36ced5ab8d63.jpeg"}, {"brand": "보테가베네타", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_20ef0d27a13c4165a61f5a38e9d57db5.jpeg"}, {"brand": "DAKS", "price": 180000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_646fd514b0dd4586a24be4173ec2d7c9.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_cce5e6c575364927a41b9355a4db01e3.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_ba1c91625547445b89643cfa2686acf5.jpeg"}, {"brand": "펜디", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_fc3a956bc27540d5a1261ade30067b66.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_3dc08f7c7a4b4e7bbb50232bdf612f5f.jpeg"}, {"brand": "펜디", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_a2ed05be782449f588791843ea055f05.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_0a62aba51c4a4137a49eb66ad77c9732.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092209_9082955f484549ebb264785341a4c2ab.jpeg"}, {"brand": "뉴발란스", "price": 259000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092109_8082d7dcad96444fa8e4c27d70f79ca4.jpeg"}, {"brand": "renoma", "price": 120000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092109_cb8a9efeee514c3da708e41af07dc473.jpeg"}, {"brand": "아디다스", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092109_6c93407e903b481d97fac18542a14f75.jpeg"}, {"brand": "루이비통", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092109_bc03f67d0631464094f836a15ae7accc.jpeg"}, {"brand": "펜디", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_5b8899b976b94fc393c241b1f024fc98.jpeg"}, {"brand": "펜디", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_e5015b2496d74263908da996135523a6.jpeg"}, {"brand": "DAKS", "price": 250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_28e9f6bed44149ecadb38c20204462a9.jpeg"}, {"brand": "POTTERY", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_cae36e1e4d034f118ba0de872aa356cb.jpeg"}, {"brand": "POTTERY", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_86eaaf127238441f92758d82de6a037e.jpeg"}, {"brand": "스케쳐스", "price": 99000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820092009_2e516f180c544d3a9963f665a3237f21.jpeg"}, {"brand": "스케쳐스", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091909_2ff29706bb0540e58a97c67656a8d822.jpeg"}, {"brand": "톰브라운", "price": 580000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091909_cb1faab36f004837a405187758e0b5d9.jpeg"}, {"brand": "톰브라운", "price": 580000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091909_58892ca2cd34427baf3ea5de927f8f10.jpeg"}, {"brand": "아디다스", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091909_c62533fc3b73453c8e02afbd9a7a11e0.jpeg"}, {"brand": "에르메스", "price": 2500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_2a12cb7b3453452897e22203f1a586d9.jpeg"}, {"brand": "SPALWART", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_da4512cc3fbc4abfa37a18aade9a30f8.jpeg"}, {"brand": "에르메스", "price": 2500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_eeb90f1157774a9d84be73beeb3911c0.jpeg"}, {"brand": "닥터마틴", "price": 210000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_aab9c61e248a4e858874ee4e40f712a2.jpeg"}, {"brand": "샤넬", "price": 6500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_3f82eadc898249b3aff69d55a3c764da.jpeg"}, {"brand": "샤넬", "price": 6500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_324039546a6d464e91b3a11074c568af.jpeg"}, {"brand": "DI CANTO", "price": 120000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_92489b63041449d899ac11c7aeb3eab3.jpeg"}, {"brand": "샤넬", "price": 6500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091809_438d1a5059564bf184e38d348f17a619.jpeg"}, {"brand": "BRUNELLO CUCINELLI", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_88f7f80fad2945f98ea5e2f37d78f22a.jpeg"}, {"brand": "HOKA", "price": 185000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_0121c9eafbd64a3a902280ec611f012a.jpeg"}, {"brand": "BRUNELLO CUCINELLI", "price": 850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_ff0c7baff4c04c378064eaab23ebd1cf.jpeg"}, {"brand": "반스", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_96a2e81822d74a1b90b2a56ebd7e94c6.jpeg"}, {"brand": "뉴발란스", "price": 159000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_896a76234c1248c79a85c34a05c7ac29.jpeg"}, {"brand": "CAMPLINE", "price": 185000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_eb186f53c773497d9d1c2a1999185820.jpeg"}, {"brand": "톰브라운", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_70c859a1ba0247df89c89c376cdf737d.jpeg"}, {"brand": "톰브라운", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_5f9128b09d3248a4b300456577f7b0c4.jpeg"}, {"brand": "톰브라운", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091709_4bcbf457493a4c99a1d7dc957b0a780d.jpeg"}, {"brand": "AMI", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_bf485d6f24914073bec49f0f38fb462d.jpeg"}, {"brand": "톰브라운", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_d79a40cf6301429793e57d21685fe6e9.jpeg"}, {"brand": "톰브라운", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_573407465acc49c5a95fe2e966f54f87.jpeg"}, {"brand": "톰브라운", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_a30aa0c3553a49a983c2aa97d208b3e1.jpeg"}, {"brand": "톰브라운", "price": 950000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_35d212b23cd14471844c22cb1f818869.jpeg"}, {"brand": "아미", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091509_1d41ee9bb09b4fe7b21b6d2682ad964a.jpeg"}, {"brand": "ZARA", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_a7d766c325d84b96b824ab45c8d517e8.jpeg"}, {"brand": "ZARA", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_84f5e4f23d874a8cb6931ee706f9dfbe.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_d8ac67f7865b468e98457f8a932736e9.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_7e7974c7051745f78a1ab2cf66d05273.jpeg"}, {"brand": "골든구스", "price": 580000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_0c13580612c7486884c4ec52fa93b042.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_ea2f1cf6aed44112ae580cd71b070367.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_780addd64fe84763a1b4dba9499278cb.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_fe40600a96b94963b96cef6b9058a7fc.jpeg"}, {"brand": "버버리", "price": 2800000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_44e4902df47b4083826306fe340be530.jpeg"}, {"brand": "FOCUS", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_4d7cf84595314c909617a8837d8c1b51.jpeg"}, {"brand": "COS", "price": 135000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091409_718bf30484c74ad7b612091712718d42.jpeg"}, {"brand": "Vans", "price": 79000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_f938db608841406fb8b28b477503fc43.jpeg"}, {"brand": "로로피아나", "price": 1850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_3b7a0193073c4dc9af2436255d4b41aa.jpeg"}, {"brand": "로로피아나", "price": 1850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_40c38399d8b0422cbc941d34aaa1e4f6.jpeg"}, {"brand": "renoma", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_95d0ca4cb9ac4cb3a28f565ddd509f3c.jpeg"}, {"brand": "로로피아나", "price": 1850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_42b370607e584c0ea866bb79cac19799.jpeg"}, {"brand": "로로피아나", "price": 1850000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_868f5d1b5d844da7a8bc485698f4c529.jpeg"}, {"brand": "피엘라벤", "price": 120000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091309_b638e56bcfdc4d958df3bdc56c7b2444.jpeg"}, {"brand": "renoma", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091209_8903fdfe1ed244249eaa8351434167bc.jpeg"}, {"brand": "renoma", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091209_7b37000275f94974be67ec38feee023d.jpeg"}, {"brand": "로로피아나", "price": 1100000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091109_44e3fef7b48b4641ad9549e0736a291a.jpeg"}, {"brand": "로로피아나", "price": 1100000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091109_48c3252d56d94f5985b1a7cf752645f3.jpeg"}, {"brand": "renoma", "price": 75000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091109_60749b10702844f598d9d0ee5158f64b.jpeg"}, {"brand": "미우미우", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091109_1a08b02fe9a142e1abbb03ac82a2e9d2.jpeg"}, {"brand": "미우미우", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_33dd332f5b4242fabf8e674619c2d6a7.jpeg"}, {"brand": "SISLEY", "price": 250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_293b90d73fc945ad9683410ce00ba7d1.jpeg"}, {"brand": "톰브라운", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_ff9f21ece8b04c97b0ce5cbd445ce6fc.jpeg"}, {"brand": "톰브라운", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_10cda69daf9f4d3a93dd386d7a34eef3.jpeg"}, {"brand": "ZIOZIA", "price": 49000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_bc66d3a1fb574fc59c92e8bd8b37e025.jpeg"}, {"brand": "renoma", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_32e4985a5dfb4faa837482ab5ec467bd.jpeg"}, {"brand": "MEHVIE", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820091009_d1b0017934db444eb9648a9f2aab4768.jpeg"}, {"brand": "KITON", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_2683f061ef6a421fbfb8101af069f253.jpeg"}, {"brand": "HAZZYS", "price": 118000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_6fde2e0695e2442d8d7f5f4327198481.jpeg"}, {"brand": "KITON", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_807cf9bb44774f4da30bff8fc808904f.jpeg"}, {"brand": "KITON", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_691d1aca4d814ce38ae450e87ee5746a.jpeg"}, {"brand": "KITON", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_31659dbbf4084e289c02e60e1ad4b89d.jpeg"}, {"brand": "JAMES", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_7b1804c2cc284be9b3d5e8a181dc789d.jpeg"}, {"brand": "Champion", "price": 25000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090909_22686b4a9b734e1d88a78082fd617687.jpeg"}, {"brand": "renoma", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090809_5bddb031451b4c338ea8d3cf16c30169.jpeg"}, {"brand": "MOSTER", "price": 35000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090809_74c76205e3604d27bb95a91ea1c7cd5a.jpeg"}, {"brand": "STUDIO TOMBOY", "price": 98000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090809_8da4e7d5895c44e2aa45ce7b523af23b.jpeg"}, {"brand": "STUDIO TOMBOY", "price": 159000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090809_5864e5b558c242efab353ea80bed14d1.jpeg"}, {"brand": "루이비통", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090709_57fe02e7d67846b58cac3027b4be22f5.jpeg"}, {"brand": "OUR LEGACY", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090709_dd5a06912fd1422ea3a76719b3256f77.jpeg"}, {"brand": "POLO RALPH LAUREN", "price": 189000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090709_a8110ecb320f481486523688acaf3478.jpeg"}, {"brand": "보니타베베", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090709_857d0534a4ef44b4b720ae4a0ac1bdec.jpeg"}, {"brand": "GLOSSY SEOUL", "price": 35000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090709_776373700fd84bed8f88180cc9708efb.jpeg"}, {"brand": "closet.y", "price": 15000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_fdc7081c4931431c86a3aa084b5c137c.jpeg"}, {"brand": "리바이스", "price": 129000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_fcf20a5814af4e30837fc62565a4b1f2.jpeg"}, {"brand": "에르메스", "price": 350000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_57d0fa35570d4f2a97b2b7f71186ba3e.jpeg"}, {"brand": "버버리", "price": 650000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_47f80d0d3f204e74a71f3821bf1bc1d6.jpeg"}, {"brand": "버버리", "price": 650000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_21329f82774442788d9333bd76562307.jpeg"}, {"brand": "폴로 랄프로렌", "price": 169000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_9e267c8a7aac415f810ae1abc84230cf.jpeg"}, {"brand": "버버리", "price": 650000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090609_07cea8c6b90346e9863b745e3ae64cf8.jpeg"}, {"brand": "프라다", "price": 1250000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090509_633d25cff4a8402d9689ab4ca5514a1f.jpeg"}, {"brand": "롯데마트", "price": 1000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090509_b0a727650dfb48038e142d3278451487.jpeg"}, {"brand": "폴로 랄프로렌", "price": 139000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090509_cced1e34c5ed46ba82a90ecc38fed120.jpeg"}, {"brand": "우영미", "price": 220000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090409_d855660f41c743568ac95561ff87f3aa.jpeg"}, {"brand": "톰브라운", "price": 650000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090409_5d2405066a8b4fd9a48b9f127d7a72ba.jpeg"}, {"brand": "루이비통", "price": 3500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090409_a6523a3de18e4140bd6b1c673113ad53.jpeg"}, {"brand": "LAP", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090409_10aad948beb647d08859593fb0823b76.jpeg"}, {"brand": "스톤 아일랜드", "price": 280000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090409_94639071edb44e85a39afe466b3aafe3.jpeg"}, {"brand": "GENERAL IDEA", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090309_05c470633b46423c8806db2d168184bd.jpeg"}, {"brand": "renoma PARIS", "price": 59000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090309_0a0b4039753b489e8e92095dd0eb4207.jpeg"}, {"brand": "폴로 랄프 로렌", "price": 169000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090309_9a707eae2a704583a4c2ff65741d78b9.jpeg"}, {"brand": "루이비통", "price": 3500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090309_5d07925d4db845fa9277b06a376d44db.jpeg"}, {"brand": "루이비통", "price": 3500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090309_8e4340d1da71466c9ef33aa9356b9b69.jpeg"}, {"brand": "나이키", "price": 55000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_0ab6074e20054f209f4046147cc1d956.jpeg"}, {"brand": "MAESTRO", "price": 150000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_fc2439c6d42d4fe6a160f17d7b5e03d0.jpeg"}, {"brand": "renoma", "price": 70000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_949d1a91791a4cafa61a2ea2dff7cf4b.jpeg"}, {"brand": "디올", "price": 1200000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_5c2eff77a2d9483d80d6a66917ffa4cc.jpeg"}, {"brand": "SPAO", "price": 29900, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_6c8a0503a3664aacac693bb739b51201.jpeg"}, {"brand": "나이키", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_6bfc03a3699b4326a2c3662e6fd8c64e.jpeg"}, {"brand": "LHBW", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_a8529d59576040e7bbd3e2d5ed1e758e.jpeg"}, {"brand": "LHBW", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_d5b1b9fb2d74479195f5a01cfe5cf620.jpeg"}, {"brand": "LHBW", "price": 45000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_240e3bf8728a44518f6615e0173a9489.jpeg"}, {"brand": "dunhill", "price": 1500000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090209_e3275a4afe1942a7a71e7b1a4adc49e1.jpeg"}, {"brand": "DAKS", "price": 125000, "img_url": "https://cloudfront.laundrygo.com/smartfactory/smartfactory_20260820090109_193b9b1b883740058b107535f7f7d483.jpeg"}];
+const LABEL = {ok:'정상', price:'가격 오류', brand:'브랜드 오류', both:'둘 다 오류', hold:'판단 보류', none:'미검수'};
+const MARK  = {ok:'✓', price:'!', brand:'!', both:'!', hold:'?'};
+
+const state = DATA.map((d,i)=>({...d, i, status:'none', fix:'', memo:''}));
+let filter='all', query='', sortBy='orig', view=[], cur=-1;
+
+/* 같은 브랜드의 다른 가격 (표기 흔들림 흡수: 공백·대소문자 무시) */
+const key = b => b.toLowerCase().replace(/\s+/g,'');
+const byBrand = {};
+state.forEach(r => (byBrand[key(r.brand)] ||= []).push(r.price));
+const priceSet = k => [...new Set(byBrand[k])].sort((a,b)=>a-b);
+state.forEach(r => { const s=priceSet(key(r.brand)); r.spread = s.length>1 ? s[s.length-1]/s[0] : 1; });
+
+const won = n => n.toLocaleString('ko-KR');
+const $ = id => document.getElementById(id);
+
+/* ── 저장 (window.storage 있으면 자동 저장) ── */
+const KEY = 'price-verify:v1';
+async function save(){
+  try{ await window.storage.set(KEY, JSON.stringify(state.map(r=>[r.status,r.fix,r.memo]))); }catch(e){}
+}
+async function restore(){
+  try{
+    const r = await window.storage.get(KEY);
+    if(!r) return false;
+    const saved = JSON.parse(r.value);
+    if(saved.length !== state.length) return false;
+    saved.forEach(([s,f,m],i)=>{ state[i].status=s; state[i].fix=f; state[i].memo=m; });
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ── 목록 계산 ── */
+function compute(){
+  const q = query.trim().toLowerCase();
+  view = state.filter(r=>{
+    if(filter!=='all' && r.status!==filter) return false;
+    if(q && !r.brand.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const cmp = {
+    orig:(a,b)=>a.i-b.i,
+    brand:(a,b)=>a.brand.localeCompare(b.brand,'ko')||a.price-b.price,
+    phigh:(a,b)=>b.price-a.price,
+    plow:(a,b)=>a.price-b.price,
+    spread:(a,b)=>b.spread-a.spread||a.brand.localeCompare(b.brand,'ko')
+  }[sortBy];
+  view.sort(cmp);
+}
+
+function render(){
+  compute();
+  const g = $('grid');
+  g.innerHTML = view.map(r=>`
+    <article class="item s-${r.status}" data-i="${r.i}">
+      <button class="thumb" data-open="${r.i}" aria-label="${r.brand} 크게 보기">
+        <img src="${r.img_url}" alt="${r.brand} 상품 이미지" loading="lazy"
+             onerror="this.closest('.thumb').classList.add('broken');this.remove()">
+        <span class="fail">이미지 없음</span>
+        <span class="idx">${r.i+1}</span>
+        <span class="mark">${MARK[r.status]||''}</span>
+      </button>
+      <div class="meta">
+        <div class="brand" title="${r.brand}">${r.brand}</div>
+        <div class="price num">${won(r.price)}<em>원</em></div>
+        ${r.spread>=3 ? `<span class="flag">브랜드 내 가격 편차 ${r.spread.toFixed(1)}배</span>` : ''}
+      </div>
+    </article>`).join('');
+  $('empty').hidden = view.length>0;
+  stats();
+}
+
+function stats(){
+  const c = {all:state.length, none:0, ok:0, price:0, brand:0, both:0, hold:0};
+  state.forEach(r=>c[r.status]++);
+  for(const k in c) $('c-'+k).textContent = c[k];
+  const done = state.length - c.none;
+  $('done').textContent = done; $('total').textContent = state.length;
+  $('bar').innerHTML =
+    `<i style="width:${c.ok/state.length*100}%;background:var(--ok)"></i>`+
+    `<i style="width:${(c.price+c.brand+c.both)/state.length*100}%;background:var(--err)"></i>`+
+    `<i style="width:${c.hold/state.length*100}%;background:var(--hold)"></i>`;
+}
+
+/* ── 검수 패널 ── */
+function open(i){
+  const pos = view.findIndex(r=>r.i===i);
+  cur = pos>=0 ? pos : 0;
+  $('ovl').classList.add('on');
+  document.body.style.overflow='hidden';
+  paint();
+}
+function paint(){
+  const r = view[cur]; if(!r) return close();
+  $('pPos').textContent = `${cur+1} / ${view.length}`;
+  $('pBrand').textContent = r.brand;
+  $('pPrice').innerHTML = `${won(r.price)}<em>원</em>`;
+  const img = $('pImg'); img.hidden=false; $('pFail').hidden=true;
+  img.onerror = ()=>{ img.hidden=true; $('pFail').hidden=false; };
+  img.src = r.img_url; img.alt = `${r.brand} 상품 이미지`;
+  $('pSrc').textContent = r.img_url;
+  const list = priceSet(key(r.brand));
+  $('pHistWrap').hidden = list.length<2;
+  $('pHist').innerHTML = list.map(p=>`<span class="${p===r.price?'cur':''}">${won(p)}</span>`).join('');
+  document.querySelectorAll('.act').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.set===r.status)));
+  $('pFix').value = r.fix; $('pMemo').value = r.memo;
+  $('prev').disabled = cur===0; $('next').disabled = cur===view.length-1;
+}
+function close(){ $('ovl').classList.remove('on'); document.body.style.overflow=''; cur=-1; render(); }
+function step(d){ const n=cur+d; if(n<0||n>=view.length) return; cur=n; paint(); }
+function mark(s){
+  const r = view[cur]; if(!r) return;
+  r.status = r.status===s ? 'none' : s;
+  paint(); stats();
+  const card = document.querySelector(`.item[data-i="${r.i}"]`);
+  if(card){ card.className = `item s-${r.status}`; card.querySelector('.mark').textContent = MARK[r.status]||''; }
+  save();
+  if(r.status!=='none' && cur<view.length-1) setTimeout(()=>step(1),120);
+}
+
+/* ── 이벤트 ── */
+$('grid').addEventListener('click', e=>{
+  const t = e.target.closest('[data-open]'); if(!t) return;
+  open(+t.dataset.open);
+});
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); filter=b.dataset.filter; render();
+}));
+$('q').addEventListener('input', e=>{ query=e.target.value; render(); });
+$('sort').addEventListener('change', e=>{ sortBy=e.target.value; render(); });
+document.querySelectorAll('.act').forEach(b=>b.addEventListener('click',()=>mark(b.dataset.set)));
+$('prev').onclick = ()=>step(-1);
+$('next').onclick = ()=>step(1);
+$('close').onclick = close;
+$('ovl').addEventListener('click', e=>{ if(e.target===$('ovl')) close(); });
+$('pFix').addEventListener('input', e=>{
+  const raw = e.target.value.replace(/[^\d]/g,'');
+  e.target.value = raw ? (+raw).toLocaleString('ko-KR') : '';
+  if(view[cur]){ view[cur].fix = raw; save(); }
+});
+$('pMemo').addEventListener('input', e=>{ if(view[cur]){ view[cur].memo = e.target.value; save(); } });
+document.addEventListener('keydown', e=>{
+  if(!$('ovl').classList.contains('on')) return;
+  if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)){ if(e.key==='Escape') e.target.blur(); return; }
+  const map = {'1':'ok','2':'price','3':'brand','4':'both','5':'hold'};
+  if(map[e.key]){ e.preventDefault(); mark(map[e.key]); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); step(1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); step(-1); }
+  else if(e.key==='Escape'){ close(); }
+});
+
+/* ── 내보내기 / 불러오기 ── */
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1800); }
+function download(name, text, type){
+  const url = URL.createObjectURL(new Blob([text],{type}));
+  const a = Object.assign(document.createElement('a'),{href:url,download:name});
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+$('export').onclick = ()=>{
+  const esc = v => `"${String(v).replace(/"/g,'""')}"`;
+  const rows = [['no','brand','price','판정','수정제안가격','메모','img_url']];
+  state.forEach(r=>rows.push([r.i+1,r.brand,r.price,LABEL[r.status],r.fix,r.memo,r.img_url]));
+  download('가격검증_결과.csv', '\ufeff'+rows.map(r=>r.map(esc).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+  download('가격검증_진행상태.json', JSON.stringify(state.map(r=>[r.status,r.fix,r.memo])), 'application/json');
+  toast('CSV와 진행상태 파일을 저장했습니다');
+};
+$('load').onclick = ()=>$('file').click();
+$('file').onchange = async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const saved = JSON.parse(await f.text());
+    if(saved.length !== state.length) throw new Error('행 수가 다릅니다');
+    saved.forEach(([s,fx,m],i)=>{ state[i].status=s; state[i].fix=fx; state[i].memo=m; });
+    render(); save(); toast('이전 판정을 불러왔습니다');
+  }catch(err){ toast('불러오지 못했습니다. 내보낸 진행상태 JSON 파일인지 확인해주세요'); }
+  e.target.value='';
+};
+$('reset').onclick = ()=>{
+  if(!confirm('모든 판정과 메모를 지웁니다. 계속할까요?')) return;
+  state.forEach(r=>{ r.status='none'; r.fix=''; r.memo=''; });
+  render(); save(); toast('판정을 초기화했습니다');
+};
+
+/* ── 시작 ── */
+(async ()=>{
+  $('src').textContent = `브랜드_가격.xlsx · ${state.length}건`;
+  const had = await restore();
+  render();
+  if(had) toast('이전 검수 내용을 이어서 표시합니다');
+})();
+</script>
+</body>
+</html>
