@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>런드리고 NSM 리뷰 스코어카드</title>
+<style>
+:root{color-scheme:light;
+ --page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+ --grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);
+ --s1:#2a78d6;                     /* 검증 통과 categorical slot 1 */
+ --good:#0ca30c;--warn:#fab219;--crit:#d03b3b;--goodtxt:#006300;
+ --gooddim:rgba(12,163,12,.10);--critdim:rgba(208,59,59,.10);--warndim:rgba(250,178,25,.13);}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){color-scheme:dark;
+ --page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+ --grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);
+ --s1:#3987e5;--goodtxt:#0ca30c;
+ --gooddim:rgba(12,163,12,.16);--critdim:rgba(208,59,59,.18);--warndim:rgba(250,178,25,.16);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+ --grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);
+ --s1:#3987e5;--goodtxt:#0ca30c;
+ --gooddim:rgba(12,163,12,.16);--critdim:rgba(208,59,59,.18);--warndim:rgba(250,178,25,.16);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo",sans-serif;background:var(--page);
+ color:var(--ink);line-height:1.6;font-size:14px;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:30px 22px 72px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+h1{font-size:25px;font-weight:700;letter-spacing:-.4px;margin-top:6px;line-height:1.3}
+.lede{color:var(--ink2);font-size:13.5px;margin-top:8px;max-width:74ch}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h3{font-size:14.5px;font-weight:700;margin-bottom:2px}
+.card .cap{color:var(--muted);font-size:12px;margin-bottom:14px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 6px}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:15px 16px}
+.tile .lab{color:var(--ink2);font-size:12px;font-weight:600}
+.tile .val{font-size:26px;font-weight:700;margin-top:6px;letter-spacing:-.5px;line-height:1.1;
+ font-variant-numeric:tabular-nums}
+.tile .dl{font-size:12.5px;font-weight:700;margin-top:5px}
+.tile .note{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
+.up{color:var(--goodtxt)}.down{color:var(--crit)}.flat{color:var(--muted)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:20px 0 14px}
+.chip{font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:20px;border:1px solid var(--ring);
+ background:var(--surface);color:var(--ink2);cursor:pointer;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--axis);color:var(--ink)}
+.chip.on{background:var(--ink);color:var(--page);border-color:var(--ink)}
+.chip.tog.on{background:var(--crit);border-color:var(--crit);color:#fff}
+.sep{flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--grid);
+ font-variant-numeric:tabular-nums;vertical-align:middle}
+th:first-child,td:first-child{text-align:left;font-variant-numeric:normal}
+th{color:var(--ink2);font-weight:600;font-size:11.5px;white-space:nowrap}
+td.mname{font-weight:600;color:var(--ink)}
+td.base{color:var(--muted);font-size:12px;text-align:left;white-space:nowrap}
+tbody tr:hover{background:var(--page)}
+.grpname{font-size:13px;font-weight:700;color:var(--ink);padding:14px 10px 6px;letter-spacing:-.2px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;
+ padding:3px 10px;border-radius:20px;white-space:nowrap}
+.badge.g{background:var(--gooddim);color:var(--goodtxt)}
+.badge.b{background:var(--critdim);color:var(--crit)}
+.badge i{font-style:normal;font-size:11px}
+.spark{display:block}
+.box{background:var(--surface);border:1px solid var(--ring);border-left:3px solid var(--s1);border-radius:12px;
+ padding:15px 17px;margin-bottom:12px}
+.box.bad{border-left-color:var(--crit)}.box.warnb{border-left-color:var(--warn)}
+.box h4{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.box p{color:var(--ink2);font-size:13.3px}.box p+p{margin-top:8px}
+.box b{color:var(--ink)}
+.pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;border:1px solid var(--ring);
+ color:var(--ink2);background:var(--page);white-space:nowrap}
+textarea{width:100%;height:130px;margin:10px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+ font-size:11.5px;padding:10px;border:1px solid var(--ring);border-radius:8px;
+ background:var(--page);color:var(--ink);resize:vertical}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--page);
+ border:1px solid var(--ring);border-radius:5px;padding:1px 5px}
+.drop{border:1.5px dashed var(--axis);border-radius:14px;background:var(--surface);
+ padding:20px 22px;margin-top:20px;transition:border-color .12s,background .12s}
+.drop.over{border-color:var(--s1);background:var(--page);border-style:solid}
+.dz-title{font-size:14.5px;font-weight:700;margin-bottom:4px}
+.dz-sub{color:var(--ink2);font-size:13px}
+.dz-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:13px}
+.dz-note{color:var(--muted);font-size:12px;margin-top:11px;line-height:1.6}
+#msg{font-size:12.5px;font-weight:600}
+#msg.ok{color:var(--goodtxt)} #msg.err{color:var(--crit)}
+.btn{display:inline-block;font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;
+ border:1px solid var(--ink);background:var(--ink);color:var(--page);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink2);border-color:var(--ring)}
+.btn.ghost:hover{border-color:var(--axis);color:var(--ink)}
+details.alt{margin-top:14px;border-top:1px solid var(--grid);padding-top:12px}
+details.alt summary{font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+details.alt summary:hover{color:var(--ink2)}
+footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--grid);color:var(--muted);font-size:12px}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-size:11.5px;
+ padding:6px 9px;border-radius:7px;opacity:0;transition:opacity .1s;z-index:50;white-space:nowrap;
+ font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}
+@media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr)}.wrap{padding:22px 14px 56px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="eyebrow">런드리고 · 북극성 지표</div>
+<h1>NSM 리뷰 스코어카드</h1>
+<p class="lede">쿼리 결과 CSV를 <b>끌어다 놓으면</b> 갱신됩니다. 판정이 <b>이탈</b>인 것부터 보시면 됩니다.</p>
+
+<div class="tiles" id="tiles"></div>
+<div class="bar" id="bar"></div>
+<div id="alerts"></div>
+<div id="body"></div>
+
+<div id="drop" class="drop">
+  <div class="dropin">
+    <div class="dz-title">새 결과로 갱신하기</div>
+    <p class="dz-sub"><code>20_NSM_리뷰_스코어카드.sql</code> 결과를 CSV로 저장한 뒤
+      <b>여기에 파일을 끌어다 놓거나</b> 아래 버튼으로 선택하세요.</p>
+    <div class="dz-row">
+      <label class="btn" for="file">CSV 파일 선택</label>
+      <input type="file" id="file" accept=".csv,text/csv" hidden>
+      <button class="btn ghost" onclick="resetData()">기본 데이터로</button>
+      <span id="msg"></span>
+    </div>
+    <div class="dz-note">UTF-8 · CP949(엑셀 한글) 자동 인식 · 컬럼 순서는
+      <code>기간 · 구분 · 지표 · 값 · 전년 동기 · YoY(%) · 기준선 · 판정</code> 그대로여야 합니다.</div>
+    <details class="alt"><summary>파일 대신 붙여넣기</summary>
+      <textarea id="csv" placeholder="기간,구분,지표,값,전년 동기,YoY(%),기준선,판정&#10;2026-08-01,① 핵심,NSM · 세탁 물량(점),..."></textarea>
+      <button class="btn" onclick="loadText(document.getElementById('csv').value)">붙여넣기 갱신</button>
+    </details>
+  </div>
+</div>
+
+<footer id="foot"></footer>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+const RAW = [{"p": "2026-01-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 442388.0, "vp": 420540.0, "y": 5.2, "b": "전년比 0% 이상", "j": "양호"}, {"p": "2026-01-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 7.75, "vp": 8.43, "y": -8.0, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-01-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 92767.0, "vp": 81543.0, "y": 13.8, "b": null, "j": null}, {"p": "2026-01-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 57065.0, "vp": 49898.0, "y": 14.4, "b": null, "j": null}, {"p": "2026-01-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 37.94, "vp": 41.68, "y": -9.0, "b": "40% 이상", "j": "이탈"}, {"p": "2026-01-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 11.45, "vp": 11.38, "y": 0.6, "b": null, "j": null}, {"p": "2026-01-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 247943.0, "vp": 236752.0, "y": 4.7, "b": null, "j": null}, {"p": "2026-01-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 5.44, "vp": 6.27, "y": -13.3, "b": null, "j": null}, {"p": "2026-01-01", "g": "② 구성", "m": "자유 물량(점)", "v": 194445.0, "vp": 183788.0, "y": 5.8, "b": null, "j": null}, {"p": "2026-01-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 0.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-01-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 25001.0, "vp": 24466.0, "y": 2.2, "b": null, "j": null}, {"p": "2026-01-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 9.97, "vp": 12.53, "y": -20.4, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-01-01", "g": "④ 금액", "m": "결제금액(원)", "v": 3463707041.0, "vp": 3210462614.0, "y": 7.9, "b": null, "j": null}, {"p": "2026-01-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 5.27, "vp": 2.06, "y": 155.7, "b": "전년比 +0.5%p 이내", "j": "이탈"}, {"p": "2026-01-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 3463707041.0, "vp": 3210462614.0, "y": 7.9, "b": null, "j": null}, {"p": "2026-01-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.03, "vp": 0.03, "y": -15.4, "b": null, "j": null}, {"p": "2026-01-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 2.89, "vp": 2.27, "y": 27.4, "b": null, "j": null}, {"p": "2026-01-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 3.64, "vp": 0.79, "y": 360.8, "b": "2건 이하", "j": "이탈"}, {"p": "2026-01-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 4.08, "vp": 5.04, "y": -19.0, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-01-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 98.27, "vp": 98.82, "y": -0.6, "b": "95% 이상", "j": "양호"}, {"p": "2026-01-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 20078.0, "vp": 21525.0, "y": -6.7, "b": null, "j": null}, {"p": "2026-01-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 14270.58, "vp": 14501.38, "y": -1.6, "b": null, "j": null}, {"p": "2026-01-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 39.22, "vp": 38.0, "y": 3.2, "b": "전년比 하락 금지", "j": "양호"}, {"p": "2026-01-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.55, "vp": 0.52, "y": 6.1, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-01-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 15427.0, "vp": 8618.0, "y": 79.0, "b": null, "j": null}, {"p": "2026-02-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 393255.0, "vp": 412800.0, "y": -4.7, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-02-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 7.49, "vp": 8.39, "y": -10.6, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-02-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 79010.0, "vp": 79550.0, "y": -0.7, "b": null, "j": null}, {"p": "2026-02-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 52479.0, "vp": 49225.0, "y": 6.6, "b": null, "j": null}, {"p": "2026-02-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 40.44, "vp": 41.42, "y": -2.4, "b": "40% 이상", "j": "양호"}, {"p": "2026-02-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 10.38, "vp": 11.37, "y": -8.7, "b": null, "j": null}, {"p": "2026-02-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 217592.0, "vp": 231806.0, "y": -6.1, "b": null, "j": null}, {"p": "2026-02-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 5.48, "vp": 6.23, "y": -12.1, "b": null, "j": null}, {"p": "2026-02-01", "g": "② 구성", "m": "자유 물량(점)", "v": 173027.0, "vp": 180994.0, "y": -4.4, "b": null, "j": null}, {"p": "2026-02-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 2636.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-02-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 22890.0, "vp": 22016.0, "y": 4.0, "b": null, "j": null}, {"p": "2026-02-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 8.71, "vp": 10.49, "y": -17.0, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-02-01", "g": "④ 금액", "m": "결제금액(원)", "v": 3164228135.0, "vp": 3155815441.0, "y": 0.3, "b": null, "j": null}, {"p": "2026-02-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 3.26, "vp": 2.33, "y": 39.8, "b": "전년比 +0.5%p 이내", "j": "이탈"}, {"p": "2026-02-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 3116352105.5, "vp": 3155815441.0, "y": -1.3, "b": null, "j": null}, {"p": "2026-02-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.05, "vp": 0.02, "y": 135.4, "b": null, "j": null}, {"p": "2026-02-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 3.32, "vp": 2.23, "y": 48.7, "b": null, "j": null}, {"p": "2026-02-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 4.18, "vp": 1.16, "y": 260.3, "b": "2건 이하", "j": "이탈"}, {"p": "2026-02-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 4.08, "vp": 5.04, "y": -19.0, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-02-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 97.84, "vp": 98.83, "y": -1.0, "b": "95% 이상", "j": "양호"}, {"p": "2026-02-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 26290.0, "vp": 19781.0, "y": 32.9, "b": null, "j": null}, {"p": "2026-02-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 15125.19, "vp": 14742.86, "y": 2.6, "b": null, "j": null}, {"p": "2026-02-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 38.34, "vp": 38.08, "y": 0.7, "b": "전년比 하락 금지", "j": "양호"}, {"p": "2026-02-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.52, "vp": 0.54, "y": -3.5, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-02-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 13192.0, "vp": 9275.0, "y": 42.2, "b": null, "j": null}, {"p": "2026-03-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 551725.0, "vp": 556872.0, "y": -0.9, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-03-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 8.58, "vp": 9.26, "y": -7.4, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-03-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 103864.0, "vp": 100973.0, "y": 2.9, "b": null, "j": null}, {"p": "2026-03-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 64314.0, "vp": 60107.0, "y": 7.0, "b": null, "j": null}, {"p": "2026-03-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 36.33, "vp": 38.89, "y": -6.6, "b": "40% 이상", "j": "이탈"}, {"p": "2026-03-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 12.41, "vp": 12.83, "y": -3.3, "b": null, "j": null}, {"p": "2026-03-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 279645.0, "vp": 299903.0, "y": -6.8, "b": null, "j": null}, {"p": "2026-03-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 6.33, "vp": 6.92, "y": -8.5, "b": null, "j": null}, {"p": "2026-03-01", "g": "② 구성", "m": "자유 물량(점)", "v": 261821.0, "vp": 256969.0, "y": 1.9, "b": null, "j": null}, {"p": "2026-03-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 10259.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-03-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 26957.0, "vp": 26646.0, "y": 1.2, "b": null, "j": null}, {"p": "2026-03-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 8.57, "vp": 9.38, "y": -8.7, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-03-01", "g": "④ 금액", "m": "결제금액(원)", "v": 4388081287.0, "vp": 4252025662.0, "y": 3.2, "b": null, "j": null}, {"p": "2026-03-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 2.5, "vp": 2.28, "y": 9.3, "b": "전년比 +0.5%p 이내", "j": "양호"}, {"p": "2026-03-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 4283018134.0, "vp": 4252025662.0, "y": 0.7, "b": null, "j": null}, {"p": "2026-03-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.15, "vp": 0.11, "y": 27.7, "b": null, "j": null}, {"p": "2026-03-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 5.02, "vp": 4.25, "y": 18.2, "b": null, "j": null}, {"p": "2026-03-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 6.09, "vp": 1.25, "y": 387.2, "b": "2건 이하", "j": "이탈"}, {"p": "2026-03-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 4.17, "vp": 4.92, "y": -15.3, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-03-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 94.0, "vp": 98.76, "y": -4.8, "b": "95% 이상", "j": "이탈"}, {"p": "2026-03-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 30743.0, "vp": 29389.0, "y": 4.6, "b": null, "j": null}, {"p": "2026-03-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 17797.58, "vp": 17963.61, "y": -0.9, "b": null, "j": null}, {"p": "2026-03-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 41.12, "vp": 34.29, "y": 19.9, "b": "전년比 하락 금지", "j": "양호"}, {"p": "2026-03-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.58, "vp": 0.48, "y": 19.9, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-03-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 15770.0, "vp": 18385.0, "y": -14.2, "b": null, "j": null}, {"p": "2026-04-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 610191.0, "vp": 637170.0, "y": -4.2, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-04-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 9.13, "vp": 9.46, "y": -3.5, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-04-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 105611.0, "vp": 108854.0, "y": -3.0, "b": null, "j": null}, {"p": "2026-04-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 66854.0, "vp": 67349.0, "y": -0.7, "b": null, "j": null}, {"p": "2026-04-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 35.75, "vp": 38.27, "y": -6.6, "b": "40% 이상", "j": "이탈"}, {"p": "2026-04-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 13.04, "vp": 12.94, "y": 0.7, "b": null, "j": null}, {"p": "2026-04-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 294608.0, "vp": 333636.0, "y": -11.7, "b": null, "j": null}, {"p": "2026-04-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 6.91, "vp": 7.22, "y": -4.4, "b": null, "j": null}, {"p": "2026-04-01", "g": "② 구성", "m": "자유 물량(점)", "v": 298628.0, "vp": 303534.0, "y": -1.6, "b": null, "j": null}, {"p": "2026-04-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 16955.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-04-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 26699.0, "vp": 28786.0, "y": -7.3, "b": null, "j": null}, {"p": "2026-04-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 9.2, "vp": 10.26, "y": -10.3, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-04-01", "g": "④ 금액", "m": "결제금액(원)", "v": 5295286672.0, "vp": 4927205515.0, "y": 7.5, "b": null, "j": null}, {"p": "2026-04-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 2.46, "vp": 2.72, "y": -9.6, "b": "전년比 +0.5%p 이내", "j": "양호"}, {"p": "2026-04-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 5193891035.17, "vp": 4927205515.0, "y": 5.4, "b": null, "j": null}, {"p": "2026-04-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.21, "vp": 0.2, "y": 5.0, "b": null, "j": null}, {"p": "2026-04-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 4.36, "vp": 4.13, "y": 5.7, "b": null, "j": null}, {"p": "2026-04-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 9.91, "vp": 1.11, "y": 792.8, "b": "2건 이하", "j": "이탈"}, {"p": "2026-04-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 4.92, "vp": 4.08, "y": 20.4, "b": "전년比 상승 금지", "j": "이탈"}, {"p": "2026-04-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 95.32, "vp": 98.65, "y": -3.4, "b": "95% 이상", "j": "양호"}, {"p": "2026-04-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 38695.0, "vp": 33856.0, "y": 14.3, "b": null, "j": null}, {"p": "2026-04-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 20339.7, "vp": 21239.0, "y": -4.2, "b": null, "j": null}, {"p": "2026-04-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 39.33, "vp": 29.48, "y": 33.4, "b": "전년比 하락 금지", "j": "양호"}, {"p": "2026-04-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.53, "vp": 0.42, "y": 27.2, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-04-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 17560.0, "vp": 26201.0, "y": -33.0, "b": null, "j": null}, {"p": "2026-05-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 596176.0, "vp": 606081.0, "y": -1.6, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-05-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 9.5, "vp": 9.59, "y": -0.9, "b": "전년比 -3% 이내", "j": "양호"}, {"p": "2026-05-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 103394.0, "vp": 103482.0, "y": -0.1, "b": null, "j": null}, {"p": "2026-05-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 62731.0, "vp": 63178.0, "y": -0.7, "b": null, "j": null}, {"p": "2026-05-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 36.38, "vp": 40.15, "y": -9.4, "b": "40% 이상", "j": "이탈"}, {"p": "2026-05-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 13.59, "vp": 12.94, "y": 5.0, "b": null, "j": null}, {"p": "2026-05-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 289987.0, "vp": 328337.0, "y": -11.7, "b": null, "j": null}, {"p": "2026-05-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 7.12, "vp": 7.27, "y": -2.0, "b": null, "j": null}, {"p": "2026-05-01", "g": "② 구성", "m": "자유 물량(점)", "v": 286071.0, "vp": 277744.0, "y": 3.0, "b": null, "j": null}, {"p": "2026-05-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 20118.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-05-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 26266.0, "vp": 29136.0, "y": -9.9, "b": null, "j": null}, {"p": "2026-05-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 11.5, "vp": 9.74, "y": 18.0, "b": "전년比 상승 금지", "j": "이탈"}, {"p": "2026-05-01", "g": "④ 금액", "m": "결제금액(원)", "v": 4435446776.0, "vp": 4711667578.0, "y": -5.9, "b": null, "j": null}, {"p": "2026-05-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 2.57, "vp": 2.73, "y": -5.6, "b": "전년比 +0.5%p 이내", "j": "양호"}, {"p": "2026-05-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 4364339878.5, "vp": 4711667578.0, "y": -7.4, "b": null, "j": null}, {"p": "2026-05-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.17, "vp": 0.1, "y": 63.4, "b": null, "j": null}, {"p": "2026-05-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 2.97, "vp": 2.77, "y": 7.2, "b": null, "j": null}, {"p": "2026-05-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 5.97, "vp": 1.01, "y": 491.1, "b": "2건 이하", "j": "이탈"}, {"p": "2026-05-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 4.0, "vp": 3.17, "y": 26.3, "b": "전년比 상승 금지", "j": "이탈"}, {"p": "2026-05-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 97.46, "vp": 98.79, "y": -1.3, "b": "95% 이상", "j": "양호"}, {"p": "2026-05-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 29424.0, "vp": 26653.0, "y": 10.4, "b": null, "j": null}, {"p": "2026-05-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 19231.48, "vp": 19551.0, "y": -1.6, "b": null, "j": null}, {"p": "2026-05-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 40.04, "vp": 40.6, "y": -1.4, "b": "전년比 하락 금지", "j": "이탈"}, {"p": "2026-05-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.53, "vp": 0.56, "y": -4.8, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-05-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 13795.0, "vp": 13670.0, "y": 0.9, "b": null, "j": null}, {"p": "2026-06-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 480641.0, "vp": 545085.0, "y": -11.8, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-06-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 8.75, "vp": 9.48, "y": -7.6, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-06-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 88638.0, "vp": 95849.0, "y": -7.5, "b": null, "j": null}, {"p": "2026-06-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 54903.0, "vp": 57513.0, "y": -4.5, "b": null, "j": null}, {"p": "2026-06-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 36.47, "vp": 42.16, "y": -13.5, "b": "40% 이상", "j": "이탈"}, {"p": "2026-06-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 12.24, "vp": 12.65, "y": -3.2, "b": null, "j": null}, {"p": "2026-06-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 226827.0, "vp": 306673.0, "y": -26.0, "b": null, "j": null}, {"p": "2026-06-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 6.65, "vp": 7.1, "y": -6.4, "b": null, "j": null}, {"p": "2026-06-01", "g": "② 구성", "m": "자유 물량(점)", "v": 235529.0, "vp": 238412.0, "y": -1.2, "b": null, "j": null}, {"p": "2026-06-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 18285.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-06-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 21773.0, "vp": 26751.0, "y": -18.6, "b": null, "j": null}, {"p": "2026-06-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 12.1, "vp": 10.0, "y": 21.0, "b": "전년比 상승 금지", "j": "이탈"}, {"p": "2026-06-01", "g": "④ 금액", "m": "결제금액(원)", "v": 3696598877.0, "vp": 3804853711.0, "y": -2.8, "b": null, "j": null}, {"p": "2026-06-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 2.55, "vp": 2.68, "y": -4.8, "b": "전년比 +0.5%p 이내", "j": "양호"}, {"p": "2026-06-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 3555765582.83, "vp": 3804853711.0, "y": -6.5, "b": null, "j": null}, {"p": "2026-06-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 0.12, "vp": 0.08, "y": 57.8, "b": null, "j": null}, {"p": "2026-06-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 1.82, "vp": 1.79, "y": 1.5, "b": null, "j": null}, {"p": "2026-06-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 3.98, "vp": 0.9, "y": 342.2, "b": "2건 이하", "j": "이탈"}, {"p": "2026-06-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 3.13, "vp": 4.08, "y": -23.5, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-06-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 97.9, "vp": 98.72, "y": -0.8, "b": "95% 이상", "j": "양호"}, {"p": "2026-06-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 22946.0, "vp": 25410.0, "y": -9.7, "b": null, "j": null}, {"p": "2026-06-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 16021.37, "vp": 18169.5, "y": -11.8, "b": null, "j": null}, {"p": "2026-06-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 39.0, "vp": 38.65, "y": 0.9, "b": "전년比 하락 금지", "j": "양호"}, {"p": "2026-06-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.54, "vp": 0.54, "y": 0.8, "b": "전년比 -5% 이내", "j": "양호"}, {"p": "2026-06-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 11871.0, "vp": 10966.0, "y": 8.3, "b": null, "j": null}, {"p": "2026-07-01", "g": "① 핵심", "m": "NSM · 세탁 물량(점)", "v": 475552.0, "vp": 501549.0, "y": -5.2, "b": "전년比 0% 이상", "j": "이탈"}, {"p": "2026-07-01", "g": "① 핵심", "m": "고객당 물량(점)", "v": 8.85, "vp": 9.44, "y": -6.3, "b": "전년比 -3% 이내", "j": "이탈"}, {"p": "2026-07-01", "g": "① 핵심", "m": "수거신청 수(건)", "v": 90717.0, "vp": 91207.0, "y": -0.5, "b": null, "j": null}, {"p": "2026-07-01", "g": "① 핵심", "m": "활성 고객 수(순, 명)", "v": 53738.0, "vp": 53111.0, "y": 1.2, "b": null, "j": null}, {"p": "2026-07-01", "g": "② 구성", "m": "구독 고객 비중(%)", "v": 34.56, "vp": 42.02, "y": -17.7, "b": "40% 이상", "j": "이탈"}, {"p": "2026-07-01", "g": "② 구성", "m": "구독 고객당 물량(점)", "v": 12.63, "vp": 12.78, "y": -1.2, "b": null, "j": null}, {"p": "2026-07-01", "g": "② 구성", "m": "월 구독 물량(점)", "v": 208269.0, "vp": 285196.0, "y": -27.0, "b": null, "j": null}, {"p": "2026-07-01", "g": "② 구성", "m": "자유 고객당 물량(점)", "v": 6.79, "vp": 6.97, "y": -2.5, "b": null, "j": null}, {"p": "2026-07-01", "g": "② 구성", "m": "자유 물량(점)", "v": 241027.0, "vp": 216353.0, "y": 11.4, "b": null, "j": null}, {"p": "2026-07-01", "g": "② 구성", "m": "플러스 물량(점)", "v": 26256.0, "vp": 0.0, "y": null, "b": null, "j": null}, {"p": "2026-07-01", "g": "③ 구독", "m": "구독-개월 수(건)", "v": 21301.0, "vp": 25590.0, "y": -16.8, "b": null, "j": null}, {"p": "2026-07-01", "g": "③ 구독", "m": "낙전 비율(%)", "v": 13.35, "vp": 13.7, "y": -2.5, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-07-01", "g": "④ 금액", "m": "결제금액(원)", "v": 3498833357.0, "vp": 3450390962.0, "y": 1.4, "b": null, "j": null}, {"p": "2026-07-01", "g": "④ 금액", "m": "무상포인트 할인율(%)", "v": 2.33, "vp": 2.77, "y": -15.7, "b": "전년比 +0.5%p 이내", "j": "양호"}, {"p": "2026-07-01", "g": "④ 금액", "m": "실질 매출(선수금 이연, 원)", "v": 3377123500.33, "vp": 3450390962.0, "y": -2.1, "b": null, "j": null}, {"p": "2026-07-01", "g": "⑤ 품질", "m": "배송시각 결측(%) · 미완결 신호", "v": 4.95, "vp": 0.05, "y": 10894.0, "b": null, "j": null}, {"p": "2026-07-01", "g": "⑤ 품질", "m": "세탁 부속품 비중(%)", "v": 1.32, "vp": 1.31, "y": 0.8, "b": null, "j": null}, {"p": "2026-07-01", "g": "⑤ 품질", "m": "세탁 불가(만건당)", "v": 5.1, "vp": 1.06, "y": 381.1, "b": "2건 이하", "j": "이탈"}, {"p": "2026-07-01", "g": "⑤ 품질", "m": "전체 리드타임 P90(일)", "v": 3.92, "vp": 4.08, "y": -4.1, "b": "전년比 상승 금지", "j": "양호"}, {"p": "2026-07-01", "g": "⑤ 품질", "m": "출고 기한 준수율(%)", "v": 97.16, "vp": 98.84, "y": -1.7, "b": "95% 이상", "j": "양호"}, {"p": "2026-07-01", "g": "⑥ 캐파", "m": "일 최대 물량(점)", "v": 21247.0, "vp": 30311.0, "y": -29.9, "b": null, "j": null}, {"p": "2026-07-01", "g": "⑥ 캐파", "m": "일평균 물량(점)", "v": 15340.39, "vp": 16179.0, "y": -5.2, "b": null, "j": null}, {"p": "2026-07-01", "g": "⑦ 신규", "m": "가입 → 30일 내 첫 이용(%)", "v": 30.86, "vp": 37.47, "y": -17.6, "b": "전년比 하락 금지", "j": "이탈"}, {"p": "2026-07-01", "g": "⑦ 신규", "m": "가입자당 30일 주문(건)", "v": 0.38, "vp": 0.54, "y": -29.9, "b": "전년比 -5% 이내", "j": "이탈"}, {"p": "2026-07-01", "g": "⑦ 신규", "m": "신규 가입자(명)", "v": 13997.0, "vp": 8928.0, "y": 56.8, "b": null, "j": null}];
+</script>
+<script>
+let DATA = RAW.slice();
+let CUR = null, ONLY = false;
+
+const $ = id => document.getElementById(id);
+const nf = n => Math.round(n).toLocaleString('ko-KR');
+const pct = v => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+const periods = () => [...new Set(DATA.map(r => r.p))].sort();
+const at = p => DATA.filter(r => r.p === p);
+const series = m => periods().map(p => {
+  const r = DATA.find(x => x.p === p && x.m === m); return r ? r.v : null; });
+const label = p => p.slice(2, 7).replace('-', '/');
+
+/* 지표별 표시 형식 */
+function fmt(m, v) {
+  if (v == null) return '—';
+  if (m.includes('원)')) return (v / 1e8).toFixed(1) + '억';
+  if (m.includes('%)')) return v.toFixed(2) + '%';
+  if (m.includes('일)')) return v.toFixed(2) + '일';
+  if (m.includes('만건당')) return v.toFixed(2) + '건';
+  if (m.includes('건)') && v < 10) return v.toFixed(2) + '건';
+  if (m.includes('점)') && v < 100) return v.toFixed(2) + '점';
+  if (m.includes('명)')) return nf(v) + '명';
+  if (m.includes('건)')) return nf(v) + '건';
+  if (m.includes('점)')) return nf(v) + '점';
+  return nf(v);
+}
+/* YoY 방향의 좋고 나쁨 — 낮을수록 좋은 지표는 반대로 읽는다 */
+const LOWER_BETTER = ['낙전 비율(%)', '세탁 불가(만건당)', '전체 리드타임 P90(일)',
+                      '무상포인트 할인율(%)', '세탁 부속품 비중(%)', '배송시각 결측(%) · 미완결 신호'];
+function dirClass(m, y) {
+  if (y == null || Math.abs(y) < 0.5) return 'flat';
+  const good = LOWER_BETTER.includes(m) ? y < 0 : y > 0;
+  return good ? 'up' : 'down';
+}
+
+/* 스파크라인 — 단일 계열이므로 범례 없음. 현재 기간 점만 강조 */
+function spark(m, curIdx) {
+  const vals = series(m), W = 104, H = 26, PAD = 3;
+  const ok = vals.filter(v => v != null);
+  if (ok.length < 2) return '<svg class="spark" width="' + W + '" height="' + H + '"></svg>';
+  const mn = Math.min(...ok), mx = Math.max(...ok), rng = (mx - mn) || 1;
+  const x = i => PAD + i * (W - 2 * PAD) / (vals.length - 1);
+  const y = v => H - PAD - (v - mn) / rng * (H - 2 * PAD);
+  let dPath = '', started = false;
+  vals.forEach((v, i) => { if (v == null) { started = false; return; }
+    dPath += (started ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' '; started = true; });
+  let dots = '';
+  vals.forEach((v, i) => { if (v == null) return;
+    const r = i === curIdx ? 3.2 : 0;
+    if (r) dots += `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${r}"
+      fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>`;
+    dots += `<rect x="${(x(i) - 7).toFixed(1)}" y="0" width="14" height="${H}" fill="transparent"
+      data-m="${m}" data-i="${i}" class="hit"/>`; });
+  return `<svg class="spark" width="${W}" height="${H}" role="img" aria-label="${m} 추이">
+    <path d="${dPath}" fill="none" stroke="var(--s1)" stroke-width="2"
+      stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+}
+
+function badge(j) {
+  if (!j) return '<span style="color:var(--muted)">—</span>';
+  return j === '양호' ? '<span class="badge g"><i>●</i>양호</span>'
+                      : '<span class="badge b"><i>▲</i>이탈</span>';
+}
+
+function render() {
+  const P = periods(); if (!CUR || !P.includes(CUR)) CUR = P[P.length - 1];
+  const ci = P.indexOf(CUR), rows = at(CUR);
+  const get = m => rows.find(r => r.m === m) || {};
+  const outs = rows.filter(r => r.j === '이탈');
+
+  /* 타일 */
+  const nsm = get('NSM · 세탁 물량(점)'), usr = get('활성 고객 수(순, 명)'), vpu = get('고객당 물량(점)');
+  $('tiles').innerHTML = [
+    { lab: 'NSM · 세탁 물량', val: fmt('(점)', nsm.v), d: nsm.y, m: 'NSM · 세탁 물량(점)',
+      note: '전년 동월 ' + fmt('(점)', nsm.vp) },
+    { lab: '활성 고객 수 (순)', val: fmt('(명)', usr.v), d: usr.y, m: '활성 고객 수(순, 명)',
+      note: '해당 기간 1건 이상' },
+    { lab: '고객당 물량', val: vpu.v == null ? '—' : vpu.v.toFixed(2) + '점', d: vpu.y, m: '고객당 물량(점)',
+      note: '전년 동월 ' + (vpu.vp == null ? '—' : vpu.vp.toFixed(2) + '점') },
+    { lab: '기준선 이탈', val: outs.length + '건', d: null, m: null,
+      note: outs.length ? outs.slice(0, 3).map(r => r.m.split('(')[0].trim()).join(' · ')
+                          + (outs.length > 3 ? ' 외 ' + (outs.length - 3) : '') : '전부 양호' }
+  ].map(t => `<div class="tile"><div class="lab">${t.lab}</div><div class="val">${t.val}</div>
+    <div class="dl ${t.m ? dirClass(t.m, t.d) : (outs.length ? 'down' : 'up')}">${
+      t.m ? (t.d > 0 ? '▲ ' : t.d < 0 ? '▼ ' : '') + pct(t.d)
+          : (outs.length ? '▲ 확인 필요' : '● 이상 없음')}</div>
+    <div class="note">${t.note}</div></div>`).join('');
+
+  /* 컨트롤 */
+  $('bar').innerHTML = P.map(p =>
+      `<button class="chip ${p === CUR ? 'on' : ''}" onclick="setP('${p}')">${label(p)}</button>`).join('')
+    + '<span class="sep"></span>'
+    + `<button class="chip tog ${ONLY ? 'on' : ''}" onclick="setOnly()">${
+        ONLY ? '▲ 이탈만 보는 중' : '이탈만 보기'}</button>`;
+
+  /* 경고 배너 — 신뢰성 먼저 */
+  const miss = get('배송시각 결측(%) · 미완결 신호');
+  const isLast = ci === P.length - 1;
+  let al = '';
+  if (miss.v != null && miss.v >= 3) al += `<div class="box bad">
+    <h4><span class="pill">신뢰성</span>${label(CUR)}은 아직 미완결입니다</h4>
+    <p>배송 시각 결측률이 <b>${miss.v.toFixed(2)}%</b>입니다(정상 0.1%대). 아직 배송이 진행 중인 건들이라
+    <b>리드타임·준수율이 실제보다 좋게 나옵니다.</b> 다음 달 로그를 받은 뒤 다시 보세요.</p></div>`;
+  if (isLast) al += `<div class="box warnb">
+    <h4><span class="pill">관측</span>⑦ 신규 지표는 마지막 기간에서 과소평가됩니다</h4>
+    <p>가입 코호트를 <b>30일</b> 관측하는데, 마지막 기간 가입자는 아직 30일이 안 찼습니다
+    (월말 가입자는 며칠뿐). <b>${label(CUR)}의 "30일 내 첫 이용"과 "가입자당 30일 주문"이 낮게 찍히는 것은
+    관측 미완일 가능성이 큽니다.</b> 판정을 그대로 믿지 마세요.</p></div>`;
+  $('alerts').innerHTML = al;
+
+  /* 본문 */
+  const groups = [...new Set(DATA.map(r => r.g))].sort();
+  let html = '';
+  groups.forEach(g => {
+    let rs = rows.filter(r => r.g === g);
+    if (ONLY) rs = rs.filter(r => r.j === '이탈');
+    if (!rs.length) return;
+    html += `<div class="card"><div class="grpname">${g}</div><div class="tw"><table>
+      <thead><tr><th style="width:34%">지표</th><th>값</th><th>전년 동기</th><th>YoY</th>
+      <th style="width:112px">추이 (${P.length}${P.length>1&&P[1]&&P[0]&&(new Date(P[1])-new Date(P[0]))<12*864e5?'주':'개월'})</th><th style="text-align:left">기준선</th>
+      <th style="text-align:left;width:88px">판정</th></tr></thead><tbody>`;
+    rs.forEach(r => {
+      html += `<tr><td class="mname">${r.m}</td>
+        <td><b>${fmt(r.m, r.v)}</b></td>
+        <td style="color:var(--ink2)">${fmt(r.m, r.vp)}</td>
+        <td class="${dirClass(r.m, r.y)}">${pct(r.y)}</td>
+        <td>${spark(r.m, ci)}</td>
+        <td class="base">${r.b || '—'}</td>
+        <td style="text-align:left">${badge(r.j)}</td></tr>`;
+    });
+    html += '</tbody></table></div></div>';
+  });
+  $('body').innerHTML = html || '<div class="card"><p style="color:var(--ink2)">이탈한 지표가 없습니다.</p></div>';
+  $('foot').innerHTML = `기간 ${label(P[0])} ~ ${label(P[P.length - 1])} · 지표 ${
+    [...new Set(DATA.map(r => r.m))].length}종 · 전년 동기 자동 비교<br>
+    NSM = wash_item(accepted=1) − 세탁 부속품 − 세탁 불가 · 매출 = (실결제 + 충전포인트 + 매출성포인트) − 취소분 ·
+    준수율 = 세탁 완료일 ≤ 출고 기한<br>생성 <span id="gen"></span>`;
+  $('gen').textContent = new Date().toISOString().slice(0, 10);
+  bindTips();
+}
+function setP(p) { CUR = p; render(); }
+function setOnly() { ONLY = !ONLY; render(); }
+
+/* 스파크라인 호버 */
+function bindTips() {
+  const tip = $('tip'), P = periods();
+  document.querySelectorAll('.hit').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      const m = el.dataset.m, i = +el.dataset.i, v = series(m)[i];
+      if (v == null) return;
+      tip.textContent = label(P[i]) + '  ' + fmt(m, v);
+      tip.style.opacity = 1;
+    });
+    el.addEventListener('mousemove', e => {
+      tip.style.left = (e.clientX + 12) + 'px';
+      tip.style.top = (e.clientY - 30) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.opacity = 0; });
+  });
+}
+
+/* ── CSV 읽기 ───────────────────────────────────────────────── */
+function parseCsv(t) {
+  const rows = []; let cell = '', row = [], q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+    else if (c !== '\r') cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.length > 1 && r.some(x => x.trim() !== ''));
+}
+function toRecords(text) {
+  const rows = parseCsv(text.replace(/^\uFEFF/, '').trim());
+  if (!rows.length) throw new Error('빈 파일');
+  const start = rows[0][0].includes('기간') ? 1 : 0;
+  const num = s => { const x = parseFloat(String(s).replace(/,/g, '')); return isNaN(x) ? null : x; };
+  const out = rows.slice(start).map(r => ({
+    p: (r[0] || '').trim(), g: (r[1] || '').trim(), m: (r[2] || '').trim(),
+    v: num(r[3]), vp: num(r[4]), y: num(r[5]),
+    b: (r[6] || '').trim() || null, j: (r[7] || '').trim() || null
+  })).filter(r => r.p && r.m);
+  if (!out.length) throw new Error('읽을 행이 없습니다');
+  if (!out.some(r => r.v != null)) throw new Error('숫자 컬럼을 찾지 못했습니다 — 컬럼 순서를 확인해 주세요');
+  return out;
+}
+/* UTF-8 우선, 실패하면 CP949(엑셀 한글) */
+function decode(buf) {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) {
+    for (const enc of ['euc-kr', 'windows-949']) {
+      try { return new TextDecoder(enc).decode(buf); } catch (_) {}
+    }
+    return new TextDecoder('utf-8').decode(buf);   // 마지막 수단 (깨져도 표시)
+  }
+}
+function say(t, cls) { const m = $('msg'); m.textContent = t; m.className = cls || ''; }
+
+function apply(recs, label) {
+  DATA = recs; CUR = null;
+  const ps = [...new Set(recs.map(r => r.p))];
+  say(`${label} · ${recs.length}행 · ${ps.length}개 기간 반영`, 'ok');
+  try { localStorage.setItem('nsm_sc', JSON.stringify({ recs, label, at: Date.now() })); } catch (e) {}
+  render();
+}
+function loadText(text, label) {
+  try { apply(toRecords(text), label || '붙여넣기'); }
+  catch (e) { say('읽기 실패 — ' + e.message, 'err'); }
+}
+function loadFile(f) {
+  if (!f) return;
+  if (!/\.(csv|txt)$/i.test(f.name)) { say('CSV 파일만 됩니다 (' + f.name + ')', 'err'); return; }
+  const rd = new FileReader();
+  rd.onload = () => { try { apply(toRecords(decode(rd.result)), f.name); }
+                      catch (e) { say('읽기 실패 — ' + e.message, 'err'); } };
+  rd.onerror = () => say('파일을 열지 못했습니다', 'err');
+  rd.readAsArrayBuffer(f);
+}
+function resetData() {
+  DATA = RAW.slice(); CUR = null;
+  try { localStorage.removeItem('nsm_sc'); } catch (e) {}
+  say('기본 데이터로 되돌렸습니다', ''); render();
+}
+
+/* 파일 선택 + 드래그앤드롭 */
+$('file').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
+const dz = $('drop');
+['dragenter', 'dragover'].forEach(ev => document.addEventListener(ev, e => {
+  if (!e.dataTransfer || ![...e.dataTransfer.types].includes('Files')) return;
+  e.preventDefault(); dz.classList.add('over');
+}));
+['dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => {
+  if (ev === 'drop') e.preventDefault();
+  if (ev === 'dragleave' && e.relatedTarget) return;
+  dz.classList.remove('over');
+}));
+document.addEventListener('drop', e => {
+  if (e.dataTransfer && e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+});
+
+/* 지난번 업로드 복원 */
+(function () {
+  try {
+    const s = localStorage.getItem('nsm_sc');
+    if (!s) return;
+    const o = JSON.parse(s);
+    if (o && Array.isArray(o.recs) && o.recs.length) {
+      DATA = o.recs;
+      const d = new Date(o.at || Date.now()).toISOString().slice(0, 10);
+      say(`지난번 업로드 복원 (${o.label || 'CSV'} · ${d})`, 'ok');
+    }
+  } catch (e) {}
+})();
+
+render();
+</script>
+</body>
+</html>
