@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과제 보드</title>
+<style>
+  :root{
+    --bg:#F7F7F4;
+    --panel:#FFFFFF;
+    --ink:#1B1D1F;
+    --ink-soft:#6B6F73;
+    --line:#E4E4E0;
+    --line-strong:#CFCFC8;
+    --brand:#2B3A67;
+    --brand-dark:#202B4D;
+    --brand-soft:#E4E9F4;
+    --high:#B23A2E;
+    --high-bg:#F7E7E5;
+    --mid:#A5711E;
+    --mid-bg:#F6EDDD;
+    --low:#3F7A57;
+    --low-bg:#E4EFE8;
+    --conflict:#C6392E;
+    --conflict-bg:#FBEBEA;
+    --conflict2:#6B4E9E;
+    --conflict2-bg:#EFEAF6;
+    --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Pretendard","Segoe UI",sans-serif;
+    font-size:14px;
+    line-height:1.5;
+  }
+  #app{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .topbar h1{font-size:22px;margin:0 0 4px;letter-spacing:-0.01em;}
+  .topbar .sub{margin:0;color:var(--ink-soft);font-size:13px;}
+  .btn{
+    border:none;border-radius:var(--radius);padding:9px 16px;font-size:13.5px;font-weight:600;
+    cursor:pointer;transition:background .15s ease, opacity .15s ease;font-family:inherit;
+  }
+  .btn-primary{background:var(--brand);color:#fff;}
+  .btn-primary:hover{background:var(--brand-dark);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);}
+  .btn-ghost:hover{background:#F0F0EC;}
+  .btn-danger{background:transparent;color:var(--conflict);border:1px solid var(--conflict);}
+  .btn-danger:hover{background:var(--conflict-bg);}
+  .btn-icon{background:transparent;border:1px solid var(--line-strong);border-radius:6px;width:28px;height:28px;cursor:pointer;color:var(--ink-soft);font-size:14px;}
+  .btn-icon:hover{background:#F0F0EC;}
+
+  /* ---------- storage status notice ---------- */
+  #storageNotice{
+    background:#FCF3DC;border:1px solid #E8D28C;color:#7A5B12;
+    border-radius:var(--radius);padding:11px 16px;margin-bottom:14px;font-size:13px;font-weight:600;
+  }
+  #storageNotice.hidden{display:none;}
+
+  /* ---------- conflict banner ---------- */
+  #conflictBanner{
+    background:var(--conflict-bg);border:1px solid #EBC7C3;color:var(--conflict);
+    border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13.5px;
+  }
+  #conflictBanner.hidden{display:none;}
+  #conflictBanner .cb-title{font-weight:700;margin-bottom:6px;}
+  #conflictBanner .cb-title:not(:first-child){margin-top:12px;}
+  #conflictBanner ul{margin:0;padding-left:18px;}
+  #conflictBanner li{margin-bottom:3px;}
+
+  /* ---------- tabs ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+  .tab{
+    background:none;border:none;padding:9px 4px;margin-right:18px;font-size:14px;font-weight:600;
+    color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;
+  }
+  .tab.active{color:var(--ink);border-bottom-color:var(--brand);}
+  .view.hidden{display:none;}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  select,input[type=text],input[type=date],textarea{
+    font-family:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--line-strong);
+    border-radius:6px;background:#fff;color:var(--ink);
+  }
+  .count{color:var(--ink-soft);font-size:12.5px;}
+  .spacer{flex:1;}
+  #lastUpdated{color:var(--ink-soft);font-size:12px;}
+
+  /* ---------- table ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);}
+  table{width:100%;border-collapse:collapse;min-width:980px;}
+  thead th{
+    text-align:left;font-size:12px;font-weight:600;color:var(--ink-soft);
+    padding:10px 12px;border-bottom:1px solid var(--line-strong);white-space:nowrap;background:#FBFBFA;
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px;}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:#FAFAF8;}
+  tbody tr.conflict-row{border-left:3px solid var(--conflict);background:var(--conflict-bg);}
+  tbody tr.conflict-row:hover{background:#F7DEDC;}
+  .empty-state{padding:40px 20px;text-align:center;color:var(--ink-soft);}
+  .empty-state b{display:block;color:var(--ink);font-size:15px;margin-bottom:6px;}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:4px;}
+  .chip{background:var(--brand-soft);color:var(--brand-dark);padding:1px 8px;border-radius:100px;font-size:11.5px;white-space:nowrap;}
+  .chip.conflict-person{background:var(--conflict-bg);color:var(--conflict);border:1px solid #EBC7C3;}
+  .chip.conflict-person-plan{background:var(--conflict2-bg);color:var(--conflict2);border:1px solid #D7CBEA;}
+
+  .prio{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .prio-상 .dot{background:var(--high);} .prio-상{color:var(--high);}
+  .prio-중 .dot{background:var(--mid);} .prio-중{color:var(--mid);}
+  .prio-하 .dot{background:var(--low);} .prio-하{color:var(--low);}
+
+  .status-ok{color:var(--low-bg);}
+  .badge-conflict{
+    display:inline-flex;align-items:center;gap:4px;background:var(--conflict);color:#fff;
+    padding:2px 8px;border-radius:100px;font-size:11px;font-weight:700;
+  }
+  .badge-conflict-plan{background:var(--conflict2);}
+  .badge-ok{color:var(--ink-soft);font-size:12px;}
+  .row-actions{display:flex;gap:6px;}
+
+  /* ---------- gantt / timeline ---------- */
+  #ganttOuter{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow-x:auto;}
+  .gantt{min-width:max-content;}
+  .gantt-header{display:flex;position:sticky;top:0;background:var(--panel);z-index:3;border-bottom:1px solid var(--line-strong);}
+  .label-col{width:150px;flex:0 0 150px;position:sticky;left:0;background:var(--panel);z-index:4;border-right:1px solid var(--line);}
+  .gantt-header .label-col{height:44px;}
+  .day-col{width:28px;flex:0 0 28px;text-align:center;font-size:10px;color:var(--ink-soft);padding:5px 0 3px;border-left:1px solid var(--line);}
+  .day-col .wd{display:block;font-size:9px;color:var(--ink-soft);opacity:.8;}
+  .day-col.weekend{background:#F2F2EE;}
+  .day-col.today{background:var(--brand-soft);}
+  .day-col.today .num{font-weight:800;color:var(--brand-dark);}
+
+  .dev-row{display:flex;border-bottom:1px solid var(--line);}
+  .dev-row .label-col{display:flex;align-items:center;padding:8px 10px;font-weight:600;font-size:12.5px;}
+  .dev-row .track{position:relative;}
+  .track-grid{position:absolute;inset:0;display:flex;pointer-events:none;}
+  .track-grid .day-col{border-left:1px solid var(--line);height:100%;padding:0;}
+  .track-grid .day-col.today{background:var(--brand-soft);opacity:.6;}
+
+  .task-bar{
+    position:absolute;height:22px;border-radius:5px;font-size:11px;color:#fff;
+    padding:2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);cursor:pointer;
+  }
+  .task-bar.prio-bg-상{background:var(--high);}
+  .task-bar.prio-bg-중{background:var(--mid);}
+  .task-bar.prio-bg-하{background:var(--low);}
+  .task-bar.conflict{outline:2px solid var(--conflict);outline-offset:1px;}
+
+  .role-toggle{background:transparent;border:1px solid var(--line-strong);border-radius:100px;padding:5px 13px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit;}
+  .role-toggle:hover{background:#F0F0EC;}
+  .role-toggle.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .role-sep{width:1px;height:20px;background:var(--line-strong);margin:0 2px;}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-soft);align-items:center;}
+  .legend .lg-item{display:flex;align-items:center;gap:6px;}
+  .legend .sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(20,20,18,.45);display:flex;align-items:center;
+    justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-overlay.hidden{display:none;}
+  .modal{background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:24px 26px 20px;}
+  .modal h2{margin:0 0 16px;font-size:17px;}
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+  .field .hint{font-size:11.5px;color:var(--ink-soft);margin-top:3px;font-weight:400;}
+  .field input,.field select,.field textarea{width:100%;}
+  .field textarea{min-height:56px;resize:vertical;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;border-top:1px solid var(--line);padding-top:16px;}
+  .modal-actions .push-left{margin-right:auto;}
+  .err{color:var(--conflict);font-size:12px;margin-top:8px;min-height:1em;}
+
+  .footnote{margin-top:22px;color:var(--ink-soft);font-size:11.5px;text-align:center;}
+
+  #toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:9px 18px;border-radius:100px;font-size:12.5px;
+    opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:80;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+
+  @media (max-width:720px){
+    .row2,.row3{grid-template-columns:1fr;}
+    .topbar{align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div>
+      <h1>과제 보드</h1>
+      <p class="sub">팀 전체가 함께 등록·수정하는 과제 목록입니다. 개발 담당자의 일정이 겹치면 자동으로 표시돼요.</p>
+    </div>
+    <button class="btn btn-primary" id="btnNew">+ 과제 등록</button>
+  </div>
+
+  <div id="storageNotice" class="hidden"></div>
+  <div id="conflictBanner" class="hidden"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="list">목록</button>
+    <button class="tab" data-tab="timeline">담당자 타임라인</button>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div class="view" id="viewList">
+    <div class="toolbar">
+      <select id="filterDev"><option value="">전체 담당자</option></select>
+      <span class="count" id="taskCount"></span>
+      <span class="spacer"></span>
+      <span id="lastUpdated"></span>
+      <button class="btn-icon" id="btnRefresh" title="새로고침">⟳</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>구분</th><th>과제명</th><th>발의 부서</th><th>기간</th>
+            <th>기획공수</th><th>개발공수</th><th>우선순위</th>
+            <th>기획/디자인담당</th><th>개발담당</th><th>영향지표</th><th>상태</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="taskTbody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state hidden">
+        <b>등록된 과제가 없어요</b>
+        상단의 “+ 과제 등록” 버튼으로 첫 과제를 등록하거나, 아래 버튼으로 시트에 있던 기존 과제를 불러올 수 있어요.
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" id="btnSeed">시트 과제 20건 불러오기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE VIEW -->
+  <div class="view hidden" id="viewTimeline">
+    <div class="toolbar">
+      <button class="btn-icon" id="prevMonth">‹</button>
+      <strong id="monthLabel" style="font-size:14px;min-width:90px;text-align:center;"></strong>
+      <button class="btn-icon" id="nextMonth">›</button>
+      <span class="role-sep"></span>
+      <button class="role-toggle active" id="roleToggleDev" data-role="devOwners">개발담당</button>
+      <button class="role-toggle" id="roleTogglePlan" data-role="planOwners">기획/디자인담당</button>
+      <span class="spacer"></span>
+      <span id="lastUpdated2"></span>
+    </div>
+    <div id="ganttOuter"><div id="ganttInner"></div></div>
+    <div class="legend">
+      <span class="lg-item"><span class="sw" style="background:var(--high)"></span>우선순위 상</span>
+      <span class="lg-item"><span class="sw" style="background:var(--mid)"></span>우선순위 중</span>
+      <span class="lg-item"><span class="sw" style="background:var(--low)"></span>우선순위 하</span>
+      <span class="lg-item"><span class="sw" style="background:var(--conflict);border-radius:50%;"></span>붉은 테두리 = 같은 사람, 겹치는 기간</span>
+    </div>
+  </div>
+
+  <div class="footnote">이 보드의 데이터는 연결된 구글 시트의 "AppData" 탭에 저장돼요. 같은 과제를 두 사람이 동시에 수정하면 마지막 저장이 반영됩니다.</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">과제 등록</h2>
+    <form id="taskForm">
+      <input type="hidden" id="f_id">
+      <div class="row2">
+        <div class="field">
+          <label>구분 *</label>
+          <input type="text" id="f_category" list="categoryList" placeholder="예: 런드리고" required>
+          <datalist id="categoryList"><option value="런드리고"><option value="런드리24"></datalist>
+        </div>
+        <div class="field">
+          <label>발의 부서</label>
+          <input type="text" id="f_dept" placeholder="예: 마케팅실">
+        </div>
+      </div>
+      <div class="field">
+        <label>과제명 *</label>
+        <input type="text" id="f_title" placeholder="예: 시그니처 마케팅 쿠폰" required>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>시작일 *</label>
+          <input type="date" id="f_start" required>
+        </div>
+        <div class="field">
+          <label>종료일 *</label>
+          <input type="date" id="f_end" required>
+          <div class="hint">겹침 확인은 이 기간을 기준으로 계산돼요.</div>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>기획공수</label>
+          <input type="text" id="f_planEffort" list="effortList" placeholder="예: 중">
+        </div>
+        <div class="field">
+          <label>개발공수</label>
+          <input type="text" id="f_devEffort" list="effortList" placeholder="예: 중">
+          <datalist id="effortList"><option value="최상"><option value="상"><option value="중"><option value="하"><option value="완료"><option value="확인필요"></datalist>
+        </div>
+        <div class="field">
+          <label>우선순위</label>
+          <select id="f_priority"><option value="상">상</option><option value="중" selected>중</option><option value="하">하</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>기획/디자인담당</label>
+        <input type="text" id="f_planOwner" placeholder="쉼표(,)로 구분 — 예: 김다예, 강혜린">
+      </div>
+      <div class="field">
+        <label>개발담당 *</label>
+        <input type="text" id="f_devOwners" placeholder="쉼표(,)로 구분 — 예: 최종수, 문효진" required>
+        <div class="hint">여기 적힌 이름을 기준으로 같은 기간 중복 배정을 확인해요.</div>
+      </div>
+      <div class="field">
+        <label>영향지표</label>
+        <input type="text" id="f_metric" placeholder="예: 신규가입, 재구매율">
+      </div>
+      <div class="field">
+        <label>상세</label>
+        <textarea id="f_detail" placeholder="추가로 남길 메모"></textarea>
+      </div>
+      <div class="field">
+        <label>작성자</label>
+        <input type="text" id="f_author" placeholder="선택 입력 — 예: 홍길동">
+      </div>
+      <div class="err" id="formErr"></div>
+    </form>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-danger push-left hidden" id="btnDelete">삭제</button>
+      <button type="button" class="btn btn-ghost" id="btnCancel">취소</button>
+      <button type="submit" form="taskForm" class="btn btn-primary">저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var tasks = [];
+  // conflicts.devOwners / conflicts.planOwners each hold {byTask, pairs} — same shape, computed per role
+  var conflicts = { devOwners: {byTask:{}, pairs:[]}, planOwners: {byTask:{}, pairs:[]} };
+  var currentTab = "list";
+  var filterDevValue = "";
+  var timelineDate = new Date(2026, 8, 1); // default: Sept 2026, day fixed to 1st
+  var timelineRole = "devOwners"; // which role the timeline tab is currently showing
+  var pollTimer = null;
+
+  // ---------- helpers ----------
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+  }
+  function escapeHtml(s){
+    if(s===undefined || s===null) return "";
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function splitNames(str){
+    return String(str||"").split(",").map(function(s){return s.trim();}).filter(Boolean);
+  }
+  function fmtRange(a,b){
+    if(!a && !b) return "-";
+    return (a||"?") + " ~ " + (b||"?");
+  }
+  function overlaps(aS,aE,bS,bE){
+    return aS<=bE && bS<=aE;
+  }
+  function genId(){
+    return "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+  }
+  function showToast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+  function setLastUpdated(){
+    var s = "마지막 업데이트 " + new Date().toLocaleTimeString("ko-KR", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    var a = document.getElementById("lastUpdated"); if(a) a.textContent = s;
+    var b = document.getElementById("lastUpdated2"); if(b) b.textContent = s;
+  }
+  // ---------- Apps Script backend ----------
+  // Deploy the accompanying Code.gs as a Web App inside the same Google Sheet
+  // (Extensions > Apps Script > Deploy > New deployment > Web app), then paste
+  // the resulting /exec URL below. See the setup steps that came with this file.
+  var API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+  function apiConfigured(){
+    return !!API_URL && API_URL.indexOf("PASTE_YOUR") === -1;
+  }
+
+  async function apiGetTasks(){
+    var res = await fetch(API_URL, { method: "GET" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    var data = await res.json();
+    if(!data.ok) throw new Error(data.error || "unknown error");
+    return data.tasks || [];
+  }
+
+  async function apiPost(payload){
+    // text/plain avoids a CORS preflight that Apps Script Web Apps don't handle;
+    // the server still JSON.parse()s the raw body regardless of this header.
+    var res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    var data = await res.json();
+    if(!data.ok) throw new Error(data.error || "unknown error");
+    return data;
+  }
+
+  function showStorageNotice(msg){
+    var el = document.getElementById("storageNotice");
+    if(!el) return;
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+
+  // ---------- storage ----------
+  async function loadTasks(){
+    try{
+      var raw = await apiGetTasks();
+      return raw.map(function(obj){
+        if(!Array.isArray(obj.devOwners)) obj.devOwners = splitNames(obj.devOwners);
+        if(!Array.isArray(obj.planOwners)) obj.planOwners = splitNames(obj.planOwners);
+        return obj;
+      });
+    }catch(e){
+      showToast("불러오기에 실패했어요: " + (e && e.message ? e.message : String(e)));
+      return tasks; // keep whatever we had
+    }
+  }
+
+  async function saveTaskToStore(task){
+    task.updatedAt = new Date().toISOString();
+    await apiPost({ action: "save", task: task });
+  }
+
+  async function deleteTaskFromStore(id){
+    await apiPost({ action: "delete", id: id });
+  }
+
+  // ---------- initial data import ----------
+  // Existing tasks copied over from the "26년 9월 과제 리스트" sheet. The sheet's fuzzy
+  // "희망 일정" text (9월 초/중순/말/상시/미정 etc.) has been converted to concrete date
+  // ranges so overlap detection can work — the original wording is kept in 상세 for reference.
+  var SEED_TASKS = [
+    {id:"seed_1", category:"런드리고", title:"시그니쳐 마케팅 쿠폰 (첫 세탁비/배송비 무료, 중복가입 방지, 쿠폰명 변경기능)", dept:"마케팅실", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"완료", devEffort:"하", priority:"상", planOwners:["김다예"], devOwners:["최종수","문효진"], metric:"신규가입, 첫구매율, 재구매율", detail:"(원본 희망일정: 9월 초)", author:""},
+    {id:"seed_2", category:"런드리고", title:"배송비 인지 강화 및 업셀링", dept:"PE실", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"상", devEffort:"확인필요", priority:"상", planOwners:["박지선"], devOwners:["강덕현"], metric:"객단가, 결제금액", detail:"담당자 미확정 — 시트 원문: \"김승욱 또는 김기솔 --> 강덕현??\" (강덕현으로 임시 등록, 확인 후 수정 필요) (원본 희망일정: 9월 초)", author:""},
+    {id:"seed_3", category:"런드리24", title:"헌옷 서비스", dept:"런드리24 그로스실", startDate:"2026-09-11", endDate:"2026-09-20", planEffort:"완료", devEffort:"하", priority:"상", planOwners:["정성지"], devOwners:["이희빈","김기솔"], metric:"", detail:"(원본 희망일정: 9월 중순)", author:""},
+    {id:"seed_4", category:"런드리고", title:"QC 고도화 (손상/파손, 집중케어 QC 통합)", dept:"팩토리", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"하", devEffort:"하", priority:"상", planOwners:["김다예"], devOwners:["이현국"], metric:"", detail:"(원본 희망일정: 9월 초)", author:""},
+    {id:"seed_5", category:"런드리고", title:"토스연동", dept:"전사", startDate:"2026-09-21", endDate:"2026-09-30", planEffort:"확인필요", devEffort:"확인필요", priority:"상", planOwners:["김다예","강혜린"], devOwners:["최종수","김승욱"], metric:"", detail:"(원본 희망일정: 9월 말)", author:""},
+    {id:"seed_6", category:"런드리고", title:"SME", dept:"전사", startDate:"2026-09-29", endDate:"2026-09-29", planEffort:"최상", devEffort:"최상", priority:"상", planOwners:["정성지","김애진"], devOwners:["최종수","문효진","이우섭","이희빈","김기솔","정원식","강덕현"], metric:"", detail:"(원본 희망일정: 9월 29일)", author:""},
+    {id:"seed_7", category:"런드리고", title:"안심재케어 (간단한 채팅연동)", dept:"고객가치실", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"중", devEffort:"중", priority:"상", planOwners:["김다예"], devOwners:["이우섭","이현국","김기솔"], metric:"", detail:"(원본 희망일정: 9월 초)", author:""},
+    {id:"seed_8", category:"런드리고", title:"안심재케어 추가과제 (수거방식 변경 등)", dept:"고객가치실", startDate:"2026-09-11", endDate:"2026-09-20", planEffort:"중", devEffort:"중", priority:"상", planOwners:["김다예"], devOwners:["이우섭","이현국","김기솔"], metric:"", detail:"(원본 희망일정: 9월 중)", author:""},
+    {id:"seed_9", category:"런드리고", title:"클로렛 애프터잡 (가격 및 브랜드 개선)", dept:"PE실", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"하", devEffort:"중", priority:"상", planOwners:["이보영"], devOwners:["김승욱"], metric:"", detail:"(원본 희망일정: 9월 초)", author:""},
+    {id:"seed_10", category:"런드리고", title:"VOC 제로화 (결제내역 고도화, 구독 차감 로직 개선 등)", dept:"PE실", startDate:"2026-09-11", endDate:"2026-09-20", planEffort:"중", devEffort:"중", priority:"상", planOwners:["강혜린","이보영"], devOwners:["문효진","최종수","이우섭"], metric:"", detail:"(원본 희망일정: 9월 중)", author:""},
+    {id:"seed_11", category:"런드리24", title:"런드리24 V2 전환 (지역화폐, 시리얼 통신 등)", dept:"런드리24 그로스실", startDate:null, endDate:null, planEffort:"완료", devEffort:"확인필요", priority:"중", planOwners:[], devOwners:["김도엽"], metric:"", detail:"상시 진행 항목 (원본 희망일정: 상시)", author:""},
+    {id:"seed_12", category:"런드리24", title:"런드리24 LG API 연동", dept:"런드리24 그로스실", startDate:null, endDate:null, planEffort:"완료", devEffort:"확인필요", priority:"중", planOwners:[], devOwners:["김도엽"], metric:"", detail:"타이탄 먼저 테스트, 제우스 API 수령 후 개발 예정 (원본 희망일정: 미정)", author:""},
+    {id:"seed_13", category:"런드리고", title:"플러스 구독 갱신", dept:"PE실", startDate:"2026-09-01", endDate:"2026-09-10", planEffort:"하", devEffort:"중", priority:"중", planOwners:["강혜린"], devOwners:["이우섭","문효진"], metric:"", detail:"(원본 희망일정: 9월 초)", author:""},
+    {id:"seed_14", category:"런드리고", title:"안심재케어 (의류사진 어뷰징 방지)", dept:"고객가치실", startDate:"2026-09-11", endDate:"2026-09-20", planEffort:"하", devEffort:"확인필요", priority:"중", planOwners:[], devOwners:["이현국","김기솔"], metric:"", detail:"(원본 희망일정: 9월 중)", author:""},
+    {id:"seed_15", category:"런드리고", title:"클로렛 phase2 (방향 설정 필요)", dept:"PE실", startDate:null, endDate:null, planEffort:"상", devEffort:"확인필요", priority:"중", planOwners:["김다예","이보영"], devOwners:["김승욱"], metric:"", detail:"방향 설정 필요, 상시 진행 (원본 희망일정: 상시)", author:""},
+    {id:"seed_16", category:"런드리고", title:"쿠폰 고도화 (쿠폰 중복 적용 등)", dept:"마케팅실", startDate:null, endDate:null, planEffort:"중", devEffort:"확인필요", priority:"중", planOwners:["강혜린"], devOwners:["최종수"], metric:"", detail:"상시 진행 항목 (원본 희망일정: 상시)", author:""},
+    {id:"seed_17", category:"런드리고", title:"런드리고 패스", dept:"마케팅실", startDate:"2026-09-21", endDate:"2026-09-30", planEffort:"중", devEffort:"확인필요", priority:"중", planOwners:["강혜린"], devOwners:["이희빈","김기솔"], metric:"", detail:"(원본 희망일정: 9월 말)", author:""},
+    {id:"seed_18", category:"런드리고", title:"채널톡 AI 연동", dept:"고객가치실", startDate:"2026-10-01", endDate:"2026-10-31", planEffort:"확인필요", devEffort:"확인필요", priority:"중", planOwners:[], devOwners:["이현국"], metric:"", detail:"고도화 (원본 희망일정: 10월)", author:""},
+    {id:"seed_19", category:"런드리고", title:"보상 프로세스", dept:"고객가치실", startDate:"2026-10-01", endDate:"2026-10-31", planEffort:"확인필요", devEffort:"확인필요", priority:"중", planOwners:[], devOwners:[], metric:"", detail:"고도화 (원본 희망일정: 10월)", author:""},
+    {id:"seed_20", category:"런드리24", title:"결제금액 리워드 (포인트 적립)", dept:"런드리24 그로스실", startDate:null, endDate:null, planEffort:"", devEffort:"", priority:"중", planOwners:["정성지"], devOwners:[], metric:"", detail:"(원본 희망일정 미기재)", author:""}
+  ];
+
+  async function seedIfNeeded(force){
+    try{
+      if(!force){
+        var existing = await apiGetTasks();
+        if(existing.length > 0) return; // sheet already has data, don't touch it
+      }
+      await apiPost({ action: "seed", tasks: SEED_TASKS });
+      showToast("시트에 과제 " + SEED_TASKS.length + "건을 등록했어요.");
+    }catch(e){
+      showToast("초기 과제 등록에 실패했어요: " + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+
+  // ---------- conflict computation ----------
+  // field: "devOwners" or "planOwners" — same overlap logic applies to both roles
+  function computeConflicts(list, field){
+    var byTask = {};
+    var pairs = [];
+    for (var i=0;i<list.length;i++){
+      for (var j=i+1;j<list.length;j++){
+        var a = list[i], b = list[j];
+        if(!a.startDate || !a.endDate || !b.startDate || !b.endDate) continue;
+        if(!overlaps(a.startDate,a.endDate,b.startDate,b.endDate)) continue;
+        var common = (a[field]||[]).filter(function(p){ return (b[field]||[]).indexOf(p) !== -1; });
+        if(common.length===0) continue;
+        var overlapStart = a.startDate > b.startDate ? a.startDate : b.startDate;
+        var overlapEnd = a.endDate < b.endDate ? a.endDate : b.endDate;
+        pairs.push({persons:common, aId:a.id, aTitle:a.title, bId:b.id, bTitle:b.title, overlapStart:overlapStart, overlapEnd:overlapEnd});
+        common.forEach(function(person){
+          (byTask[a.id] = byTask[a.id] || []).push({person:person, otherId:b.id, otherTitle:b.title, overlapStart:overlapStart, overlapEnd:overlapEnd});
+          (byTask[b.id] = byTask[b.id] || []).push({person:person, otherId:a.id, otherTitle:a.title, overlapStart:overlapStart, overlapEnd:overlapEnd});
+        });
+      }
+    }
+    return {byTask:byTask, pairs:pairs};
+  }
+
+  // ---------- rendering: banner ----------
+  function renderConflictSection(label, pairs){
+    if(pairs.length===0) return "";
+    var items = pairs.map(function(p){
+      return "<li><strong>"+escapeHtml(p.persons.join(", "))+"</strong> — "
+        + "「"+escapeHtml(p.aTitle)+"」과(와) 「"+escapeHtml(p.bTitle)+"」이(가) "
+        + escapeHtml(p.overlapStart)+" ~ "+escapeHtml(p.overlapEnd)+" 동안 겹쳐요.</li>";
+    }).join("");
+    return "<div class=\"cb-title\">⚠ "+label+" 일정 충돌 " + pairs.length + "건</div><ul>" + items + "</ul>";
+  }
+  function renderBanner(){
+    var el = document.getElementById("conflictBanner");
+    var devPairs = conflicts.devOwners.pairs;
+    var planPairs = conflicts.planOwners.pairs;
+    if(devPairs.length===0 && planPairs.length===0){ el.classList.add("hidden"); el.innerHTML=""; return; }
+    el.classList.remove("hidden");
+    el.innerHTML = renderConflictSection("개발담당", devPairs) + renderConflictSection("기획/디자인담당", planPairs);
+  }
+
+  // ---------- rendering: list/table ----------
+  function populateDevFilter(){
+    var sel = document.getElementById("filterDev");
+    var current = sel.value;
+    var names = {};
+    tasks.forEach(function(t){
+      (t.devOwners||[]).forEach(function(n){ names[n]=true; });
+      (t.planOwners||[]).forEach(function(n){ names[n]=true; });
+    });
+    var sorted = Object.keys(names).sort();
+    sel.innerHTML = "<option value=\"\">전체 담당자</option>" + sorted.map(function(n){
+      return "<option value=\""+escapeHtml(n)+"\">"+escapeHtml(n)+"</option>";
+    }).join("");
+    if(sorted.indexOf(current) !== -1) sel.value = current;
+  }
+
+  function renderTable(){
+    var tbody = document.getElementById("taskTbody");
+    var empty = document.getElementById("emptyState");
+    var filtered = tasks.filter(function(t){
+      if(!filterDevValue) return true;
+      return (t.devOwners||[]).indexOf(filterDevValue) !== -1 || (t.planOwners||[]).indexOf(filterDevValue) !== -1;
+    }).slice().sort(function(a,b){
+      var as = a.startDate || "9999", bs = b.startDate || "9999";
+      return as < bs ? -1 : as > bs ? 1 : 0;
+    });
+
+    document.getElementById("taskCount").textContent = filtered.length + "개 과제";
+
+    if(filtered.length===0){
+      tbody.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+
+    tbody.innerHTML = filtered.map(function(t){
+      var devConf = conflicts.devOwners.byTask[t.id] || [];
+      var planConf = conflicts.planOwners.byTask[t.id] || [];
+      var devConfPersons = {};
+      devConf.forEach(function(c){ devConfPersons[c.person]=true; });
+      var planConfPersons = {};
+      planConf.forEach(function(c){ planConfPersons[c.person]=true; });
+
+      var devChips = (t.devOwners||[]).map(function(n){
+        var cls = devConfPersons[n] ? "chip conflict-person" : "chip";
+        return "<span class=\""+cls+"\">"+escapeHtml(n)+"</span>";
+      }).join("");
+      var planChips = (t.planOwners||[]).map(function(n){
+        var cls = planConfPersons[n] ? "chip conflict-person-plan" : "chip";
+        return "<span class=\""+cls+"\">"+escapeHtml(n)+"</span>";
+      }).join("");
+
+      var statusParts = [];
+      if(devConf.length) statusParts.push("<span class=\"badge-conflict\">⚠ 개발 충돌 "+devConf.length+"</span>");
+      if(planConf.length) statusParts.push("<span class=\"badge-conflict badge-conflict-plan\">⚠ 기획 충돌 "+planConf.length+"</span>");
+      var statusHtml = statusParts.length ? statusParts.join(" ") : "<span class=\"badge-ok\">정상</span>";
+
+      var rowCls = (devConf.length || planConf.length) ? "conflict-row" : "";
+
+      return "<tr class=\""+rowCls+"\" data-id=\""+t.id+"\">"
+        + "<td>"+escapeHtml(t.category)+"</td>"
+        + "<td><strong>"+escapeHtml(t.title)+"</strong></td>"
+        + "<td>"+escapeHtml(t.dept)+"</td>"
+        + "<td>"+escapeHtml(fmtRange(t.startDate,t.endDate))+"</td>"
+        + "<td>"+escapeHtml(t.planEffort)+"</td>"
+        + "<td>"+escapeHtml(t.devEffort)+"</td>"
+        + "<td><span class=\"prio prio-"+t.priority+"\"><span class=\"dot\"></span>"+escapeHtml(t.priority)+"</span></td>"
+        + "<td><div class=\"chip-row\">"+(planChips||"-")+"</div></td>"
+        + "<td><div class=\"chip-row\">"+(devChips||"-")+"</div></td>"
+        + "<td>"+escapeHtml(t.metric)+"</td>"
+        + "<td>"+statusHtml+"</td>"
+        + "<td><div class=\"row-actions\"><button class=\"btn-icon\" data-edit=\""+t.id+"\" title=\"수정\">✎</button></div></td>"
+        + "</tr>";
+    }).join("");
+  }
+
+  // ---------- rendering: timeline ----------
+  function daysInMonth(year, monthIdx){ return new Date(year, monthIdx+1, 0).getDate(); }
+  function dayOfMonthIfIn(dateStr, year, monthIdx){
+    if(!dateStr) return null;
+    var parts = dateStr.split("-");
+    var y = parseInt(parts[0],10), m = parseInt(parts[1],10)-1, d = parseInt(parts[2],10);
+    if(y===year && m===monthIdx) return d;
+    return null;
+  }
+
+  function renderTimeline(){
+    var year = timelineDate.getFullYear();
+    var monthIdx = timelineDate.getMonth();
+    var dim = daysInMonth(year, monthIdx);
+    var monthStartStr = year+"-"+pad2(monthIdx+1)+"-01";
+    var monthEndStr = year+"-"+pad2(monthIdx+1)+"-"+pad2(dim);
+    document.getElementById("monthLabel").textContent = year + "년 " + (monthIdx+1) + "월";
+
+    var todayY = new Date().getFullYear(), todayM = new Date().getMonth(), todayD = new Date().getDate();
+
+    // header row
+    var dayCols = "";
+    for(var d=1; d<=dim; d++){
+      var wd = new Date(year, monthIdx, d).getDay();
+      var isWeekend = (wd===0 || wd===6);
+      var isToday = (year===todayY && monthIdx===todayM && d===todayD);
+      var wdLabel = ["일","월","화","수","목","금","토"][wd];
+      dayCols += "<div class=\"day-col"+(isWeekend?" weekend":"")+(isToday?" today":"")+"\">"
+        + "<span class=\"num\">"+d+"</span><span class=\"wd\">"+wdLabel+"</span></div>";
+    }
+    var headerHtml = "<div class=\"gantt-header\"><div class=\"label-col\"></div><div style=\"display:flex;\">"+dayCols+"</div></div>";
+
+    // people (for the currently toggled role) with tasks visible this month
+    var roleField = timelineRole; // "devOwners" or "planOwners"
+    var devTasks = {}; // name -> [{task, clampedStart, clampedEnd}]
+    tasks.forEach(function(t){
+      if(!t.startDate || !t.endDate) return;
+      if(!overlaps(t.startDate, t.endDate, monthStartStr, monthEndStr)) return;
+      var cs = t.startDate < monthStartStr ? 1 : dayOfMonthIfIn(t.startDate, year, monthIdx);
+      var ce = t.endDate > monthEndStr ? dim : dayOfMonthIfIn(t.endDate, year, monthIdx);
+      if(cs===null) cs = 1;
+      if(ce===null) ce = dim;
+      (t[roleField]||[]).forEach(function(name){
+        (devTasks[name] = devTasks[name] || []).push({task:t, cs:cs, ce:ce});
+      });
+    });
+
+    var devNames = Object.keys(devTasks).sort();
+    var rowsHtml = "";
+
+    if(devNames.length===0){
+      rowsHtml = "<div style=\"padding:30px;color:var(--ink-soft);\">이 달에 표시할 과제가 없어요.</div>";
+    } else {
+      devNames.forEach(function(name){
+        var items = devTasks[name].slice().sort(function(a,b){ return a.cs - b.cs; });
+        var lanes = []; // last end-day per lane
+        items.forEach(function(it){
+          var laneIdx = -1;
+          for(var li=0; li<lanes.length; li++){
+            if(lanes[li] < it.cs){ laneIdx = li; break; }
+          }
+          if(laneIdx===-1){ laneIdx = lanes.length; lanes.push(it.ce); }
+          else { lanes[laneIdx] = it.ce; }
+          it.lane = laneIdx;
+        });
+        var laneCount = Math.max(1, lanes.length);
+        var trackHeight = laneCount*26 + 8;
+
+        var gridCols = "";
+        for(var d2=1; d2<=dim; d2++){
+          var wd2 = new Date(year, monthIdx, d2).getDay();
+          var isWeekend2 = (wd2===0||wd2===6);
+          var isToday2 = (year===todayY && monthIdx===todayM && d2===todayD);
+          gridCols += "<div class=\"day-col"+(isWeekend2?" weekend":"")+(isToday2?" today":"")+"\"></div>";
+        }
+
+        var barsHtml = items.map(function(it){
+          var t = it.task;
+          var taskConflicts = conflicts[roleField].byTask[t.id] || [];
+          var isConflictForThisPerson = taskConflicts.some(function(c){ return c.person === name; });
+          var left = (it.cs - 1) * 28;
+          var width = (it.ce - it.cs + 1) * 28 - 2;
+          var top = it.lane*26 + 4;
+          var cls = "task-bar prio-bg-" + (t.priority||"중") + (isConflictForThisPerson ? " conflict" : "");
+          var title = escapeHtml(t.title) + " (" + escapeHtml(t.startDate) + "~" + escapeHtml(t.endDate) + ")" + (isConflictForThisPerson ? " — 충돌" : "");
+          return "<div class=\""+cls+"\" style=\"left:"+left+"px;width:"+Math.max(width,10)+"px;top:"+top+"px;\" data-edit=\""+t.id+"\" title=\""+title+"\">"+escapeHtml(t.title)+"</div>";
+        }).join("");
+
+        rowsHtml += "<div class=\"dev-row\">"
+          + "<div class=\"label-col\" style=\"height:"+trackHeight+"px;\">"+escapeHtml(name)+"</div>"
+          + "<div class=\"track\" style=\"width:"+(dim*28)+"px;height:"+trackHeight+"px;\">"
+          + "<div class=\"track-grid\">"+gridCols+"</div>"
+          + barsHtml
+          + "</div></div>";
+      });
+    }
+
+    document.getElementById("ganttInner").innerHTML =
+      "<div class=\"gantt\">" + headerHtml + rowsHtml + "</div>";
+  }
+
+  // ---------- refresh cycle ----------
+  async function refreshAll(preserveScroll){
+    tasks = await loadTasks();
+    conflicts.devOwners = computeConflicts(tasks, "devOwners");
+    conflicts.planOwners = computeConflicts(tasks, "planOwners");
+    populateDevFilter();
+    renderBanner();
+    renderTable();
+    renderTimeline();
+    setLastUpdated();
+  }
+
+  // ---------- modal ----------
+  var editingId = null;
+  function openModalNew(){
+    editingId = null;
+    document.getElementById("modalTitle").textContent = "과제 등록";
+    document.getElementById("taskForm").reset();
+    document.getElementById("f_priority").value = "중";
+    document.getElementById("f_start").value = "";
+    document.getElementById("f_end").value = "";
+    document.getElementById("btnDelete").classList.add("hidden");
+    document.getElementById("formErr").textContent = "";
+    document.getElementById("modalOverlay").classList.remove("hidden");
+  }
+  function openModalEdit(id){
+    var t = tasks.find(function(x){ return x.id===id; });
+    if(!t) return;
+    editingId = id;
+    document.getElementById("modalTitle").textContent = "과제 수정";
+    document.getElementById("f_category").value = t.category||"";
+    document.getElementById("f_dept").value = t.dept||"";
+    document.getElementById("f_title").value = t.title||"";
+    document.getElementById("f_start").value = t.startDate||"";
+    document.getElementById("f_end").value = t.endDate||"";
+    document.getElementById("f_planEffort").value = t.planEffort||"";
+    document.getElementById("f_devEffort").value = t.devEffort||"";
+    document.getElementById("f_priority").value = t.priority||"중";
+    document.getElementById("f_planOwner").value = (t.planOwners||[]).join(", ");
+    document.getElementById("f_devOwners").value = (t.devOwners||[]).join(", ");
+    document.getElementById("f_metric").value = t.metric||"";
+    document.getElementById("f_detail").value = t.detail||"";
+    document.getElementById("f_author").value = t.author||"";
+    document.getElementById("formErr").textContent = "";
+    document.getElementById("btnDelete").classList.remove("hidden");
+    document.getElementById("modalOverlay").classList.remove("hidden");
+  }
+  function closeModal(){
+    document.getElementById("modalOverlay").classList.add("hidden");
+    editingId = null;
+  }
+
+  async function handleFormSubmit(e){
+    e.preventDefault();
+    var errEl = document.getElementById("formErr");
+    var category = document.getElementById("f_category").value.trim();
+    var title = document.getElementById("f_title").value.trim();
+    var start = document.getElementById("f_start").value;
+    var end = document.getElementById("f_end").value;
+    var devOwners = splitNames(document.getElementById("f_devOwners").value);
+
+    if(!category || !title || !start || !end || devOwners.length===0){
+      errEl.textContent = "구분, 과제명, 시작일, 종료일, 개발담당은 필수예요.";
+      return;
+    }
+    if(end < start){
+      errEl.textContent = "종료일은 시작일보다 빠를 수 없어요.";
+      return;
+    }
+
+    var task = {
+      id: editingId || genId(),
+      category: category,
+      title: title,
+      dept: document.getElementById("f_dept").value.trim(),
+      startDate: start,
+      endDate: end,
+      planEffort: document.getElementById("f_planEffort").value.trim(),
+      devEffort: document.getElementById("f_devEffort").value.trim(),
+      priority: document.getElementById("f_priority").value,
+      planOwners: splitNames(document.getElementById("f_planOwner").value),
+      devOwners: devOwners,
+      metric: document.getElementById("f_metric").value.trim(),
+      detail: document.getElementById("f_detail").value.trim(),
+      author: document.getElementById("f_author").value.trim()
+    };
+
+    try{
+      await saveTaskToStore(task);
+      closeModal();
+      showToast("저장했어요.");
+      await refreshAll();
+    }catch(err){
+      errEl.textContent = "저장에 실패했어요. 다시 시도해 주세요.";
+    }
+  }
+
+  async function handleDelete(){
+    if(!editingId) return;
+    if(!confirm("이 과제를 삭제할까요? 되돌릴 수 없어요.")) return;
+    try{
+      await deleteTaskFromStore(editingId);
+      closeModal();
+      showToast("삭제했어요.");
+      await refreshAll();
+    }catch(err){
+      document.getElementById("formErr").textContent = "삭제에 실패했어요. 다시 시도해 주세요.";
+    }
+  }
+
+  function setTimelineRole(role){
+    timelineRole = role;
+    document.getElementById("roleToggleDev").classList.toggle("active", role==="devOwners");
+    document.getElementById("roleTogglePlan").classList.toggle("active", role==="planOwners");
+    renderTimeline();
+  }
+
+  // ---------- event wiring ----------
+  function wireEvents(){
+    document.getElementById("btnNew").addEventListener("click", openModalNew);
+    document.getElementById("btnCancel").addEventListener("click", closeModal);
+    document.getElementById("btnDelete").addEventListener("click", handleDelete);
+    document.getElementById("taskForm").addEventListener("submit", handleFormSubmit);
+    document.getElementById("modalOverlay").addEventListener("click", function(e){
+      if(e.target === this) closeModal();
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape") closeModal();
+    });
+
+    document.querySelectorAll(".tab").forEach(function(tabBtn){
+      tabBtn.addEventListener("click", function(){
+        document.querySelectorAll(".tab").forEach(function(b){ b.classList.remove("active"); });
+        tabBtn.classList.add("active");
+        currentTab = tabBtn.dataset.tab;
+        document.getElementById("viewList").classList.toggle("hidden", currentTab!=="list");
+        document.getElementById("viewTimeline").classList.toggle("hidden", currentTab!=="timeline");
+        if(currentTab==="timeline") renderTimeline();
+      });
+    });
+
+    document.getElementById("filterDev").addEventListener("change", function(){
+      filterDevValue = this.value;
+      renderTable();
+    });
+
+    document.getElementById("btnRefresh").addEventListener("click", function(){ refreshAll(); });
+
+    document.getElementById("btnSeed").addEventListener("click", async function(){
+      var btn = document.getElementById("btnSeed");
+      btn.disabled = true;
+      await seedIfNeeded(true);
+      await refreshAll();
+      btn.disabled = false;
+    });
+
+    document.getElementById("prevMonth").addEventListener("click", function(){
+      timelineDate = new Date(timelineDate.getFullYear(), timelineDate.getMonth()-1, 1);
+      renderTimeline();
+    });
+    document.getElementById("nextMonth").addEventListener("click", function(){
+      timelineDate = new Date(timelineDate.getFullYear(), timelineDate.getMonth()+1, 1);
+      renderTimeline();
+    });
+
+    document.getElementById("roleToggleDev").addEventListener("click", function(){ setTimelineRole("devOwners"); });
+    document.getElementById("roleTogglePlan").addEventListener("click", function(){ setTimelineRole("planOwners"); });
+
+    document.getElementById("taskTbody").addEventListener("click", function(e){
+      var editBtn = e.target.closest("[data-edit]");
+      if(editBtn){ openModalEdit(editBtn.dataset.edit); return; }
+      var row = e.target.closest("tr[data-id]");
+      if(row){ openModalEdit(row.dataset.id); }
+    });
+
+    document.getElementById("ganttInner").addEventListener("click", function(e){
+      var bar = e.target.closest("[data-edit]");
+      if(bar){ openModalEdit(bar.dataset.edit); }
+    });
+  }
+
+  // ---------- init ----------
+  document.addEventListener("DOMContentLoaded", async function(){
+    wireEvents();
+    if(!apiConfigured()){
+      showStorageNotice("⚠ 아직 저장소 주소가 설정되지 않았어요. index.html 위쪽의 API_URL 값을 Apps Script에서 배포한 웹앱 URL로 바꿔주세요.");
+      return;
+    }
+    await seedIfNeeded();
+    await refreshAll();
+    pollTimer = setInterval(refreshAll, 8000);
+    document.addEventListener("visibilitychange", function(){
+      if(document.visibilityState === "visible") refreshAll();
+    });
+  });
+})();
+</script>
+</body>
+</html>
