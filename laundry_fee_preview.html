@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>세탁비 미리보기 · 2안</title>
+<style>
+:root{
+  /* 앱 가격표와 같은 톤.
+     녹색 = 혜택(할인가·BEST·절약·CTA) · 파랑 = 세탁권 정보 · 회색 = 사용불가 */
+  --bg:#f6f7f9; --card:#fff;
+  --line:#e8eaed; --line2:#f1f2f4;
+  --txt:#191f28; --sub:#6b7684; --dim:#a4abb5;
+  --accent:#3a4150;                                   /* 앱 카테고리 칩 선택색 */
+  --brand:#2fb673; --brandline:#b9e7cf;               /* 앱 수거신청 버튼 녹색 */
+  --save:#178a55; --savebg:#e4f6ec;                   /* 앱 BEST 배지 톤 */
+  --tint:#eaf3ff; --tintline:#c4ddff; --tinktxt:#0a63cc;  /* 앱 「세탁비 계산」 파랑 */
+  --warnbg:#fffbeb; --warnline:#fde68a; --warntxt:#92400e;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px;
+  --r:14px; --r-in:10px;
+  --f-title:17px; --f-body:15px; --f-cap:13px; --f-micro:11.5px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+  font-size:var(--f-body); line-height:1.5; color:var(--txt);
+  background:#eceef1; word-break:keep-all; overflow-wrap:anywhere;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.phone{max-width:412px;margin:0 auto;min-height:100vh;background:var(--bg);
+  box-shadow:0 0 0 1px rgba(17,24,39,.06);display:flex;flex-direction:column}
+.wrap{flex:1 0 auto;padding:0 var(--s4) 150px}
+@media(min-width:520px){.phone{margin:22px auto;min-height:calc(100vh - 44px);
+  border-radius:20px;overflow:hidden}}
+
+/* ── 헤더 ─────────────────────────────────────────────────────────── */
+.hdr{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 94%,transparent);
+  backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line);
+  padding:calc(var(--s3) + env(safe-area-inset-top)) var(--s4) var(--s3)}
+.hdr h1{font-size:var(--f-title);font-weight:700;letter-spacing:-.4px;margin:0}
+.hdr .as{font-size:var(--f-micro);color:var(--sub);margin-top:2px}
+.hdr.compact h1{font-size:var(--f-cap);color:var(--sub)}
+.hdr.compact .as{display:none}
+/* 앱 상단 탭과 같은 밑줄 방식입니다. 선택된 쪽만 검게, 굵은 밑줄로 */
+.seg{display:flex;gap:var(--s5);margin-top:var(--s2);border-bottom:1px solid var(--line)}
+.seg button{flex:none;min-height:46px;padding:0 2px;border:0;background:none;
+  font:700 var(--f-body)/1.2 inherit;color:var(--dim);letter-spacing:-.3px;cursor:pointer;
+  border-bottom:2.5px solid transparent;margin-bottom:-1px;
+  transition:color .2s ease-out,border-color .2s ease-out}
+.seg button[aria-selected="true"]{color:var(--txt);border-bottom-color:var(--txt)}
+.srch{position:relative;margin-top:var(--s3)}
+.srch input{width:100%;height:44px;padding:0 44px 0 38px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card);font:inherit;font-size:var(--f-body);
+  color:var(--txt);letter-spacing:-.2px}
+.srch input::placeholder{color:var(--dim)}
+.srch input::-webkit-search-cancel-button,
+.srch input::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
+.srch input:focus{outline:none;border-color:var(--tintline);box-shadow:0 0 0 3px var(--tint)}
+.srch .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;color:var(--dim);pointer-events:none}
+/* 44×44 로 키웁니다. 입력창 오른쪽 패딩이 이미 44px 라 글자와 겹치지 않습니다. */
+.srch .clr{position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border:0;background:none;color:var(--dim);
+  font-size:17px;cursor:pointer;border-radius:22px;display:none}
+.srch.on .clr{display:block}
+
+/* ── 구독 : 가입 여부 → 플랜 선택 → 내 세탁권 ─────────────────────── */
+/* 이 화면의 숫자는 전부 고른 플랜에 매여 있습니다. 그 사실을 먼저 말해 주지
+   않으면, 고객은 기본 플랜이 자기 것인 줄 알고 그대로 읽습니다. */
+.guide{display:flex;gap:7px;background:var(--tint);border:1px solid var(--tintline);
+  color:var(--tinktxt);border-radius:var(--r-in);padding:11px 12px;margin-top:var(--s4);
+  font-size:var(--f-cap);font-weight:600;line-height:1.55}
+.ask{background:var(--card);border-radius:var(--r);padding:var(--s4);margin-top:var(--s4)}
+.ask .t{font-size:var(--f-body);font-weight:700;letter-spacing:-.3px;margin-bottom:var(--s3)}
+.ask .two{display:flex;gap:var(--s2)}
+.ask .two button{flex:1;min-height:52px;border:1px solid var(--line);border-radius:var(--r-in);
+  background:var(--card);font:700 var(--f-cap)/1.35 inherit;color:var(--sub);cursor:pointer;
+  letter-spacing:-.2px;padding:6px 8px}
+.ask .two button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+.plist{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s3)}
+.plist button{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:var(--r-in);background:var(--card);
+  font:inherit;color:inherit;cursor:pointer;text-align:left}
+.plist button[aria-pressed="true"]{border-color:var(--tinktxt);background:var(--tint)}
+.plist .pn{flex:1;min-width:0;font-size:var(--f-cap);font-weight:700;letter-spacing:-.2px}
+.plist .pd{font-size:var(--f-micro);color:var(--sub);font-weight:600;margin-top:2px}
+.plist button[aria-pressed="true"] .pd{color:var(--tinktxt)}
+
+/* 앱이 밝은 화면이라 지갑도 <b>흰 카드</b>로 둡니다. 짙은 카드를 쓰면
+   이 하나만 앱에서 떨어져 나와 보입니다. 세탁권 타일은 앱 적립 배너와 같은
+   연한 민트로, 숫자만 진한 녹색으로 세웁니다. */
+.wallet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--s4);margin-top:var(--s4)}
+.wallet .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.wallet .pn{font-size:var(--f-body);font-weight:700;letter-spacing:-.3px;min-width:0}
+.wallet .ch{flex:none;white-space:nowrap;min-height:44px;padding:0 8px;border:0;background:none;
+  color:var(--sub);font:600 var(--f-micro)/1 inherit;cursor:pointer;text-decoration:underline}
+.tks{display:flex;gap:6px;margin-top:var(--s3)}
+.tk{flex:1;min-width:0;background:var(--savebg);border-radius:var(--r-in);
+  padding:11px 4px;text-align:center}
+.tk.use{background:#d3efe0}
+.tk .n{font-size:var(--f-micro);color:var(--save);opacity:.8;font-weight:600}
+.tk .v{font-size:17px;font-weight:800;letter-spacing:-.4px;margin-top:2px;color:var(--save)}
+.tk .v s{font-size:var(--f-micro);font-weight:600;opacity:.5;text-decoration:line-through;margin-right:2px}
+.wallet .hint{font-size:var(--f-micro);color:var(--sub);margin-top:10px;line-height:1.5}
+
+/* ── 카테고리 칩 · 품목 ───────────────────────────────────────────── */
+.chips{display:flex;gap:var(--s2);overflow-x:auto;padding:var(--s4) 0 var(--s1);
+  scrollbar-width:none;-ms-overflow-style:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;min-height:44px;padding:0 15px;border:1px solid var(--line);
+  border-radius:20px;background:var(--card);font:600 var(--f-cap)/1 inherit;
+  color:var(--sub);letter-spacing:-.2px;cursor:pointer;
+  transition:background .2s ease-out,color .2s ease-out,border-color .2s ease-out}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:var(--s3)}
+.cat{font-size:var(--f-micro);font-weight:700;color:var(--sub);letter-spacing:.2px;
+  padding:13px var(--s4) 4px}
+.row{display:flex;align-items:center;gap:var(--s3);min-height:64px;
+  padding:8px var(--s3) 8px var(--s4);border-bottom:1px solid var(--line2)}
+.row:last-child{border-bottom:0}
+.row.on{background:#f4fbf7}
+.row .bd{flex:1;min-width:0}
+.row .nm{font-size:var(--f-body);font-weight:500;letter-spacing:-.2px}
+.row .pz{font-size:var(--f-cap);color:var(--sub);margin-top:3px}
+.row .pz b{color:var(--txt);font-weight:700}
+.row .pz .s{color:var(--save);font-weight:700}
+.tg{display:inline-block;padding:1px 6px;border-radius:4px;background:var(--tint);
+  color:var(--tinktxt);font-size:var(--f-micro);font-weight:700;margin-right:5px}
+.tg.none{background:#f1f2f4;color:var(--sub)}
+.badge{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:4px;
+  background:var(--savebg);color:var(--save);font-size:var(--f-micro);font-weight:700;vertical-align:1px}
+.step{flex:none;display:flex;align-items:center;gap:2px}
+.step button{width:44px;height:44px;border:1px solid var(--line);border-radius:22px;
+  background:var(--card);color:var(--txt);font:600 19px/1 inherit;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.step button.add{background:var(--brand);border-color:var(--brand);color:#fff}
+.step .q{min-width:30px;text-align:center;font-size:var(--f-body);font-weight:700}
+
+.svc{background:var(--card);border-radius:var(--r);padding:var(--s4);margin-bottom:var(--s3)}
+.svc .t{font-size:var(--f-body);font-weight:700;letter-spacing:-.3px}
+.svc .d{font-size:var(--f-cap);color:var(--sub);line-height:1.6;margin-top:3px}
+.svc .p{font-size:var(--f-cap);font-weight:700;margin-top:6px}
+.sec{font-size:var(--f-cap);font-weight:700;color:var(--sub);margin:var(--s6) 0 var(--s2)}
+.note{display:flex;gap:8px;background:var(--warnbg);border:1px solid var(--warnline);
+  color:var(--warntxt);border-radius:var(--r-in);padding:10px 12px;
+  font-size:var(--f-micro);line-height:1.55;margin-top:var(--s4)}
+.note b{font-weight:700}
+.empty{background:var(--card);border-radius:var(--r);padding:30px var(--s4);text-align:center}
+.empty .t{font-size:var(--f-body);font-weight:600;margin-bottom:5px}
+.empty .d{font-size:var(--f-cap);color:var(--sub);line-height:1.6}
+.foot{font-size:var(--f-micro);color:var(--dim);line-height:1.7;margin-top:var(--s5)}
+mark{background:#fef08a;color:inherit;border-radius:3px;padding:0 1px}
+
+/* ── 플로팅 계산 결과 ─────────────────────────────────────────────── */
+.float{position:fixed;left:0;right:0;bottom:0;z-index:70;pointer-events:none;
+  padding:0 var(--s4) calc(var(--s3) + env(safe-area-inset-bottom))}
+.fin{max-width:380px;margin:0 auto;pointer-events:auto;background:var(--card);
+  border-radius:16px;box-shadow:0 10px 34px rgba(17,24,39,.22);overflow:hidden}
+.fbar{display:flex;align-items:center;gap:10px;width:100%;padding:12px var(--s4);
+  border:0;background:none;font:inherit;color:inherit;cursor:pointer;text-align:left;min-height:56px}
+.fbar .l{flex:1;min-width:0}
+.fbar .l .c{display:block;font-size:var(--f-micro);color:var(--sub);font-weight:600}
+.fbar .l .v{display:block;font-size:19px;font-weight:800;letter-spacing:-.5px;margin-top:1px}
+.fbar .cv{flex:none;font-size:var(--f-micro);color:var(--dim);font-weight:600}
+.fbody{border-top:1px solid var(--line2);padding:var(--s3) var(--s4) 0;display:none}
+.fin.open .fbody{display:block}
+.fbar .cv::after{content:' ▲'}
+.fin.open .fbar .cv::after{content:' ▼'}
+.nudge{display:flex;gap:6px;background:var(--savebg);border-radius:var(--r-in);
+  padding:8px 11px;font-size:var(--f-micro);color:var(--save);font-weight:600;
+  line-height:1.5;margin:0 var(--s4) var(--s3)}
+.blk{border:1px solid var(--line);border-radius:var(--r-in);padding:10px 12px;margin-bottom:var(--s2)}
+.blk.tk{border-color:var(--tintline);background:var(--tint)}
+.blk .bt{font-size:var(--f-micro);font-weight:700;color:var(--sub);margin-bottom:5px}
+.li{display:flex;justify-content:space-between;gap:10px;font-size:var(--f-cap);padding:2px 0;line-height:1.5}
+.li .ellip{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .rt{flex:none;text-align:right}
+/* 결과 장부 — 구독 합계와 정가를 같은 무게로 세워 비교가 되게 합니다 */
+.dv{border-top:1px dashed var(--line);margin:8px 0}
+.sum{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+  border-top:1px solid var(--line);margin-top:9px;padding-top:9px;
+  font-size:var(--f-cap);font-weight:700}
+.sum .rt{flex:none;font-size:17px;font-weight:800;letter-spacing:-.4px}
+.blk.alt{background:#f8f9fa}
+.vs{display:flex;align-items:center;gap:10px;margin:var(--s2) 0;
+  font-size:var(--f-micro);font-weight:800;color:var(--dim);letter-spacing:1px}
+.vs::before,.vs::after{content:'';flex:1;height:1px;background:var(--line)}
+.verdict{display:flex;gap:7px;align-items:flex-start;background:var(--savebg);
+  border-radius:var(--r-in);padding:11px 12px;margin:var(--s2) 0 var(--s3);
+  font-size:var(--f-cap);font-weight:700;color:var(--save);line-height:1.55}
+.verdict.flat{background:#f4f5f7;color:var(--sub)}
+.verdict b{font-weight:800}
+.cmp{display:flex;gap:var(--s2);margin-bottom:var(--s2)}
+.cmp .col{flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--r-in);padding:9px 11px}
+.cmp .col.hi{border-color:var(--save);background:var(--savebg)}
+.cmp .lb{font-size:var(--f-micro);color:var(--sub);font-weight:600}
+.cmp .col.hi .lb{color:var(--save)}
+.cmp .big{font-size:18px;font-weight:800;letter-spacing:-.5px;margin-top:1px}
+.cmp .col.hi .big{color:var(--save)}
+.cmp .sv{font-size:var(--f-micro);font-weight:700;color:var(--save);margin-top:1px}
+.fact{padding:0 var(--s4) var(--s3)}
+.btn{display:block;width:100%;min-height:52px;padding:15px;border:0;border-radius:26px;
+  background:var(--brand);color:#fff;font:700 16px/1.2 inherit;letter-spacing:-.3px;cursor:pointer;
+  box-shadow:0 4px 12px rgba(47,182,115,.26)}
+.btn:disabled{background:#dfe3e8;box-shadow:none;cursor:default}
+/* 담기를 마쳤는지 묻는 보조 버튼. 주 행동(수거 신청)보다 약하게 둡니다. */
+.btn.ghost{background:var(--card);color:var(--save);border:1px solid var(--brandline);
+  box-shadow:none;margin-bottom:var(--s2)}
+.lnk{flex:none;white-space:nowrap;min-height:44px;padding:0 8px;border:0;background:none;color:var(--dim);
+  font:600 var(--f-micro)/1 inherit;cursor:pointer;text-decoration:underline}
+.idle{font-size:var(--f-cap);color:var(--sub);text-align:center;padding:14px var(--s4) 0;line-height:1.6}
+/* 담은 내용으로 더 싼 플랜이 있으면 바로 말을 겁니다.
+   눌러야 나오는 자리에 두면 기본 플랜만 보고 나가는 분이 영영 모릅니다. */
+.better{display:flex;align-items:center;gap:10px;margin-top:var(--s2);
+  background:var(--savebg);border:1px solid var(--brandline);border-radius:var(--r-in);
+  padding:10px 12px}
+.better .bi{flex:1;min-width:0}
+.better .bt{font-size:var(--f-cap);font-weight:700;color:var(--save);letter-spacing:-.2px}
+.better .bd{font-size:var(--f-micro);color:var(--save);opacity:.82;margin-top:2px}
+.better button{flex:none;min-height:44px;padding:0 14px;border:0;border-radius:22px;
+  background:var(--brand);color:#fff;font:700 var(--f-cap)/1 inherit;cursor:pointer;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<header class="hdr" id="hdr">
+  <h1>세탁비 미리보기</h1>
+  <div class="seg" role="tablist" aria-label="이용 방식">
+    <button id="pF" role="tab" aria-selected="true"  type="button">정가 기준</button>
+    <button id="pS" role="tab" aria-selected="false" type="button">구독 기준</button>
+  </div>
+  <div class="srch" id="srchbox">
+    <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="품목 검색 (예: 패딩, 이불)" autocomplete="off" aria-label="품목 검색">
+    <button class="clr" id="clr" type="button" aria-label="검색어 지우기">✕</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="guide"></div>
+  <div id="setup"></div>
+  <div class="chips" id="chips"></div>
+  <div id="body"></div>
+  <div class="sec">이런 것도 맡기실 수 있어요</div>
+  <div id="others"></div>
+  <div class="foot" id="foot"></div>
+</div>
+</div>
+
+<div class="float"><div class="fin" id="fin"></div></div>
+<script>
+const ITEMS = [
+  ["생활빨래 (30L 가방)", "생활빨래", 13500, 9800, 0, 0, 1, 1, "L", [1, 2]],   /* 66번 E블록 · 가방 단위라 점수가 아니라 가방 수로 셉니다 */
+  ["바지", "하의", 5800, 4640, 15000, 12000, 1, 1, "C", [1, 1]],
+  ["와이셔츠", "상의", 2900, 2320, 10000, 8000, 1, 1, "Y", [1, 1]],   /* 와이셔츠권을 가진 플랜에서만 — 다른 플랜은 Y권이 없어 저절로 제외됩니다 */
+  ["니트, 스웨터", "상의", 6500, 5200, 18000, 14400, 1, 1, "C", [1, 1]],
+  ["일반셔츠", "상의", 3800, 3040, 10000, 8000, 1, 0, "", [0, 0]],   /* 값이 싸서 모든 구독에서 차감 없음 — 구독 할인가로만 과금합니다 */
+  ["재킷", "아우터", 8500, 6800, 30000, 24000, 1, 1, "C", [1, 1]],
+  ["티셔츠", "상의", 4500, 3600, 12000, 9600, 1, 1, "C", [1, 1]],
+  ["패딩", "아우터", 17800, 14240, 40000, 32000, 1, 1, "C", [2, 2]],
+  ["가디건", "상의", 6500, 5200, 18000, 14400, 1, 1, "C", [1, 1]],
+  ["일반이불, 극세사패드", "이불", 14500, 11600, 0, 0, 1, 1, "B", [1, 2]],
+  ["커버류, 이불패드", "이불", 11500, 9200, 0, 0, 1, 1, "B", [1, 2]],
+  ["정장재킷", "아우터", 6500, 5200, 25000, 20000, 1, 1, "C", [1, 1]],
+  ["코트, 트렌치코트", "아우터", 14800, 11840, 50000, 40000, 1, 1, "C", [1, 2]],
+  ["블라우스", "상의", 4800, 3840, 15000, 12000, 1, 1, "C", [1, 1]],
+  ["원피스, 점프수트", "아우터", 7400, 5920, 25000, 20000, 1, 1, "C", [1, 1]],
+  ["후드티, 맨투맨티", "상의", 5500, 4400, 15000, 12000, 1, 1, "C", [1, 1]],
+  ["스커트", "하의", 5800, 4640, 15000, 12000, 1, 1, "C", [1, 1]],
+  ["롱패딩점퍼", "아우터", 22000, 17600, 50000, 40000, 1, 1, "C", [2, 3]],
+  ["일반운동화", "신발", 6500, 5200, 25000, 20000, 1, 1, "S", [0, 1]],
+  ["운동화-부분 세무/가죽", "신발", 8500, 6800, 45000, 36000, 1, 1, "S", [0, 1]],
+  ["베개 커버, 쿠션 커버", "이불", 4000, 3200, 0, 0, 1, 0, "", [0, 0]],
+  ["운동화-전체 세무/가죽", "신발", 10500, 8400, 45000, 36000, 1, 1, "S", [0, 2]],
+  ["극세사 이불, 일반 토퍼", "이불", 19800, 15840, 0, 0, 1, 1, "B", [2, 3]],
+  ["모자", "잡화", 6800, 5440, 12000, 9600, 1, 0, "", [0, 0]],
+  ["머플러, 스카프", "잡화", 4800, 3840, 12000, 9600, 1, 0, "", [0, 0]],
+  ["경량패딩", "아우터", 9800, 7840, 40000, 32000, 1, 1, "C", [1, 1]],
+  ["패딩 조끼", "아우터", 9800, 7840, 40000, 32000, 0, 1, "C", [1, 1]],
+  ["구스이불, 양모이불, 실크이불", "이불", 22000, 17600, 0, 0, 0, 1, "B", [2, 3]],
+  ["러그, 카펫", "리빙", 18000, 14400, 0, 0, 0, 0, "", [0, 0]],
+  ["아동 신발", "신발", 5800, 4640, 25000, 20000, 0, 1, "S", [0, 1]],
+  ["캐주얼 조끼", "상의", 5000, 4000, 12000, 12000, 0, 1, "C", [1, 1]],
+  ["발매트", "리빙", 5800, 4640, 0, 0, 0, 0, "", [0, 0]],
+  ["넥타이", "잡화", 3000, 2400, 12000, 9600, 0, 0, "", [0, 0]],
+  ["아동이불, 무릎담요", "이불", 7500, 6000, 0, 0, 0, 1, "B", [1, 2]],   /* 마스터에 없어 추정 */
+  ["정장조끼", "아우터", 3500, 2800, 12000, 9600, 0, 1, "C", [1, 1]],
+  ["일반 커튼", "리빙", 17000, 13600, 0, 0, 0, 0, "", [0, 0]],
+  ["골프화,등산화", "신발", 12500, 10000, 25000, 20000, 0, 1, "S", [0, 2]],
+  ["러그, 카펫 (대형)", "리빙", 30000, 24000, 0, 0, 0, 0, "", [0, 0]],
+  ["앞치마", "잡화", 4000, 3200, 0, 0, 0, 0, "", [0, 0]],
+  ["암막 커튼", "리빙", 25000, 20000, 0, 0, 0, 0, "", [0, 0]],
+  ["스카프, 장갑", "잡화", 4800, 3840, 12000, 9600, 0, 0, "", [0, 0]],
+  ["인형", "잡화", 7800, 6240, 0, 0, 0, 0, "", [0, 0]],
+  ["에코백", "잡화", 4000, 3200, 0, 0, 0, 0, "", [0, 0]],
+  ["백팩", "잡화", 12000, 9600, 0, 0, 0, 0, "", [0, 0]],   /* 마스터에 없어 추정 */
+  ["유모차", "리빙", 59800, 47840, 0, 0, 0, 0, "", [0, 0]],
+  ["카시트", "리빙", 54000, 43200, 0, 0, 0, 0, "", [0, 0]],
+  ["하이탑", "신발", 9800, 7840, 25000, 20000, 0, 1, "S", [0, 1]],
+  ["한복 상의", "잡화", 6000, 4800, 0, 0, 0, 1, "C", [1, 1]],
+  ["가운", "잡화", 7500, 6000, 0, 0, 0, 0, "", [0, 0]],
+  ["숄", "잡화", 8000, 6400, 20000, 16000, 0, 0, "", [0, 0]],
+  ["한복 하의", "잡화", 7000, 5600, 0, 0, 0, 1, "C", [1, 1]],
+  ["러그, 카펫 [스페셜]", "리빙", 60000, 48000, 0, 0, 0, 0, "", [0, 0]],
+  ["패딩바지", "하의", 10000, 8000, 25000, 20000, 0, 1, "C", [1, 1]],
+  ["구스베개", "이불", 12000, 9600, 0, 0, 0, 1, "B", [1, 2]],   /* 마스터에 없어 추정 */
+  ["수영복, 레시가드", "잡화", 6000, 4800, 0, 0, 0, 0, "", [0, 0]],
+  ["식탁보", "리빙", 12000, 9600, 0, 0, 0, 0, "", [0, 0]],
+  ["러그, 카펫 [스페셜/대형]", "리빙", 100000, 80000, 0, 0, 0, 0, "", [0, 0]],
+  ["쇼파 커버-2인 이상", "리빙", 15000, 12000, 0, 0, 0, 0, "", [0, 0]],
+  ["축구화", "신발", 9800, 7840, 25000, 20000, 0, 1, "S", [0, 1]],
+  ["대형 인형", "잡화", 20000, 16000, 0, 0, 0, 0, "", [0, 0]],
+  ["구스토퍼", "이불", 30000, 24000, 0, 0, 0, 1, "B", [2, 3]],   /* 마스터에 없어 추정 */
+  ["한복 조끼", "잡화", 3000, 2400, 0, 0, 0, 1, "C", [1, 1]],
+  ["이중 커튼", "리빙", 20000, 16000, 0, 0, 0, 0, "", [0, 0]],
+  ["쇼파 커버-3인 이상", "리빙", 20000, 16000, 0, 0, 0, 0, "", [0, 0]],
+  ["유모차(특수)", "리빙", 78000, 62400, 0, 0, 0, 0, "", [0, 0]],
+  ["차량용 양털시트", "리빙", 20000, 16000, 0, 0, 0, 0, "", [0, 0]]
+];
+
+/* [이름, 카테고리, 정가, 구독가, 프리미엄정가, 프리미엄구독가, BEST, 세탁권가능, 세탁권종류,
+    <b>차감장수 [일반 플랜, 런드리고X]</b>]
+   「구독차감개수」 마스터 그대로입니다. <b>같은 품목도 플랜 계열마다 다르게 빠집니다</b> —
+   코트 1장 vs 2장, 롱패딩 2장 vs 3장, 와이셔츠 1장 vs 2장.
+   0 이면 그 계열에서는 <b>세탁권을 쓸 수 없습니다</b>. 신발이 일반 플랜에서 전부 0 인 것이
+   그 경우입니다 — 신발 세탁권은 없고 런드리고X 통합권으로만 덮입니다. */
+const TKN = { C:'개별클리닝', Y:'와이셔츠', B:'이불', S:'신발', L:'생활빨래' };
+
+/* ── 구독 플랜 ───────────────────────────────────────────────────────
+   64·66번으로 확정된 <b>현재 판매중인 12개</b>입니다. 이전 목업의 7개
+   (올인원 139 · 드라이온리 79 …)는 전부 단종된 것이라 통째로 갈았습니다.
+
+   fee 는 더 이상 추측이 아닙니다. 66번에서 이렇게 맞아떨어졌습니다.
+     <b>월 구독료 = Σ(권종 구독단가 × 장수) + 3,800원 × 월 수거횟수</b>
+   12개 전부 실제 가입자 결제액과 <b>1원도 차이가 없습니다.</b>
+
+   cov = 통합권이 덮는 종류. <b>셔츠(Y)는 없습니다.</b> 와이셔츠는 값이 싸서
+   일반 구독으로는 차감하지 않고 와이셔츠 전용 플랜에서만 빠집니다.
+   (마스터에는 2장으로 적혀 있지만 운영은 그렇지 않습니다 — 운영을 따랐습니다.)
+
+   v = 세탁권 1장의 값(구독단가). 이게 있어야 "이 옷에 세탁권을 쓰면
+   이득인지" 를 말할 수 있습니다. 예를 들어 드라이온리 베이직의 개별클리닝
+   1장은 6,800원인데, 바지 구독가는 4,640원입니다 — 바지에 쓰면 손해입니다.
+
+   dlv = 월 수거 횟수. 구독료에 <b>이미 포함</b>되어 있어 따로 더하지 않습니다.
+   subs = 해지 안 한 가입자 수(66번 D). 화면 정렬과 2안 기본값의 근거입니다. */
+const PLANS = [
+  { id:'gox-l', name:'런드리고X 라이트',      fee:33000, dlv:1, subs:1155,
+    t:[{ k:'U', n:4,  v:7300,  cov:['C','B','S','L'] }] },
+  { id:'gox-b', name:'런드리고X 베이직',      fee:44000, dlv:1, subs:1072,
+    t:[{ k:'U', n:6,  v:6700,  cov:['C','B','S','L'] }] },
+  { id:'dry-b', name:'드라이온리 베이직',      fee:58200, dlv:1, subs:730,
+    t:[{ k:'C', n:8,  v:6800 }] },
+  { id:'yd-g',  name:'와이셔츠&드라이 시그니처', fee:72600, dlv:2, subs:526,
+    t:[{ k:'C', n:5,  v:7800 }, { k:'Y', n:10, v:2600 }] },
+  { id:'gox-s', name:'런드리고X 스탠다드',     fee:65300, dlv:1, subs:346,
+    t:[{ k:'U', n:10, v:6150,  cov:['C','B','S','L'] }] },
+  { id:'dry-s', name:'드라이온리 스탠다드',     fee:82000, dlv:2, subs:272,
+    t:[{ k:'C', n:12, v:6200 }] },
+  { id:'bo-b',  name:'베딩온리 베이직',        fee:39500, dlv:1, subs:236,
+    t:[{ k:'B', n:3,  v:11900 }] },
+  { id:'lo-b',  name:'런드리온리 베이직',      fee:46600, dlv:2, subs:230,
+    t:[{ k:'L', n:3,  v:13000 }] },
+  { id:'gox-g', name:'런드리고X 시그니처',     fee:88100, dlv:2, subs:189,
+    t:[{ k:'U', n:14, v:5750,  cov:['C','B','S','L'] }] },
+  { id:'ld-s',  name:'런드리&드라이 스탠다드',  fee:70700, dlv:2, subs:83,
+    t:[{ k:'C', n:4,  v:7150 }, { k:'L', n:3,  v:11500 }] },
+  { id:'lo-s',  name:'런드리온리 스탠다드',     fee:80400, dlv:3, subs:71,
+    t:[{ k:'L', n:6,  v:11500 }] },
+  { id:'ld-b',  name:'런드리&드라이 베이직',    fee:50900, dlv:1, subs:58,
+    t:[{ k:'C', n:3,  v:7700 }, { k:'L', n:2,  v:12000 }] }
+];
+/* 이미 구독 중인 분께 보여줄 잔여 — 목업이라 예시입니다 */
+const USED_DEMO = { C:2, Y:8, B:0, S:0, L:1 };
+
+/* 정가 기준 배송비. 19,500원 미만이면 기본 3,800 + 추가 3,800 = 7,600원입니다
+   (64번 LAUNDRY_DELIVERY_PRICE_POLICY: 19,499원 이하 EXTRA_CHARGE 3,800).
+   구독은 여기 쓰지 않습니다 — 구독료에 배송비가 이미 들어 있습니다. */
+const DLV = { threshold: 19500, under: 7600, over: 3800 };
+const OTHERS = [
+  { t:'수선', d:'기장·품·단추 등 수선 종류와 옷 상태에 따라 금액이 달라집니다.', p:'수선 항목별 요금' },
+  { t:'의류보관', d:'철 지난 옷을 맡겨 두는 서비스입니다. 보관 기간만큼 월 단위로 계산합니다.', p:'월 단위 요금' },
+  { t:'얼룩·집중케어', d:'얼룩 종류와 번진 정도를 보고 금액이 정해져서, 접수 후에 안내드립니다.', p:'구간 요금 · 확인 후 안내' }
+];
+const CATS = ['생활빨래','상의','하의','아우터','이불','신발','잡화','리빙'];
+
+const $ = id => document.getElementById(id);
+const won = n => n.toLocaleString('ko-KR');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hi = (s, q) => !q ? esc(s)
+  : esc(s).replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'), '<mark>$1</mark>');
+
+let mode = 'F';          // 'F' 자유 · 'S' 구독
+/* 2안 : 플랜 이름을 모르는 사람에게 "고르세요" 라고 묻지 않습니다.
+   가장 넓게 덮는 런드리고X 를 기본값으로 두고, 바꾸고 싶으면 바꾸게 합니다. */
+/* <b>런드리고X 베이직</b>(세탁권 6장)을 기본으로 둡니다.
+   라이트(4장)가 가입자 1위(1,155명)지만 조금만 담아도 소진돼서, 첫 화면이
+   「세탁권 소진」으로 시작합니다. 베이직은 1,072명으로 거의 같으면서 여유가
+   있습니다. 통합권이라 배워야 할 규칙이 가장 적은 계열이기도 합니다 —
+   지갑 칸이 하나고, 셔츠만 빼면 다 덮입니다. */
+const DEFAULT_PLAN = 'gox-b';
+let joined = false;
+let planId = DEFAULT_PLAN;
+let picking = false;
+let suggested = false;   // 「다 담았다」를 눌러 제안을 받은 상태인가
+let cat = 'best';
+let open = false;        // 플로팅 펼침
+const qty = new Map();
+
+const plan = () => PLANS.find(p => p.id === planId) || null;
+/* 한 점에 빠지는 세탁권 장수. <b>플랜 계열마다 다릅니다.</b>
+   x[9] = [일반 플랜, 런드리고X]. 0 이면 그 계열에서는 세탁권을 쓸 수 없습니다.
+   런드리고X 는 통합권(U)을 가진 플랜입니다 — 한 장으로 여러 종류를 덮는 대신
+   품목당 더 많이 빠집니다(코트 2장, 롱패딩 3장, 와이셔츠 2장). */
+const isX = () => { const p = plan(); return !!(p && p.t.some(e => e.k === 'U')); };
+const need = x => { const d = x[9] || [1, 1]; return d[isX() ? 1 : 0] || 0; };
+/* 플랜이 가진 권을 종류별 잔여로 폅니다. 통합권(U)은 따로 둡니다.
+   val 은 권 1장의 값 — 「이 옷에 쓰면 손해」를 판단하는 데 씁니다. */
+function wallet() {
+  const p = plan(); if (!p) return null;
+  const by = {}, uni = [], val = {};
+  for (const e of p.t) {
+    if (e.k === 'U') { uni.push({ n: e.n, cov: e.cov, v: e.v }); val['U'] = e.v; }
+    else { by[e.k] = (by[e.k] || 0) + e.n; val[e.k] = e.v; }
+  }
+  if (joined) {                        // 구독 중이면 이미 쓴 만큼 뺍니다(예시)
+    for (const k in by) by[k] = Math.max(0, by[k] - (USED_DEMO[k] || 0));
+    for (const u of uni) u.n = Math.max(0, u.n - 1);
+  }
+  return { by, uni, val };
+}
+
+function bump(name, d) {
+  const n = Math.max(0, (qty.get(name) || 0) + d);
+  if (n) qty.set(name, n); else qty.delete(name);
+  /* 품목이 바뀌면 앞서 받은 제안은 무효입니다. 차감이 정가 순이라
+     한 점 더 담는 것만으로 앞서 덮였던 품목이 밀려나기도 합니다. */
+  suggested = false;
+  render($('q').value);
+}
+function picked() {
+  const out = [];
+  for (const [name, n] of qty) { const x = ITEMS.find(i => i[0] === name); if (x) out.push({ x, n }); }
+  return out;
+}
+/* 세탁권 배분 — <b>정가가 비싼 품목부터</b>입니다(운영 규칙).
+   차감 장수가 같으면 그 안에서 정가로 갈립니다.
+
+   ※ 이건 <b>고객에게 가장 유리한 배분이 아닙니다.</b> 통합권 4장에 롱패딩 1점과
+     재킷 4점을 담으면, 정가 순이라 롱패딩(22,000원)이 3장을 먼저 가져가고
+     재킷은 1점만 덮입니다 — 53,400원. 재킷 4점을 먼저 덮었다면 50,600원이라
+     <b>2,800원 차이</b>가 납니다. 화면은 실제 규칙대로 그립니다(영수증과 맞아야
+     하니까요). 규칙 자체를 바꿀지는 따로 보실 문제입니다.
+
+   한 점을 덮으려면 필요 장수가 통째로 있어야 합니다 — 3장짜리를 2장으로
+   반쯤 덮을 수는 없습니다.
+   통합권은 전용권을 다 쓴 뒤에 씁니다(전용권은 그 종류에만 쓸 수 있으니까요). */
+function allocate() {
+  const w = wallet();
+  const by = w ? Object.assign({}, w.by) : {};
+  const uni = w ? w.uni.map(u => ({ n: u.n, cov: u.cov, v: u.v })) : [];
+  const val = w ? w.val : {};
+  const used = {}, cover = new Map(), payRows = [];
+  /* 정가 내림차순. 정가가 같으면 이름으로 고정해 순서가 흔들리지 않게 합니다. */
+  for (const r of picked().slice().sort((a, b) =>
+        b.x[2] - a.x[2] || a.x[0].localeCompare(b.x[0], 'ko'))) {
+    const t = r.x[8], w1 = need(r.x); let c = 0;
+    if (t && w1 > 0) {
+      /* 전용권 먼저 */
+      let can = Math.min(r.n, Math.floor((by[t] || 0) / w1));
+      if (can) { by[t] -= can * w1; used[t] = (used[t] || 0) + can * w1; c += can; }
+      /* 남은 점수는 통합권으로 */
+      for (const u of uni) {
+        if (c >= r.n) break;
+        if (!u.cov.includes(t) || u.n < w1) continue;
+        const k = Math.min(r.n - c, Math.floor(u.n / w1));
+        if (!k) continue;
+        u.n -= k * w1; c += k;
+        used['U'] = (used['U'] || 0) + k * w1;
+      }
+    }
+    if (c) cover.set(r.x[0], c);
+    if (r.n - c) payRows.push({ x: r.x, n: r.n - c });
+  }
+  return { by, uni, used, cover, payRows, val };
+}
+/* 담은 품목 기준으로 가장 유리한 플랜을 찾습니다.
+   "구독하면 얼마" 는 플랜마다 다르므로, 비교 상대를 특정하지 않으면 뜻이 없습니다. */
+/* 플랜마다 「이번에 낼 금액」과 「세탁권으로 덮인 점수」를 한 번에 냅니다.
+   추천도 비교도 결국 이 표 하나면 됩니다. */
+function planTable() {
+  if (!qty.size) return [];
+  const keep = [planId, joined];
+  const rows = PLANS.map(p => {
+    planId = p.id; joined = false;
+    const t = totals();
+    const covered = [...t.alloc.cover.values()].reduce((a, b) => a + b, 0);
+    /* 화면에 적는 값은 <b>세탁권 장수</b>입니다. 품목 점수(covered)는 정렬의
+       동점 처리에만 씁니다 — 같은 값이면 물건이 더 많이 해결된 쪽이 낫습니다. */
+    const usedTk = Object.keys(t.alloc.used).reduce((s, k) => s + t.alloc.used[k], 0);
+    return { p, pay: t.tSub, extra: t.subPay, fee: p.fee,
+             covered, usedTk, rest: t.cnt - covered };
+  });
+  planId = keep[0]; joined = keep[1];
+  /* <b>총액이 싼 순</b>입니다. fee 가 추측이던 동안에는 덮인 점수를 앞세웠지만,
+     이제 금액이 실제 값이라 그럴 이유가 없습니다. 덮음을 앞세우면 4점을 덮고
+     90,420원인 플랜이 3점을 덮고 89,400원인 플랜보다 위에 옵니다 —
+     더 내라고 권하는 셈입니다. 덮인 점수는 줄마다 같이 적어 두었으니
+     "덜 덮여도 싸다" 를 고객이 직접 보고 고를 수 있습니다. */
+  rows.sort((a, b) => a.pay - b.pay || b.covered - a.covered);
+  return rows;
+}
+/* 담은 내용 기준으로 더 싼 플랜이 있으면 지갑 바로 아래에서 말을 겁니다.
+   구독 중인 분께는 띄우지 않습니다 — 남은 세탁권이 반영되지 않은 비교이고,
+   매번 갈아타라고 권하는 것도 무례합니다. */
+function betterHtml() {
+  /* 담는 동안에는 조용히 있습니다. 한 점 담을 때마다 추천이 바뀌면
+     — 차감이 정가 순이라 실제로 바뀝니다 — 어렵다는 문제가 커집니다.
+     「다 담았다」는 신호(suggested)를 받은 뒤에 한 번만 말을 겁니다. */
+  if (mode !== 'S' || !planId || !qty.size || joined || !suggested) return '';
+  const tb = planTable(); if (!tb.length) return '';
+  const cur = tb.find(r => r.p.id === planId), top = tb[0];
+  if (!cur || !top) return '';
+  /* 어느 플랜으로도 한 점도 안 덮이면, 더 싼 구독을 권할 일이 아닙니다.
+     그 경우엔 정가로 내는 편이 답입니다. 구독 화면이 그걸 먼저 말해야
+     나머지 숫자도 믿음이 갑니다. */
+  const t = totals();
+  if (!top.covered && t.tFree < cur.pay) {
+    return `<div class="better">
+      <div class="bi">
+        <div class="bt">담으신 품목은 세탁권으로 덮이지 않습니다</div>
+        <div class="bd">정가로 내면 ${won(t.tFree)}원 ·
+          <b class="num">${won(cur.pay - t.tFree)}원</b> 더 쌉니다</div>
+      </div>
+      <button type="button" onclick="setMode('F')">정가로 보기</button>
+    </div>`;
+  }
+  if (top.p.id === planId) return '';   /* 이미 가장 싼 플랜이면 할 말이 없습니다 */
+  const save = cur.pay - top.pay;
+  if (save < 3000) return '';        /* 몇 백 원 차이로 매번 뜨면 소음입니다 */
+  return `<div class="better">
+    <div class="bi">
+      <div class="bt">${esc(top.p.name)}</div>
+      <div class="bd">이번 달 ${won(top.pay)}원 · <b class="num">${won(save)}원</b> 더 쌉니다
+        · 세탁권 ${top.usedTk}장 차감</div>
+    </div>
+    <button type="button" onclick="setPlan('${top.p.id}')">바꾸기</button>
+  </div>`;
+}
+function bestPlan() {
+  if (!qty.size) return null;
+  const t = planTable();
+  return t.length ? t[0].p.id : null;
+}
+function totals() {
+  let free = 0, cnt = 0;
+  for (const { x, n } of picked()) { free += x[2] * n; cnt += n; }
+  const a = allocate();
+  const subPay = a.payRows.reduce((s, r) => s + r.x[3] * r.n, 0);
+  const subAll = picked().reduce((s, r) => s + r.x[3] * r.n, 0);   // 세탁권 없이 전부 구독가
+  const dFree = cnt ? (free >= DLV.threshold ? DLV.over : DLV.under) : 0;
+  /* 구독은 수거배송비를 따로 받지 않습니다 — 월 구독료에 이미 들어 있습니다.
+     (66번: 구독료 = 세탁권 값 합계 + 3,800원 × 수거횟수)
+     여기서 또 더하면 구독이 실제보다 비싸 보입니다. */
+  const p = plan(), fee = p ? p.fee : 0;
+  return { free, cnt, alloc: a, subPay, subAll, dFree, fee,
+           tFree: free + dFree,
+           tSub: fee + subPay,
+           tSubAll: subAll };
+}
+</script>
+<script>
+/* ── 구독 설정 : 가입 여부 → 플랜 ───────────────────────────────────── */
+function setupHtml() {
+  if (mode !== 'S') return '';
+  const tb = qty.size ? planTable() : [];
+  const rank = new Map(tb.map(r => [r.p.id, r]));
+  if (picking) return `<div class="ask"><div class="t">어떤 플랜으로 볼까요?</div>
+    <div style="font-size:var(--f-cap);color:var(--sub);line-height:1.6;margin-bottom:var(--s3)">
+      ${qty.size ? '지금 담으신 품목 기준으로 <b style="color:var(--txt)">이번 달 총액</b>(월 구독료 포함)을 같이 보여드립니다.'
+                 : '플랜마다 주는 세탁권 종류와 월 구독료가 다릅니다.'}</div>
+    <div class="plist">${(tb.length ? tb.map(r => r.p) : PLANS).map(p => {
+      const r = rank.get(p.id);
+      return `<button type="button" aria-pressed="${p.id === planId}" onclick="setPlan('${p.id}')">
+        <span class="pn">${esc(p.name)}${p.id === DEFAULT_PLAN ? '<span class="badge">기본</span>' : ''}
+          <div class="pd">월 ${won(p.fee)}원 <span style="color:var(--dim)">(수거 ${p.dlv}회 포함)</span> · ${p.t.map(e => e.k === 'U'
+            ? '세탁권 ' + e.n + '장' : TKN[e.k] + ' 세탁권 ' + e.n + '장').join(' · ')}</div></span>
+        ${r ? `<span class="rt" style="flex:none;text-align:right">
+            <span class="num" style="font-weight:800">${won(r.pay)}원</span>
+            <div class="pd">세탁권 ${r.usedTk}장 차감</div></span>` : ''}
+      </button>`; }).join('')}</div>
+    <div style="text-align:center;margin-top:var(--s2)">
+      <button class="lnk" type="button" onclick="setJoined(${!joined})">
+        ${joined ? '아직 구독 전이에요 — 매달 받는 세탁권 기준으로 보기' : '이미 구독 중이에요 — 남은 세탁권 기준으로 보기'}</button></div>
+    </div>`;
+
+  const w = wallet(), a = totals().alloc;
+  /* 권종이 하나뿐인 플랜이면 이름을 부를 이유가 없습니다 — 「세탁권」이면 충분합니다.
+     둘 이상이면 이름을 남깁니다. 와이셔츠권으로 코트를 덮을 수 없다는 사실이
+     「세탁권 5장 · 세탁권 10장」 으로는 전달되지 않기 때문입니다. */
+  const solo = Object.keys(w.by).length + w.uni.length <= 1;
+  const cells = Object.keys(TKN).filter(k => (w.by[k] || 0) > 0 || (a.used[k] || 0) > 0)
+    .map(k => {
+      const have = w.by[k] || 0, use = a.used[k] || 0;
+      const rest = have - use;
+      /* 「6 5장」처럼 취소선을 나란히 두면 6장인지 5장인지 헷갈립니다.
+         남은 수만 크게 세우고, 원래 장수는 <b>라벨</b>로 내립니다. */
+      const nm = (solo ? '세탁권' : TKN[k]) + (use ? ` · ${have}장 중` : '');
+      const v = !use ? `<span class="num">${have}장</span>`
+              : rest ? `<span class="num">${rest}장</span>`
+                     : `<span class="num">모두 사용</span>`;
+      return `<div class="tk${use ? ' use' : ''}"><div class="n">${nm}</div><div class="v">${v}</div></div>`;
+    });
+  for (const u of w.uni) {
+    const use = a.used['U'] || 0;
+    const rest = u.n - use;
+    const nm = '세탁권' + (use ? ` · ${u.n}장 중` : '');
+    const v = !use ? `<span class="num">${u.n}장</span>`
+            : rest ? `<span class="num">${rest}장</span>`
+                   : `<span class="num">모두 사용</span>`;
+    cells.push(`<div class="tk${use ? ' use' : ''}"><div class="n">${nm}</div><div class="v">${v}</div></div>`);
+  }
+
+  return `<div class="wallet">
+      <div class="hd"><span class="pn">${esc(plan().name)}
+        <div style="font-size:var(--f-micro);font-weight:600;color:var(--sub);margin-top:2px">월 ${won(plan().fee)}원${
+          planId === DEFAULT_PLAN && !joined ? ' · 많이 쓰는 플랜' : ''}</div></span>
+        <button class="ch" type="button" onclick="openPick()">플랜 바꾸기</button></div>
+      <div class="tks">${cells.join('')}</div>
+      <div class="hint">${joined ? '남은 세탁권입니다(목업 예시).' : '이 플랜에 가입하면 매달 받는 세탁권입니다.'}
+        </div>
+    </div>` + betterHtml();
+}
+
+/* ── 품목 행 ────────────────────────────────────────────────────────── */
+function rowHtml(x, q, t) {
+  const n = qty.get(x[0]) || 0;
+  const best = (x[6] && cat !== 'best') ? '<span class="badge">BEST</span>' : '';
+  const step = n
+    ? `<div class="step"><button type="button" onclick="bump('${x[0].replace(/'/g,"\\'")}',-1)" aria-label="${esc(x[0])} 빼기">−</button>
+         <span class="q num">${n}</span>
+         <button type="button" class="add" onclick="bump('${x[0].replace(/'/g,"\\'")}',1)" aria-label="${esc(x[0])} 담기">+</button></div>`
+    : `<div class="step"><button type="button" class="add" onclick="bump('${x[0].replace(/'/g,"\\'")}',1)" aria-label="${esc(x[0])} 담기">+</button></div>`;
+
+  let meta;
+  if (mode === 'F' || !planId) {
+    meta = `<div class="pz num"><b>${won(x[2])}원</b></div>`;
+  } else {
+    const w = wallet();
+    const w1 = need(x);
+    /* 「이 플랜으로 세탁권을 쓸 수 있는 품목인가」는 x[7] 플래그가 아니라
+       <b>차감 장수가 0 이 아닌가</b>로 봅니다. 신발은 품목으로는 세탁권 대상이지만
+       일반 플랜에서는 0 장 — 플래그로는 그 차이를 담을 수 없습니다. */
+    const covered = w1 > 0 && x[8]
+      && ((w.by[x[8]] || 0) > 0 || w.uni.some(u => u.cov.includes(x[8]) && u.n > 0));
+    const price = `<span class="num"><s style="color:var(--dim)">${won(x[2])}</s> <b class="s">${won(x[3])}원</b></span>`;
+    if (!covered) {
+      /* 이 플랜으로는 세탁권을 쓸 수 없는 품목 — 그래도 구독 할인가는 받습니다.
+         권종 이름 대신 "사용불가" 라고 적습니다. 고객이 알아야 할 건
+         어떤 권인지가 아니라 <b>쓸 수 있나 없나</b>입니다. */
+      meta = `<div class="pz"><span class="tg none">세탁권 사용불가</span>${price}</div>`;
+    } else {
+      const cov = t.alloc.cover.get(x[0]) || 0, rest = n - cov;
+      /* 남은 장수는 <b>배분이 끝난 뒤</b>로 셉니다. 배분 전 지갑(w)으로 세면
+         이미 다른 품목이 가져간 장수가 그대로 남아 있는 것처럼 보입니다. */
+      const left = (t.alloc.by[x[8]] || 0)
+        + t.alloc.uni.filter(u => u.cov.includes(x[8])).reduce((s, u) => s + u.n, 0);
+      if (n) {
+        /* 담은 뒤에는 「1점당 몇 장」이 아니라 「몇 장 빠졌나」가 답입니다.
+           한 장도 못 덮었으면 회색 — 초록인 채로 금액만 적으면 차감된 줄과 섞입니다. */
+        meta = cov
+          ? `<div class="pz"><span class="tg">세탁권 ${cov * w1}장 차감</span>`
+            + (rest ? `<span class="num">${rest}점은 <b class="s">${won(x[3] * rest)}원</b></span>` : '')
+            + `</div>`
+          : `<div class="pz"><span class="tg none">${left ? `세탁권 부족 · ${w1}장 필요` : '세탁권 소진'}</span>
+              <span class="num"><b class="s">${won(x[3] * n)}원</b></span></div>`;
+      } else if (left >= w1) {
+        meta = `<div class="pz"><span class="tg">세탁권 ${w1}장</span>
+          <span class="num">남은 ${left}장</span></div>`;
+      } else {
+        /* 남은 장수가 필요 장수에 못 미치면 덮을 수 없습니다.
+           "남은 2장" 이라고만 적으면 3장짜리도 덮일 것처럼 보입니다. */
+        meta = `<div class="pz"><span class="tg none">${left ? `세탁권 부족 · ${w1}장 필요` : '세탁권 소진'}</span>${price}</div>`;
+      }
+    }
+  }
+  return `<div class="row${n ? ' on' : ''}">
+    <div class="bd"><div class="nm">${hi(x[0], q)}${best}</div>${meta}</div>${step}</div>`;
+}
+function cardHtml(title, xs, q, t) {
+  if (!xs.length) return '';
+  return `<div class="card">${title ? `<div class="cat">${esc(title)}</div>` : ''}
+    ${xs.map(x => rowHtml(x, q, t)).join('')}</div>`;
+}
+const sortBy = xs => xs.slice().sort((a, b) => a[2] - b[2] || a[0].localeCompare(b[0], 'ko'));
+</script>
+<script>
+/* ── 플로팅 계산 결과 ────────────────────────────────────────────────
+   접힌 상태로 항상 떠 있어서 스크롤 어디서든 금액이 보입니다.
+   펼치면 왜 그 금액인지가 나옵니다. */
+function floatHtml() {
+  const t = totals();
+  if (!t.cnt) return `<div class="idle">맡기실 품목의 <b>+</b> 를 눌러 담아 보세요.<br>
+      ${mode === 'S' ? '세탁권이 몇 장 빠지는지 바로 보입니다.' : '담는 즉시 금액이 나옵니다.'}</div>
+    <div class="fact"><button class="btn" type="button" disabled>수거 신청하기</button></div>`;
+
+  /* 배송비 넛지는 <b>정가 기준에만</b> 해당합니다.
+     구독은 수거배송비가 월 구독료에 이미 들어 있어서, 더 담아도 아낄 배송비가
+     없습니다. 구독 화면에 띄우면 없는 할인을 약속하는 셈입니다. */
+  const gap = DLV.threshold - t.free;
+  const nudge = mode !== 'F' ? '' : (gap > 0
+    ? `<div class="nudge"><span>💡</span><div><b class="num">${won(gap)}원</b> 더 담으면 배송비 <b class="num">${won(DLV.under - DLV.over)}원</b> 아껴요</div></div>`
+    : `<div class="nudge"><span>✓</span><div>배송비 할인 적용 <span class="num">(${won(DLV.under)} → ${won(DLV.over)}원)</span></div></div>`);
+
+  let head, body;
+  if (mode === 'S' && planId) {
+    const a = t.alloc, p = plan();
+    /* 세탁권은 종류를 따지지 않고 <b>몇 장 빠졌는지</b>만 셉니다.
+       어느 권인지는 플랜을 고를 때 알면 되고, 결과 화면에서는 장수가 답입니다. */
+    const tkCnt = Object.keys(a.used).reduce((s, k) => s + a.used[k], 0);
+    const MAX = 3, more = a.payRows.length - MAX;
+    const restSum = a.payRows.slice(MAX).reduce((s, r) => s + r.x[3] * r.n, 0);
+    const save = t.tFree - t.tSub;
+    head = { c: `${p.name} · 이번 달 총액`, v: won(t.tSub) + '원' };
+    body = `<div style="padding:0 var(--s4)">
+      <div class="blk"><div class="bt">이번 달에 내는 금액</div>
+        <div class="li"><span>월 구독료</span>
+          <span class="rt num"><b>${won(p.fee)}원</b></span></div>
+        <div class="li"><span style="color:var(--tinktxt)">세탁권 차감 : ${tkCnt}장</span>
+          <span class="rt num" style="color:var(--tinktxt)">0원</span></div>
+        <div class="li"><span style="color:var(--tinktxt)">수거배송 차감 : 1장</span>
+          <span class="rt num" style="color:var(--tinktxt)">0원</span></div>`
+      + (a.payRows.length ? `<div class="dv"></div>
+        <div class="li"><span style="font-weight:700">초과이용</span><span class="rt"></span></div>`
+        + a.payRows.slice(0, MAX).map(r => `<div class="li">
+            <span class="ellip" style="padding-left:9px;color:var(--sub)">· ${esc(r.x[0])}${r.n > 1 ? ` ${r.n}점` : ''}</span>
+            <span class="rt num">${won(r.x[3] * r.n)}원</span></div>`).join('')
+        + (more > 0 ? `<div class="li">
+            <span style="padding-left:9px;color:var(--sub)">· 외 ${more}건</span>
+            <span class="rt num" style="color:var(--sub)">${won(restSum)}원</span></div>` : '') : '')
+      + `<div class="sum"><span>구독 합계</span>
+          <span class="rt num">${won(t.tSub)}원</span></div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="blk alt">
+        <div class="sum" style="border-top:0;margin:0;padding:0">
+          <span>이 수거만 정가로 내면</span>
+          <span class="rt num">${won(t.tFree)}원</span></div>
+      </div>`
+      /* 구독이 비싼 경우에도 그대로 적습니다. 불리할 때 입을 다물면
+         유리할 때의 말도 믿기 어려워집니다. */
+      + (save > 0
+        ? `<div class="verdict"><span>✓</span><div>구독으로 이용하면
+             <b class="num">${won(save)}원</b> 더 저렴합니다</div></div>`
+        : `<div class="verdict flat"><span>·</span><div>이번 수거만 보면 정가가
+             <b class="num">${won(-save)}원</b> 더 저렴합니다.<br>
+             월 구독료는 <b>한 달치</b>라, 같은 달에 더 맡기실수록 유리해집니다</div></div>`)
+      + `</div>`;
+  } else if (mode === 'S') {
+    head = { c: `${t.cnt}점 · 플랜을 골라 주세요`, v: won(t.tSubAll) + '원' };
+    body = nudge + `<div style="padding:0 var(--s4)">
+      <div class="blk"><div class="bt">구독 할인가 기준</div>
+        <div class="li"><span>세탁비</span><span class="rt num">${won(t.subAll)}원</span></div>
+        <div class="li"><span style="color:var(--sub)">수거배송비 <span style="font-size:var(--f-micro)">· 구독료에 포함</span></span>
+          <span class="rt num" style="color:var(--sub)">0원</span></div></div>
+      <div class="li" style="padding:4px 2px 10px"><span style="color:var(--sub)">위에서 플랜을 고르면 세탁권 차감까지 계산됩니다</span></div></div>`;
+  } else {
+    /* 정가 화면의 비교 상대는 "구독 일반" 이 아니라 특정 플랜입니다 */
+    let p = plan(), cmpV, tmp = null;
+    if (!p) {                                   // 안 골랐으면 가장 유리한 플랜으로
+      const id = bestPlan();
+      if (id) { tmp = [planId, joined]; planId = id; joined = false; p = plan(); cmpV = totals().tSub; }
+      else cmpV = t.tSubAll;
+    } else cmpV = t.tSub;
+    if (tmp) { planId = tmp[0]; joined = tmp[1]; }
+    const save = t.tFree - cmpV;
+    head = { c: `${t.cnt}점 · 정가 기준`, v: won(t.tFree) + '원' };
+    body = nudge + `<div style="padding:0 var(--s4)">
+      <div class="cmp">
+        <div class="col${save > 0 ? '' : ' hi'}"><div class="lb">정가 · 이번 수거</div>
+          <div class="big num">${won(t.tFree)}<span style="font-size:12px">원</span></div>
+          ${save > 0 ? '' : `<div class="sv num">${won(-save)}원 저렴</div>`}</div>
+        <div class="col${save > 0 ? ' hi' : ''}"><div class="lb">${p ? esc(p.name) : '구독'} · 이번 달</div>
+          <div class="big num">${won(cmpV)}<span style="font-size:12px">원</span></div>
+          <div class="sv num">${save > 0 ? won(save) + '원 저렴' : '월 구독료 포함'}</div></div>
+      </div>
+      <div class="li" style="padding:0 2px 2px">
+        <span style="color:var(--sub)">${tmp ? '세탁권으로 가장 많이 덮는 플랜' : '세탁권 차감까지 반영한 금액'}</span>
+        <button class="lnk" type="button" onclick="pickCompare()">다른 플랜</button></div>
+      <div class="li" style="padding:0 2px 10px"><span style="color:var(--dim);font-size:var(--f-micro)">
+        구독 금액은 <b>월 구독료 + 세탁권 밖 결제</b>입니다. 같은 달에 더 맡기실수록 유리해집니다.</span></div></div>`;
+  }
+
+  return `<button class="fbar" type="button" onclick="toggleFloat()" aria-expanded="${open}">
+      <span class="l"><span class="c">${esc(head.c)}</span><span class="v num">${head.v}</span></span>
+      <span class="cv">${open ? '접기' : '내역'}</span></button>
+    <div class="fbody">${body}</div>
+    <div class="fact">${actHtml()}</div>`;
+}
+/* 담는 동안에는 제안하지 않습니다. 「다 담았다」를 받은 뒤에 한 번 계산합니다.
+   중간 상태의 추천은 최종과 달라서, 보여 주면 오히려 헷갈립니다. */
+function actHtml() {
+  return (mode === 'S' && planId && qty.size && !suggested && !joined
+      ? `<button class="btn ghost" type="button" onclick="suggest()">다 담으셨나요? 최적 플랜 확인</button>` : '')
+    + `<button class="btn" type="button">이대로 수거 신청하기</button>`;
+}
+function suggest() { suggested = true; open = false; render($('q').value); scrollTo(0, 0); }
+function toggleFloat() { open = !open; paint(); }
+function pickCompare() { mode = 'S'; picking = true; open = false; render($('q').value); scrollTo(0, 0); }
+
+function paint() {
+  $('fin').innerHTML = floatHtml();
+  $('fin').classList.toggle('open', open);
+}
+function render(q) {
+  q = (q || '').trim();
+  const searching = q.length > 0;
+  const t = totals();
+
+  $('pF').setAttribute('aria-selected', String(mode === 'F'));
+  $('pS').setAttribute('aria-selected', String(mode === 'S'));
+  $('guide').innerHTML = (mode === 'S' && !searching)
+    ? `<div class="guide"><span>💡</span><div>구독 플랜별로 세탁권 차감 여부·개수가 다르기 때문에
+        먼저 <b>구독플랜을 선택</b>하세요.</div></div>` : '';
+  $('setup').innerHTML = setupHtml();
+  $('setup').style.display = searching ? 'none' : '';
+
+
+  const keys = [['best','자주 맡기는'], ['all','전체'], ...CATS.map(c => [c, c])];
+  $('chips').innerHTML = keys.map(([k, n]) =>
+    `<button type="button" aria-pressed="${k === cat}" onclick="setCat('${k}')">${esc(n)}</button>`).join('');
+  $('chips').style.display = searching ? 'none' : 'flex';
+
+  if (searching) {
+    const xs = sortBy(ITEMS.filter(x => x[0].toLowerCase().includes(q.toLowerCase())));
+    $('body').innerHTML = xs.length ? cardHtml('', xs, q, t) : `<div class="empty">
+      <div class="t">찾는 품목이 없습니다</div>
+      <div class="d">다른 이름으로 검색해 보세요.<br>없는 품목은 수거 신청 때 <b>기타</b>로 접수해 주시면<br>확인 후 요금을 안내드립니다.</div></div>`;
+  } else {
+    let xs = ITEMS;
+    if (cat === 'best') xs = xs.filter(x => x[6]);
+    else if (cat !== 'all') xs = xs.filter(x => x[1] === cat);
+    $('body').innerHTML = (cat === 'best' || cat === 'all')
+      ? CATS.map(c => cardHtml(c, sortBy(xs.filter(x => x[1] === c)), '', t)).join('')
+      : cardHtml(cat, sortBy(xs), '', t);
+  }
+  $('others').innerHTML = OTHERS.map(o =>
+    `<div class="svc"><div class="t">${esc(o.t)}</div><div class="d">${esc(o.d)}</div>
+      <div class="p">${esc(o.p)}</div></div>`).join('');
+  $('foot').innerHTML = (mode === 'S'
+      ? '· 세탁권은 플랜마다 주는 종류가 다릅니다. 내 플랜에 없는 종류는 구독 할인가로 결제됩니다.<br>'
+        + '· 세탁권은 <b>정가가 비싼 품목부터</b> 사용됩니다.<br>'
+      : '')
+    + '· 오염도·소재·기장에 따라 추가 요금이 붙을 수 있습니다.<br>· 실제 금액은 접수 후 확정됩니다.';
+  $('srchbox').classList.toggle('on', searching);
+  paint();
+}
+function setMode(m) { mode = m; open = false; render($('q').value); scrollTo(0, 0); }
+function openPick() { picking = true; render($('q').value); scrollTo(0, 0); }
+function setJoined(v) { joined = v; render($('q').value); }
+/* 제안을 무효로 만드는 건 <b>품목 변경</b>뿐입니다. 플랜만 바꾼 것이라면
+   같은 품목에 대한 비교가 그대로 유효합니다 — 방금 배너대로 갈아탄 사람에게
+   다시 「다 담으셨나요?」를 묻는 건 앞뒤가 안 맞습니다. */
+function setPlan(id) { planId = id; picking = false; render($('q').value); }
+function setCat(c) { cat = c; render($('q').value); }
+
+$('q').addEventListener('input', e => render(e.target.value));
+$('clr').addEventListener('click', () => { $('q').value = ''; render(''); $('q').focus(); });
+$('pF').addEventListener('click', () => setMode('F'));
+$('pS').addEventListener('click', () => setMode('S'));
+addEventListener('scroll', () => $('hdr').classList.toggle('compact', scrollY > 80), { passive: true });
+render('');
+</script>
+</body>
+</html>
