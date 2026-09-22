@@ -807,13 +807,16 @@ function floatHtml() {
       <div class="li" style="padding:4px 2px 10px"><span style="color:var(--sub)">위에서 플랜을 고르면 세탁권 차감까지 계산됩니다</span></div></div>`;
   } else {
     /* 정가 화면의 비교 상대는 "구독 일반" 이 아니라 특정 플랜입니다 */
-    let p = plan(), cmpV, tmp = null;
-    if (!p) {                                   // 안 골랐으면 가장 유리한 플랜으로
-      const id = bestPlan();
-      if (id) { tmp = [planId, joined]; planId = id; joined = false; p = plan(); cmpV = totals().tSub; }
-      else cmpV = t.tSubAll;
-    } else cmpV = t.tSub;
-    if (tmp) { planId = tmp[0]; joined = tmp[1]; }
+    /* 정가 화면의 비교 상대는 <b>담은 품목 기준 최적 플랜</b>입니다.
+       구독 탭에서 골라 둔 플랜과 무관하게, 12개 중 이번 달 총액이 가장 싼
+       플랜으로 견줍니다 — 정가 고객에게 구독의 최선을 보여 주는 비교입니다. */
+    let p = null, cmpV = t.tSubAll;
+    const id = bestPlan();
+    if (id) {
+      const tmp = [planId, joined];
+      planId = id; joined = false; p = plan(); cmpV = totals().tSub;
+      planId = tmp[0]; joined = tmp[1];
+    }
     const save = t.tFree - cmpV;
     /* 구독 기준과 같은 모양 — 위에 기준 이름, 아래 금액 + 선택 의류수.
        탭을 오갈 때 바닥이 흔들리지 않아야 두 값을 견줄 수 있습니다. */
@@ -837,7 +840,7 @@ function floatHtml() {
       <div class="vs">VS</div>
       <div class="blk alt">
         <div class="sum" style="border-top:0;margin:0;padding:0">
-          <span>구독기준${p ? `<span style="display:block;font-size:var(--f-micro);font-weight:600;color:var(--sub)">${esc(p.name)} 적용시</span>` : ''}</span>
+          <span>구독기준${p ? `<span style="display:block;font-size:var(--f-micro);font-weight:600;color:var(--sub)">최적 플랜 · ${esc(p.name)} 적용시</span>` : ''}</span>
           <span class="rt num">${won(cmpV)}원</span></div>
       </div>`
       + (save > 0
