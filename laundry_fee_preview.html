@@ -185,6 +185,7 @@ mark{background:#fef08a;color:inherit;border-radius:3px;padding:0 1px}
 /* 금액 옆 보조 문구. 금액이 주인공이어야 하므로 확실히 작고 흐리게 둡니다. */
 .fbar .l .v .sfx{font-size:var(--f-micro);font-weight:600;color:var(--sub);
   letter-spacing:0;margin-left:5px}
+.fbar .l .sub{display:block;font-size:var(--f-micro);color:var(--sub);font-weight:600;margin-top:1px}
 .fbar .cv{flex:none;font-size:var(--f-micro);color:var(--dim);font-weight:600}
 .fbody{border-top:1px solid var(--line2);padding:var(--s3) var(--s4) 0;display:none}
 .fin.open .fbody{display:block}
@@ -410,10 +411,10 @@ const PLANS = [
 /* 이미 구독 중인 분께 보여줄 잔여 — 목업이라 예시입니다 */
 const USED_DEMO = { C:2, Y:8, B:0, S:0, L:1 };
 
-/* 정가 기준 배송비. 19,500원 미만이면 기본 3,800 + 추가 3,800 = 7,600원입니다
+/* 정가 기준 배송비. 15,000원 미만이면 기본 3,800 + 추가 3,800 = 7,600원입니다
    (64번 LAUNDRY_DELIVERY_PRICE_POLICY: 19,499원 이하 EXTRA_CHARGE 3,800).
    구독은 여기 쓰지 않습니다 — 구독료에 배송비가 이미 들어 있습니다. */
-const DLV = { threshold: 19500, under: 7600, over: 3800 };
+const DLV = { threshold: 15000, under: 7600, over: 3800 };
 const OTHERS = [
   { t:'수선', d:'기장·품·단추 등 수선 종류와 옷 상태에 따라 금액이 달라집니다.', p:'수선 항목별 요금' },
   { t:'의류보관', d:'철 지난 옷을 맡겨 두는 서비스입니다. 보관 기간만큼 월 단위로 계산합니다.', p:'월 단위 요금' },
@@ -816,23 +817,41 @@ function floatHtml() {
     const save = t.tFree - cmpV;
     /* 구독 기준과 같은 모양 — 위에 기준 이름, 아래 금액 + 선택 의류수.
        탭을 오갈 때 바닥이 흔들리지 않아야 두 값을 견줄 수 있습니다. */
-    head = { c: '정가 기준', v: won(t.tFree) + '원', sfx: `(선택 의류수 ${t.cnt}개)` };
-    body = nudge + `<div style="padding:0 var(--s4)">
-      <div class="cmp">
-        <div class="col${save > 0 ? '' : ' hi'}"><div class="lb">정가 기준</div>
-          <div class="big num">${won(t.tFree)}<span style="font-size:12px">원</span></div>
-          ${save > 0 ? '' : `<div class="sv num">${won(-save)}원 저렴</div>`}</div>
-        <div class="col${save > 0 ? ' hi' : ''}"><div class="lb">구독기준${p ? `<span class="lb2">${esc(p.name)} 적용시</span>` : ''}</div>
-          <div class="big num">${won(cmpV)}<span style="font-size:12px">원</span></div>
-          <div class="sv num">${save > 0 ? won(save) + '원 저렴' : '월 구독료 포함'}</div></div>
-      </div>
-      <div class="li" style="padding:var(--s1) 2px 10px"><span style="color:var(--dim);font-size:var(--f-micro)">
+    /* 요약은 <b>세탁비만</b> 크게, 배송비는 바로 아래 작은 줄로 따로 둡니다.
+       앱 가격표도 배송비를 품목가와 나눠 적으므로 같은 셈법이 됩니다.
+       다만 구독과 견줄 때는 반드시 <b>배송비를 더한 정가 합계</b>로 봅니다 —
+       구독 쪽 금액에는 수거배송비가 이미 들어 있기 때문입니다. */
+    const under = t.free < DLV.threshold;
+    head = { c: '정가 기준', v: won(t.free) + '원', sfx: `(선택 의류수 ${t.cnt}개)` };
+    body = `<div style="padding:0 var(--s4)">
+      <div class="blk"><div class="bt">이번 수거에 내는 금액</div>
+        <div class="li"><span>세탁비 <span style="color:var(--sub);font-size:var(--f-micro)">· 의류 ${t.cnt}개</span></span>
+          <span class="rt num"><b>${won(t.free)}원</b></span></div>
+        <div class="li"><span>수거배송비 <span style="color:var(--sub);font-size:var(--f-micro)">· ${won(DLV.threshold)}원 ${under ? '미만' : '이상'}</span></span>
+          <span class="rt num">${won(t.dFree)}원</span></div>
+        <div class="sum"><span>정가 합계</span>
+          <span class="rt num">${won(t.tFree)}원</span></div>
+      </div></div>`
+      + nudge
+      + `<div style="padding:0 var(--s4)">
+      <div class="vs">VS</div>
+      <div class="blk alt">
+        <div class="sum" style="border-top:0;margin:0;padding:0">
+          <span>구독기준${p ? `<span style="display:block;font-size:var(--f-micro);font-weight:600;color:var(--sub)">${esc(p.name)} 적용시</span>` : ''}</span>
+          <span class="rt num">${won(cmpV)}원</span></div>
+      </div>`
+      + (save > 0
+        ? `<div class="verdict"><span>✓</span><div>구독으로 이용하면
+             <b class="num">${won(save)}원</b> 더 저렴합니다</div></div>`
+        : `<div class="verdict flat"><span>·</span><div>이번 수거는 정가가
+             <b class="num">${won(-save)}원</b> 더 저렴합니다</div></div>`)
+      + `<div class="li" style="padding:0 2px 10px"><span style="color:var(--dim);font-size:var(--f-micro)">
         구독기준은 <b>월 구독료 + 초과이용료</b> 포함 금액입니다.</span></div></div>`;
   }
 
   return `<button class="fbar" type="button" onclick="toggleFloat()" aria-expanded="${open}">
       <span class="l"><span class="c">${esc(head.c)}</span>
-      <span class="v num">${head.v}${head.sfx ? `<span class="sfx">${esc(head.sfx)}</span>` : ''}</span></span>
+      <span class="v num">${head.v}${head.sfx ? `<span class="sfx">${esc(head.sfx)}</span>` : ''}</span>${head.sub ? `<span class="sub num">${esc(head.sub)}</span>` : ''}</span>
       <span class="cv">${open ? '접기' : '내역'}</span></button>
     <div class="fbody">${body}</div>
     <div class="fact">${actHtml()}</div>`;
