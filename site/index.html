@@ -913,8 +913,15 @@ body:not([data-center="ad"]) #tab-intro,body:not([data-center="ad"]) #tab-calc{d
 .lb-grp{display:flex;flex-direction:column;gap:18px;padding:20px 18px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}
 .lb-grp[hidden]{display:none}
 .lb-grp>header .eyebrow{margin:0 0 2px}.lb-grp>header p{margin:0;font-size:15px;font-weight:600;letter-spacing:-.02em}
-.lb-f{display:flex;flex-direction:column;gap:8px}
-.lb-l{font-size:14px;font-weight:500}
+.lb-grp{counter-reset:lbf}
+.lb-f{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.lb-l{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:-.01em;padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--line)}
+.lb-l::before{counter-increment:lbf;content:counter(lbf);flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--onink);font:600 12px/1 var(--num)}
+.lb-f .lb-ai{background:var(--soft)}
+.lb-page{display:flex;flex-direction:column;gap:14px;scroll-margin-top:96px}.lb-page[hidden]{display:none}
+.lb-back{align-self:flex-start;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
+.lb-page-h{padding:18px;border-radius:14px;background:var(--accent-soft);display:flex;flex-direction:column;gap:8px}
+.lb-page-h .eyebrow{margin:0}.lb-page-h p{margin:0;font-size:15px;font-weight:600}
 .lb-addr{display:flex;gap:6px}.lb-addr input{flex:1;min-width:0}
 .lb-row{display:grid;grid-template-columns:minmax(0,1fr) 78px 112px 28px;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
 .lb-row.h{border:0;padding:0;font-size:12px;color:var(--faint)}
@@ -2744,7 +2751,7 @@ const ASSET = window.ADC_ASSET_BASE || "";
     var d = new Date(), ds = d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.';
     var vTxt = (V % 1 ? '약 ' + V : V) + '회';
     var h = '<h3>런드리고 이용 가이드 · 예상 견적</h3><p class="g-meta">' + (co ? esc(co) + ' · ' : '') + '작성일 ' + ds + '<span class="g-id">' + (meta.id ? ' · 문의번호 ' + esc(meta.id) : '') + '</span></p>' +
-      '<p class="g-intro">' + esc(fl) + ', 1회 약 ' + k.pcs + '벌 기준으로 이용 방법과 예상 비용을 정리했어요. 이 화면을 저장해 두고 앱에서 신청할 때 참고하세요.</p>';
+      '<p class="g-intro">' + esc(fl) + ', 1회 약 ' + k.pcs + '벌 기준으로 이용 방법과 예상 비용을 정리했어요. 아래 ‘PDF로 저장·인쇄’로 저장해 두고 앱에서 신청할 때 참고하세요.</p>';
     // 1. 이용 방법
     h += '<section><h4>1. 이용 방법</h4><ol class="g-steps">' +
       '<li><b>런드리고 앱을 설치하고 회원가입해 주세요.</b><span>앱스토어·플레이스토어에서 ‘런드리고’를 검색해 설치하세요. 여기 남긴 연락처로 가입하시면 이용 확인과 도움을 받기 쉬워요.</span></li>' +
@@ -2791,7 +2798,7 @@ const ASSET = window.ADC_ASSET_BASE || "";
       '<li>구독 요금과 세탁권 수는 2026년 11월 기준이에요. 최신 내용은 앱에서 확인해 주세요.</li></ul></section>';
     return h;
   }
-  var LB_SAVE_BTNS = '<div class="g-save"><button type="button" class="btn lb-alt" data-gsave="print">PDF로 저장·인쇄</button><button type="button" class="btn lb-alt" data-gsave="file">파일로 받기</button></div>';
+  var LB_SAVE_BTNS = '<div class="g-save"><button type="button" class="btn lb-alt" data-gsave="print">PDF로 저장·인쇄</button></div>';
   var LB_GUIDE_CSS = 'body{margin:0;padding:28px 18px;background:#fff;color:#14201A;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}' +
     '.lb-guide{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}.lb-guide h3{margin:0;font-size:20px}.lb-guide h4{margin:0 0 8px;font-size:15px;color:#0A6F4E}' +
     '.g-meta,.g-fine{margin:0;color:#56635B;font-size:12.5px}.g-intro{margin:0}.lb-guide section{padding:14px 16px;border:1px solid #DFE4DF;border-radius:12px;break-inside:avoid}' +
@@ -2802,25 +2809,36 @@ const ASSET = window.ADC_ASSET_BASE || "";
   function lbGuideDoc(body) { return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>런드리고 이용 가이드 · 예상 견적</title><style>' + LB_GUIDE_CSS + '</style></head><body><main class="lb-guide">' + body + '</main></body></html>'; }
   function lbGuideKeep(body) { try { localStorage.setItem('lg_lb_guide', JSON.stringify({ at: Date.now(), body: body })); } catch (_) {} }
   function lbGuideSaved() { try { var g = JSON.parse(localStorage.getItem('lg_lb_guide') || 'null'); return g && g.body ? g : null; } catch (_) { return null; } }
-  function lbGuideOpen(body, print) {
-    var w = window.open('', '_blank'); if (!w) return false;
-    w.document.open(); w.document.write(lbGuideDoc(body)); w.document.close();
-    if (print) setTimeout(function () { try { w.focus(); w.print(); } catch (_) {} }, 400);
-    return true;
+  // 인쇄: 숨은 iframe에 가이드만 담아 인쇄 창을 띄워요 (PDF로 저장 가능)
+  function lbPrint(body) {
+    var fr = document.createElement('iframe');
+    fr.setAttribute('aria-hidden', 'true'); fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+    document.body.appendChild(fr);
+    var d = fr.contentWindow.document; d.open(); d.write(lbGuideDoc(body)); d.close();
+    setTimeout(function () { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (_) { window.print(); } setTimeout(function () { fr.remove(); }, 60000); }, 300);
   }
-  function lbGuideFile(body) {
-    var a = document.createElement('a'), d = new Date();
-    a.href = URL.createObjectURL(new Blob([lbGuideDoc(body)], { type: 'text/html;charset=utf-8' }));
-    a.download = '런드리고_이용가이드_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.html';
-    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  // 다음 페이지: 입력 폼을 숨기고 같은 자리에 이용 가이드·예상 견적을 보여줘요
+  function lbShowPage(body, opt) {
+    opt = opt || {};
+    var pg = $('lb-page');
+    if (!pg) { $('pc-f').insertAdjacentHTML('afterend', '<div id="lb-page" class="lb-page" hidden></div>'); pg = $('lb-page'); }
+    pg.innerHTML = '<button type="button" class="lb-back" data-lbback>← ' + (opt.saved ? '입력 화면으로' : '입력 내용 고치기') + '</button>' +
+      '<div class="lb-page-h"><span class="eyebrow">런드리고 앱으로 바로 이용할 수 있어요</span><p>앱을 설치하고 아래 순서대로 신청하면 바로 시작해요.</p>' + lbStoreLinks() + '</div>' +
+      '<div class="lb-guide">' + body + '</div>' + LB_SAVE_BTNS +
+      '<p class="fine" style="margin:0">이 가이드는 이 브라우저에도 저장돼서 제휴센터에 다시 오면 열어 볼 수 있어요. 남겨 주신 연락처로 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p>';
+    $('pc-f').hidden = true; pg.hidden = false;
+    try { pg.scrollIntoView({ block: 'start' }); } catch (_) { window.scrollTo(0, 0); }
   }
   document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-lbback]')) {
+      var pg = $('lb-page'); if (pg) pg.hidden = true; $('pc-f').hidden = false; lbRender();
+      try { $('lb-res').scrollIntoView({ block: 'center' }); } catch (_) {}
+      return;
+    }
     var bt = e.target.closest('[data-gsave]'); if (!bt) return;
-    var mode = bt.dataset.gsave, body;
-    if (mode === 'saved') { var g = lbGuideSaved(); if (!g) return; body = g.body; if (!lbGuideOpen(body, false)) lbGuideFile(body); return; }
-    var box = bt.closest('[data-guide]'), gd = box && box.querySelector('.lb-guide'); if (!gd) return;
-    body = gd.innerHTML; lbGuideKeep(body);
-    if (mode === 'print') { if (!lbGuideOpen(body, true)) lbGuideFile(body); } else lbGuideFile(body);
+    if (bt.dataset.gsave === 'saved') { var g = lbGuideSaved(); if (g) lbShowPage(g.body, { saved: true }); return; }
+    var gd = $('lb-page') && $('lb-page').querySelector('.lb-guide'); if (!gd) return;
+    lbGuideKeep(gd.innerHTML); lbPrint(gd.innerHTML);
   });
   function lbRender() {
     if (!lbOn()) { lbCta(null); return; }
@@ -2842,9 +2860,7 @@ const ASSET = window.ADC_ASSET_BASE || "";
       (k.verdict === 'sales'
         ? '<div class="lb-v"><h4>담당 팀이 맞춤 견적을 드릴게요</h4><p>아래 조건은 전담 세탁 서비스로 도와드려요. 위 금액은 개인 단가 기준 참고가예요.</p><div class="lb-tags">' + k.reasons.map(function (x) { return '<span class="lb-tag no">' + esc(x) + '</span>'; }).join('') + '</div></div>'
         : k.verdict === 'b2c'
-        ? '<div class="lb-v ok"><h4>런드리고 앱으로 바로 맡길 수 있어요</h4><p>견적을 기다리지 않아도 돼요. 앱에서 신청하면 위 금액으로 바로 시작해요.</p>' + LB_STEPS +
-          '<details class="g-det" data-guide><summary>자세한 이용 가이드·예상 견적서 보기</summary><div class="lb-guide">' + lbGuideBody() + '</div>' + LB_SAVE_BTNS + '</details></div>' +
-          '<p class="fine">‘앱에서 바로 신청하기’를 누르면 아래 회사 정보와 연락처가 함께 기록돼요. 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p>'
+        ? '<div class="lb-v ok"><h4>런드리고 앱으로 바로 맡길 수 있어요</h4><p>견적을 기다리지 않아도 돼요. 앱에서 신청하면 위 금액으로 바로 시작해요.</p></div>'
         : '<div class="lb-v"><p>' + (lb.items.length ? '주소를 검색해 고르면 앱으로 바로 맡길 수 있는지 알려드려요.' : '세탁물을 담으면 예상 견적과 바로 맡길 수 있는지 알려드려요.') + '</p></div>') +
       '<p class="fine">정가(부가세 포함) 기준이에요. 4주 금액에는 회당 수거·배송비 3,800원과 한밤배송 1,500원이 들어 있어요. 구독 금액은 2026년 11월 요금제 기준 예상이에요.</p>' +
       (lbGuideSaved() ? '<p class="fine"><button type="button" class="lb-link" data-gsave="saved">최근에 저장한 이용 가이드 다시 보기</button></p>' : '');
@@ -2878,36 +2894,39 @@ const ASSET = window.ADC_ASSET_BASE || "";
     btn.textContent = lbBtnText();
     // 런드리고 앱으로 이용할 수 있으면 견적 문의 버튼은 숨기고 앱 신청만 보여줘요
     btn.style.display = verdict === 'b2c' ? 'none' : '';
+    // 앱으로 이용할 수 있으면 회사·기관명, 담당자, 연락처만 받아요 (이메일·문의 내용 숨김)
+    [$('pc-email'), $('pc-memo')].forEach(function (el) { var l = el && el.closest('label'); if (l) l.hidden = verdict === 'b2c'; });
     var app = $('lb-app');
     if (verdict === 'b2c') {
-      if (!app) { btn.insertAdjacentHTML('beforebegin', '<a class="btn lb-app" id="lb-app" target="_blank" rel="noopener">런드리고 앱에서 바로 신청하기</a>'); app = $('lb-app'); app.style.marginBottom = '8px'; }
-      app.href = lbAppUrl() || '#';
+      if (!app) { btn.insertAdjacentHTML('beforebegin', '<button type="button" class="btn lb-app" id="lb-app">런드리고 이용 가이드 · 예상 견적받기</button>'); app = $('lb-app'); app.style.marginBottom = '8px'; }
     } else if (app) app.remove();
   }
-  // '앱에서 바로 신청하기': 회사 정보·연락처와 세탁 조건을 '앱 안내'로 기록한 뒤 스토어로 보내요.
-  // 기록은 앱 가입 여부·이용 확인용이에요 (Slack 알림은 보내지 않아요).
+  // '런드리고 이용 가이드 · 예상 견적받기': 회사 정보·연락처와 세탁 조건을 '앱 안내'로 기록하고 다음 페이지에 가이드를 보여줘요.
+  // 기록은 앱 가입 여부·이용 확인용이에요 (Slack 알림은 보내지 않아요). 같은 내용으로 다시 누르면 다시 기록하지 않아요.
   document.addEventListener('click', function (e) {
     var a = e.target.closest('#lb-app'); if (!a) return;
-    var err = $('pc-err'), d = collect('pc-');
-    var m = validate(d, false) ? '앱 이용을 확인하고 도와드릴 수 있게 회사·기관명, 담당자, 연락처를 남겨 주세요.' : !$('pc-consent').checked ? '개인정보 수집·이용에 동의해 주세요.' : '';
+    e.preventDefault();
+    var err = $('pc-err'), d = collect('pc-'); d.email = ''; d.memo = '';
+    var m = validate(d, false) ? '이용 확인과 안내를 위해 회사·기관명, 담당자, 연락처를 남겨 주세요.' : !$('pc-consent').checked ? '개인정보 수집·이용에 동의해 주세요.' : '';
     if (m) {
-      e.preventDefault(); err.textContent = m;
+      err.textContent = m;
       var miss = ['pc-company', 'pc-name', 'pc-phone'].filter(function (id) { return !$(id).value.trim(); })[0];
       var f = $(miss || (validate(d, false) ? 'pc-phone' : 'pc-consent')); f && f.focus();
       return;
     }
-    var url = lbAppUrl();
-    if (url) a.href = url; else e.preventDefault();
+    err.textContent = '';
     var lbp = lbPayload(); lbp.route = 'app';
-    var t = TYPES.filter(function (x) { return x.id === cur; })[0];
-    var gbody = lbGuideBody(); lbGuideKeep(gbody);
+    var key = JSON.stringify([d.company, d.contact, d.phone, lbp.items, lbp.freq, lbp.address, lbp.address2]);
+    var same = lb.sent && lb.sent.key === key;
+    var gbody = lbGuideBody(same && lb.sent.id ? { id: lb.sent.id } : null);
+    lbShowPage(gbody); lbGuideKeep(gbody);
+    if (same) return;
+    lb.sent = { key: key, id: '' };
     submitInquiry(Object.assign(d, { center: 'partner', type: cur, consent: true, route: 'app', laundry: lbp, scale: lbSummary(lbp) })).then(function (r) {
-      var gi = document.querySelector('.pc-done .g-id'); if (gi && r && r.id) { gi.textContent = ' · 문의번호 ' + r.id; lbGuideKeep(gi.closest('.lb-guide').innerHTML); }
-    }).catch(function () {});
-    $('pc-f').innerHTML = '<div class="pc-done" data-guide><h3>런드리고 앱에서 이어서 신청해 주세요</h3><p>' + esc(t.label) + ' · 예상 1회 ' + lbWon(lbp.perVisit) + ' · 4주 ' + lbWon(lbp.monthly) + '</p>' +
-      '<div style="margin:12px 0 16px">' + lbStoreLinks() + '</div>' +
-      '<div class="lb-guide">' + gbody + '</div>' + LB_SAVE_BTNS +
-      '<p class="sub" style="margin:12px 0 0">이 가이드는 이 브라우저에도 저장돼서 제휴센터에 다시 오면 열어 볼 수 있어요. 남겨 주신 연락처로 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p></div>';
+      if (!r || !r.id || !lb.sent || lb.sent.key !== key) return;
+      lb.sent.id = r.id;
+      var gi = document.querySelector('#lb-page .g-id'); if (gi) { gi.textContent = ' · 문의번호 ' + r.id; lbGuideKeep(gi.closest('.lb-guide').innerHTML); }
+    }).catch(function () { lb.sent = null; });
   });
 
   // 서버로 보내는 세탁 조건
