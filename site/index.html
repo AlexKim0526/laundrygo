@@ -940,6 +940,23 @@ body:not([data-center="ad"]) #tab-intro,body:not([data-center="ad"]) #tab-calc{d
 .lb-tag.ok{background:var(--accent-soft);color:var(--accent-ink)}.lb-tag.no{background:var(--promo-soft);color:var(--warn-ink)}
 .lb-res{padding:16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
 .lb-res .eyebrow{margin:0}.lb-res .fine{margin:0}
+.lb-sub{padding:14px 16px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--line)}
+.lb-sub-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lb-sub-h span{font-size:14px;font-weight:600;color:var(--accent-ink)}.lb-sub-h b{font-family:var(--num);font-size:20px;font-weight:600}
+.lb-sub p{margin:4px 0 0;font-size:14px}.lb-sub p b{color:var(--accent-ink)}
+.lb-sub ul{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.lb-guide{display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.6;text-align:left}
+.lb-guide h3{margin:0;font-size:18px;letter-spacing:-.02em}.lb-guide h4{margin:0 0 8px;font-size:15px;color:var(--accent-ink)}
+.lb-guide .g-meta,.lb-guide .g-fine{margin:0;color:var(--muted);font-size:12.5px}.lb-guide .g-intro{margin:0}
+.lb-guide section{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.g-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}.g-steps b{display:block}.g-steps span{color:var(--muted);font-size:13.5px}
+.g-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--soft);font-size:13.5px}
+.g-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13.5px}.g-l b{font-family:var(--num);font-weight:500;white-space:nowrap}
+.g-l.t{border-bottom:0;padding-top:9px;font-size:15px}.g-l.t b{font-weight:700;color:var(--accent-ink)}
+.g-ul{margin:0 0 8px;padding-left:18px;font-size:13.5px}.lb-guide .g-sub{background:var(--accent-soft)}.g-sub-h{margin:8px 0 2px;font-weight:600}.g-save-t{margin:4px 0;font-weight:700;color:var(--accent-ink)}
+.g-save{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.g-save .btn{height:44px;flex:1 1 160px}
+.g-det{margin-top:12px}.g-det summary{cursor:pointer;font-weight:600;color:var(--accent-ink);font-size:14px}.g-det[open] summary{margin-bottom:10px}
+.lb-link{background:none;border:0;padding:0;color:var(--accent-ink);text-decoration:underline;font:inherit;cursor:pointer}
 .lb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .lb-tiles div{padding:12px 14px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
 .lb-tiles small{display:block;font-size:12.5px;color:var(--muted)}.lb-tiles b{font-family:var(--num);font-size:18px;font-weight:600}
@@ -2548,6 +2565,14 @@ const ASSET = window.ADC_ASSET_BASE || "";
     freq: { '1': '한 번만', '1.5': '월 1~2회', '4.3': '주 1회', '10.8': '주 2~3회', '30': '매일' },
     pay: { '1': '카드 결제', '2': '세금계산서·월 정산' }
   };
+  // 런드리고X 구독 비교 (2026-11 결제 데이터 기준 추정 · 요금제가 바뀌면 여기만 고쳐요)
+  // 등급별 월 구독료·월 세탁권, 세탁권을 다 쓴 뒤 품목 단가(구독 회원가 = 정가의 80%), 품목별 세탁권 차감 장수
+  var LB_SUB = { rate: 0.8, plans: [
+    { name: '라이트', fee: 28600, tk: 4 }, { name: '베이직', fee: 39500, tk: 6 },
+    { name: '스탠다드', fee: 68100, tk: 10 }, { name: '시그니처', fee: 88100, tk: 14 } ] };
+  var LB_TK = { '생활빨래 (4kg 봉투)': 2, '티셔츠': 1, '후드티, 맨투맨티': 1, '블라우스': 1, '바지': 1, '스커트': 1, '원피스, 점프수트': 1,
+    '재킷': 1, '정장재킷': 1, '캐주얼조끼': 1, '정장조끼': 1, '니트, 스웨터': 1, '가디건': 1, '경량패딩': 1, '패딩': 2, '패딩조끼': 1,
+    '롱패딩점퍼': 3, '코트, 트렌치코트': 2, '커버류, 이불패드': 2, '일반이불, 극세사 패드': 2, '극세사이불, 일반토퍼': 3, '일반운동화': 1 };
   var lb = { site: '1', freq: '4.3', pay: '1', area: '', items: [] };
   var lbWon = function (n) { return Math.round(n).toLocaleString('ko-KR') + '원'; };
   function lbOn() { return LB_TYPES.indexOf(cur) >= 0; }
@@ -2659,9 +2684,144 @@ const ASSET = window.ADC_ASSET_BASE || "";
     if (lb.pay === '2') r.push('세금계산서·월 정산');
     if (custom) r.push('목록에 없는 품목 ' + custom + '개');
     var verdict = r.length ? 'sales' : !lb.items.length || !lb.area ? 'pending' : 'b2c';
-    return { per: per, monthly: per * parseFloat(lb.freq), pcs: pcs, reasons: r, verdict: verdict };
+    var V = lbVisits();   // monthly: 4주 정가 합계 (수거·배송비·한밤배송 포함)
+    return { per: per, monthly: per ? per * V + V * (LB_FEE.pick + LB_FEE.night) : 0, visits: V, pcs: pcs, reasons: r, verdict: verdict };
   }
 
+  // 담은 품목·빈도로 한 달 물량을 잡고, 등급마다 '구독료 + 세탁권으로 못 덮는 품목의 회원가'를 계산해 가장 싼 등급을 골라요.
+  // 세탁권은 1장당 아끼는 금액이 큰 품목부터 써요. 정가보다 싸지지 않으면 null.
+  // 4주(28일) 기준 계산: 런드리고X가 4주 단위 구독이라 정가도 4주로 맞춰 비교해요 (영업팀 견적 메일 기준, 2026-11)
+  var LB_4W = { '1': 1, '1.5': 1.5, '4.3': 4, '10.8': 10, '30': 28 };   // 빈도별 4주 수거 횟수
+  var LB_FEE = { pick: 3800, night: 1500 };                            // 정가 이용 시 회당 수거·배송비, 한밤배송비 (구독은 무료)
+  function lbVisits() { return LB_4W[lb.freq] || 1; }
+  function lbShort(n) { return String(n).replace(/ \(4kg 봉투\)$/, ''); }
+  function lbUnitWord(n) { return String(n).indexOf('생활빨래') === 0 ? '봉투' : '벌'; }
+  function lbQty(q) { return (Math.abs(q - Math.round(q)) < 1e-9 ? '' : '약 ') + Math.round(q).toLocaleString('ko-KR'); }
+  // 담은 품목·빈도로 4주 물량을 잡고, 등급마다 '구독료 + 세탁권으로 못 덮는 품목의 회원가'를 계산해 가장 싼 등급을 골라요.
+  // 세탁권은 1장당 아끼는 금액이 큰(비싼) 품목부터 써요. 정가(수거·배송비 포함)보다 싸지지 않으면 null.
+  function lbSub() {
+    var V = lbVisits(), items = 0, units = [];
+    lb.items.forEach(function (x) {
+      var u = lbUnit(x); if (!u) return;
+      var q = x.qty * V; items += u.price * q;
+      units.push({ name: x.name, price: u.price, p: Math.round(u.price * LB_SUB.rate), q: q, tk: LB_TK[x.name] || 0 });
+    });
+    if (!items) return null;
+    var full = items + V * (LB_FEE.pick + LB_FEE.night);
+    units.sort(function (a, b) { return (b.tk ? b.p / b.tk : 0) - (a.tk ? a.p / a.tk : 0); });
+    var best = null;
+    LB_SUB.plans.forEach(function (pl) {
+      var left = pl.tk, cov = [], rest = [], paid = 0;
+      units.forEach(function (u) {
+        var c = u.tk ? Math.min(Math.floor(u.q), Math.floor(left / u.tk)) : 0;
+        if (c) { left -= c * u.tk; cov.push({ name: u.name, c: c, tk: u.tk }); }
+        var r = u.q - c; if (r > 1e-9) { paid += u.p * r; rest.push({ name: u.name, q: r, p: u.p, price: u.price }); }
+      });
+      var total = pl.fee + paid;
+      if (!best || total < best.total) best = { plan: pl.name, fee: pl.fee, tk: pl.tk, cov: cov, rest: rest, paid: paid, total: total };
+    });
+    best.full = full; best.save = full - best.total; best.visits = V;
+    return best.save > 0 ? best : null;
+  }
+  function lbSubHtml(multi) {
+    var b = lbSub(); if (!b) return '';
+    var cov = b.cov.map(function (c) { return lbShort(c.name) + ' ' + c.c + lbUnitWord(c.name); }).join(', ');
+    return '<div class="lb-sub"><div class="lb-sub-h"><span>런드리고X ' + b.plan + ' 구독하면' + (multi ? ' (사업장당)' : '') + '</span><b>4주 ' + lbWon(b.total) + '</b></div>' +
+      '<p>정가보다 4주에 <b>' + lbWon(b.save) + '</b> 덜 내요 (약 ' + Math.round(b.save / b.full * 100) + '% 절감)</p>' +
+      '<ul><li>구독 요금 ' + lbWon(b.fee) + '에 세탁권 ' + b.tk + '장 포함' + (cov ? ' → ' + esc(cov) + ' 무료' : '') + '</li>' +
+      '<li>나머지 세탁물은 정가보다 20% 싸게 ' + lbWon(b.paid) + '</li><li>수거·배송비와 한밤배송은 무료</li></ul></div>';
+  }
+
+  // ---------- 이용 가이드 · 예상 견적서 (영업팀 안내 메일 형식) ----------
+  function lbGL(label, val, cls) { return '<div class="g-l' + (cls ? ' ' + cls : '') + '"><span>' + label + '</span><b>' + val + '</b></div>'; }
+  function lbGuideBody(meta) {
+    meta = meta || {};
+    var k = lbCalc(), b = lbSub(), V = lbVisits(), fl = LB_LABEL.freq[lb.freq];
+    var its = lb.items.map(function (x) { return { x: x, u: lbUnit(x) }; }).filter(function (o) { return o.u; });
+    var custom = lb.items.filter(function (x) { return !lbUnit(x); });
+    var addr = [$('lb-addr').value.trim(), $('lb-addr2').value.trim()].filter(Boolean).join(' ');
+    var co = ($('pc-company') && $('pc-company').value.trim()) || '';
+    var d = new Date(), ds = d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.';
+    var vTxt = (V % 1 ? '약 ' + V : V) + '회';
+    var h = '<h3>런드리고 이용 가이드 · 예상 견적</h3><p class="g-meta">' + (co ? esc(co) + ' · ' : '') + '작성일 ' + ds + '<span class="g-id">' + (meta.id ? ' · 문의번호 ' + esc(meta.id) : '') + '</span></p>' +
+      '<p class="g-intro">' + esc(fl) + ', 1회 약 ' + k.pcs + '벌 기준으로 이용 방법과 예상 비용을 정리했어요. 이 화면을 저장해 두고 앱에서 신청할 때 참고하세요.</p>';
+    // 1. 이용 방법
+    h += '<section><h4>1. 이용 방법</h4><ol class="g-steps">' +
+      '<li><b>런드리고 앱을 설치하고 회원가입해 주세요.</b><span>앱스토어·플레이스토어에서 ‘런드리고’를 검색해 설치하세요. 여기 남긴 연락처로 가입하시면 이용 확인과 도움을 받기 쉬워요.</span></li>' +
+      '<li><b>수거 주소와 결제 카드를 등록해 주세요.</b><span>' + (addr ? '수거 주소: ' + esc(addr) + '. ' : '') + '법인카드도 등록할 수 있어요.</span></li>' +
+      '<li><b>편한 날짜에 앱에서 수거를 신청해 주세요.</b><span>신청한 시간까지 세탁물을 문 앞에 두시면 돼요.' + (its.some(function (o) { return o.x.name.indexOf('생활빨래') === 0; }) ? ' 생활빨래는 봉투(4kg)에 나눠 담아 주세요.' : '') + '</span></li></ol>' +
+      '<div class="g-note"><b>‘한밤배송’으로 신청하면</b> 당일 밤 10시까지 신청한 세탁물을 다음 날 밤 10시부터 늦어도 그다음 날 오전 7시까지 세탁해 다시 가져다 드려요.' +
+      '<br>예) 월요일 밤 신청 → 화요일 밤~수요일 아침 배송 · 목요일 밤 신청 → 금요일 밤~토요일 아침 배송</div></section>';
+    // 2. 1회 비용
+    h += '<section><h4>2. 1회 비용 (정가, 부가세 포함)</h4>' +
+      its.map(function (o) { return lbGL(esc(lbShort(o.x.name)) + ' ' + o.x.qty + lbUnitWord(o.x.name) + ' × ' + lbWon(o.u.price), lbWon(o.u.price * o.x.qty)); }).join('') +
+      lbGL('회당', lbWon(k.per), 't') +
+      (custom.length ? '<p class="g-fine">' + esc(custom.map(function (x) { return x.name; }).join(', ')) + '은(는) 런드리고 가격표에 없어 금액에서 빠졌어요. 실물 확인 후 비슷한 품목 단가로 정해져요.</p>' : '') +
+      '<p class="g-fine">런드리고 앱 &gt; 가격표에서도 확인할 수 있어요.</p></section>';
+    // 3. 4주 정가
+    h += '<section><h4>3. 4주 이용 시 (' + esc(fl) + ', 총 ' + vTxt + ' · 정가)</h4>' +
+      its.map(function (o) { var q = o.x.qty * V; return lbGL(esc(lbShort(o.x.name)) + ' ' + lbQty(q) + lbUnitWord(o.x.name) + ' × ' + lbWon(o.u.price), lbWon(o.u.price * q)); }).join('') +
+      lbGL('수거·배송비 ' + vTxt + ' × ' + lbWon(LB_FEE.pick), lbWon(V * LB_FEE.pick)) +
+      lbGL('한밤배송 ' + vTxt + ' × ' + lbWon(LB_FEE.night), lbWon(V * LB_FEE.night)) +
+      lbGL('4주 합계', lbWon(k.monthly), 't') + '</section>';
+    // 4. 구독
+    if (b) {
+      var ex = (b.rest[0] || b.cov[0]);
+      var exU = ex ? lbUnit({ name: ex.name, qty: 1 }) || { price: ex.price } : null;
+      h += '<section class="g-sub"><h4>4. 런드리고X ' + b.plan + ' 요금제를 이용하면</h4><ul class="g-ul">' +
+        '<li>런드리고X는 4주(28일) 단위 구독 요금제예요.</li>' +
+        '<li>구독 요금 ' + lbWon(b.fee) + '에 세탁권 ' + b.tk + '장이 들어 있어요.</li>' +
+        '<li>세탁권 1장으로 의류 1벌을 추가 비용 없이 맡길 수 있고, 비용이 높은 품목부터 차감돼요. 생활빨래 봉투·패딩·이불처럼 큰 품목은 2~3장이 차감돼요.</li>' +
+        '<li>세탁권을 다 쓴 뒤에는 맡기는 모든 품목이 정가보다 20% 싸요.' + (exU && exU.price ? ' (예: ' + esc(lbShort(ex.name)) + ' ' + lbWon(exU.price) + ' → ' + lbWon(Math.round(exU.price * LB_SUB.rate)) + ')' : '') + '</li>' +
+        '<li>수거·배송비와 한밤배송은 무료예요.</li></ul>' +
+        '<p class="g-sub-h">같은 4주 물량을 ' + b.plan + ' 요금제로 계산하면</p>' +
+        lbGL('구독 요금 (세탁권 ' + b.tk + '장 포함)', lbWon(b.fee)) +
+        b.cov.map(function (c) { return lbGL(esc(lbShort(c.name)) + ' ' + c.c + lbUnitWord(c.name) + ' (세탁권 차감)', '0원'); }).join('') +
+        b.rest.map(function (r) { return lbGL((b.cov.some(function (c) { return c.name === r.name; }) ? '나머지 ' : '') + esc(lbShort(r.name)) + ' ' + lbQty(r.q) + lbUnitWord(r.name) + ' × ' + lbWon(r.p), lbWon(r.p * r.q)); }).join('') +
+        lbGL('수거·배송비 / 한밤배송', '무료') +
+        lbGL('4주 합계', lbWon(b.total), 't') +
+        '<p class="g-save-t">정가 이용보다 ' + lbWon(b.save) + ' 적게 내요 (약 ' + Math.round(b.save / b.full * 100) + '% 절감)</p>' +
+        '<p class="g-fine">구독은 앱 &gt; 런드리고X에서 신청할 수 있어요. 다른 등급(라이트·베이직·스탠다드·시그니처)보다 이 물량에서 가장 저렴한 등급으로 골랐어요.</p></section>';
+    }
+    // 5. 참고
+    h += '<section><h4>' + (b ? 5 : 4) + '. 참고 사항</h4><ul class="g-ul">' +
+      '<li>위 금액은 예상치이며, 실제 금액은 입고된 수량에 따라 정산돼요.</li>' +
+      '<li>요청하신 품목과 실제 입고된 품목이 다르면, 실물 확인 후 런드리고 품목 분류 기준에 따라 해당 품목 단가로 다시 계산될 수 있어요.</li>' +
+      '<li>쿠폰·신규 가입 혜택 같은 프로모션은 반영되지 않은 금액이에요.</li>' +
+      '<li>구독 요금과 세탁권 수는 2026년 11월 기준이에요. 최신 내용은 앱에서 확인해 주세요.</li></ul></section>';
+    return h;
+  }
+  var LB_SAVE_BTNS = '<div class="g-save"><button type="button" class="btn lb-alt" data-gsave="print">PDF로 저장·인쇄</button><button type="button" class="btn lb-alt" data-gsave="file">파일로 받기</button></div>';
+  var LB_GUIDE_CSS = 'body{margin:0;padding:28px 18px;background:#fff;color:#14201A;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}' +
+    '.lb-guide{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}.lb-guide h3{margin:0;font-size:20px}.lb-guide h4{margin:0 0 8px;font-size:15px;color:#0A6F4E}' +
+    '.g-meta,.g-fine{margin:0;color:#56635B;font-size:12.5px}.g-intro{margin:0}.lb-guide section{padding:14px 16px;border:1px solid #DFE4DF;border-radius:12px;break-inside:avoid}' +
+    '.g-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}.g-steps b{display:block}.g-steps span{color:#56635B;font-size:13.5px}' +
+    '.g-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:#F4F6F3;font-size:13.5px}.g-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed #DFE4DF;font-size:13.5px}' +
+    '.g-l b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}.g-l.t{border-bottom:0;padding-top:9px;font-size:15px}.g-l.t b{font-weight:700;color:#0A6F4E}' +
+    '.g-ul{margin:0 0 8px;padding-left:18px;font-size:13.5px}.g-sub{background:#E6F6EE}.g-sub-h{margin:8px 0 2px;font-weight:600}.g-save-t{margin:4px 0;font-weight:700;color:#0A6F4E}.g-save{display:none}';
+  function lbGuideDoc(body) { return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>런드리고 이용 가이드 · 예상 견적</title><style>' + LB_GUIDE_CSS + '</style></head><body><main class="lb-guide">' + body + '</main></body></html>'; }
+  function lbGuideKeep(body) { try { localStorage.setItem('lg_lb_guide', JSON.stringify({ at: Date.now(), body: body })); } catch (_) {} }
+  function lbGuideSaved() { try { var g = JSON.parse(localStorage.getItem('lg_lb_guide') || 'null'); return g && g.body ? g : null; } catch (_) { return null; } }
+  function lbGuideOpen(body, print) {
+    var w = window.open('', '_blank'); if (!w) return false;
+    w.document.open(); w.document.write(lbGuideDoc(body)); w.document.close();
+    if (print) setTimeout(function () { try { w.focus(); w.print(); } catch (_) {} }, 400);
+    return true;
+  }
+  function lbGuideFile(body) {
+    var a = document.createElement('a'), d = new Date();
+    a.href = URL.createObjectURL(new Blob([lbGuideDoc(body)], { type: 'text/html;charset=utf-8' }));
+    a.download = '런드리고_이용가이드_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.html';
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  document.addEventListener('click', function (e) {
+    var bt = e.target.closest('[data-gsave]'); if (!bt) return;
+    var mode = bt.dataset.gsave, body;
+    if (mode === 'saved') { var g = lbGuideSaved(); if (!g) return; body = g.body; if (!lbGuideOpen(body, false)) lbGuideFile(body); return; }
+    var box = bt.closest('[data-guide]'), gd = box && box.querySelector('.lb-guide'); if (!gd) return;
+    body = gd.innerHTML; lbGuideKeep(body);
+    if (mode === 'print') { if (!lbGuideOpen(body, true)) lbGuideFile(body); } else lbGuideFile(body);
+  });
   function lbRender() {
     if (!lbOn()) { lbCta(null); return; }
     var multi = lb.site === '2';
@@ -2678,14 +2838,16 @@ const ASSET = window.ADC_ASSET_BASE || "";
     var k = lbCalc(), fl = LB_LABEL.freq[lb.freq];
     var tile = function (l, v) { return '<div><small>' + l + '</small><b>' + v + '</b></div>'; };
     $('lb-res').innerHTML = '<span class="eyebrow">예상 견적</span>' +
-      '<div class="lb-tiles">' + tile('1회' + (multi ? ' (사업장당)' : ''), lbWon(k.per)) + tile('월 (' + fl + ')', lbWon(k.monthly)) + tile('1회 물량', '약 ' + k.pcs + '벌') + '</div>' +
+      '<div class="lb-tiles">' + tile('1회' + (multi ? ' (사업장당)' : ''), lbWon(k.per)) + tile('4주 (' + fl + ')', lbWon(k.monthly)) + tile('1회 물량', '약 ' + k.pcs + '벌') + '</div>' + lbSubHtml(multi) +
       (k.verdict === 'sales'
         ? '<div class="lb-v"><h4>담당 팀이 맞춤 견적을 드릴게요</h4><p>아래 조건은 전담 세탁 서비스로 도와드려요. 위 금액은 개인 단가 기준 참고가예요.</p><div class="lb-tags">' + k.reasons.map(function (x) { return '<span class="lb-tag no">' + esc(x) + '</span>'; }).join('') + '</div></div>'
         : k.verdict === 'b2c'
-        ? '<div class="lb-v ok"><h4>런드리고 앱으로 바로 맡길 수 있어요</h4><p>견적을 기다리지 않아도 돼요. 앱에서 신청하면 위 금액으로 바로 시작해요.</p>' + LB_STEPS + '</div>' +
+        ? '<div class="lb-v ok"><h4>런드리고 앱으로 바로 맡길 수 있어요</h4><p>견적을 기다리지 않아도 돼요. 앱에서 신청하면 위 금액으로 바로 시작해요.</p>' + LB_STEPS +
+          '<details class="g-det" data-guide><summary>자세한 이용 가이드·예상 견적서 보기</summary><div class="lb-guide">' + lbGuideBody() + '</div>' + LB_SAVE_BTNS + '</details></div>' +
           '<p class="fine">‘앱에서 바로 신청하기’를 누르면 아래 회사 정보와 연락처가 함께 기록돼요. 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p>'
         : '<div class="lb-v"><p>' + (lb.items.length ? '주소를 검색해 고르면 앱으로 바로 맡길 수 있는지 알려드려요.' : '세탁물을 담으면 예상 견적과 바로 맡길 수 있는지 알려드려요.') + '</p></div>') +
-      '<p class="fine">정가 기준이에요. 쿠폰·요금제 할인 전 금액이에요.</p>';
+      '<p class="fine">정가(부가세 포함) 기준이에요. 4주 금액에는 회당 수거·배송비 3,800원과 한밤배송 1,500원이 들어 있어요. 구독 금액은 2026년 11월 요금제 기준 예상이에요.</p>' +
+      (lbGuideSaved() ? '<p class="fine"><button type="button" class="lb-link" data-gsave="saved">최근에 저장한 이용 가이드 다시 보기</button></p>' : '');
     lbCta(k.verdict);
   }
 
@@ -2738,10 +2900,14 @@ const ASSET = window.ADC_ASSET_BASE || "";
     if (url) a.href = url; else e.preventDefault();
     var lbp = lbPayload(); lbp.route = 'app';
     var t = TYPES.filter(function (x) { return x.id === cur; })[0];
-    submitInquiry(Object.assign(d, { center: 'partner', type: cur, consent: true, route: 'app', laundry: lbp, scale: lbSummary(lbp) })).catch(function () {});
-    $('pc-f').innerHTML = '<div class="pc-done"><h3>런드리고 앱에서 이어서 신청해 주세요</h3><p>' + esc(t.label) + ' · 예상 1회 ' + lbWon(lbp.perVisit) + ' · 월 ' + lbWon(lbp.monthly) + '</p>' +
-      LB_STEPS + '<div style="margin-top:14px">' + lbStoreLinks() + '</div>' +
-      '<p class="sub" style="margin:12px 0 0">남겨 주신 연락처로 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p></div>';
+    var gbody = lbGuideBody(); lbGuideKeep(gbody);
+    submitInquiry(Object.assign(d, { center: 'partner', type: cur, consent: true, route: 'app', laundry: lbp, scale: lbSummary(lbp) })).then(function (r) {
+      var gi = document.querySelector('.pc-done .g-id'); if (gi && r && r.id) { gi.textContent = ' · 문의번호 ' + r.id; lbGuideKeep(gi.closest('.lb-guide').innerHTML); }
+    }).catch(function () {});
+    $('pc-f').innerHTML = '<div class="pc-done" data-guide><h3>런드리고 앱에서 이어서 신청해 주세요</h3><p>' + esc(t.label) + ' · 예상 1회 ' + lbWon(lbp.perVisit) + ' · 4주 ' + lbWon(lbp.monthly) + '</p>' +
+      '<div style="margin:12px 0 16px">' + lbStoreLinks() + '</div>' +
+      '<div class="lb-guide">' + gbody + '</div>' + LB_SAVE_BTNS +
+      '<p class="sub" style="margin:12px 0 0">이 가이드는 이 브라우저에도 저장돼서 제휴센터에 다시 오면 열어 볼 수 있어요. 남겨 주신 연락처로 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p></div>';
   });
 
   // 서버로 보내는 세탁 조건
@@ -2750,10 +2916,11 @@ const ASSET = window.ADC_ASSET_BASE || "";
     return { v: 1, site: LB_LABEL.site[lb.site], address: $('lb-addr').value.trim().slice(0, 120), address2: $('lb-addr2').value.trim().slice(0, 60), zone: lb.zone || '', area: lb.area,
       items: lb.items.map(function (x) { var c = lbUnit(x); return { name: x.name, qty: x.qty, price: c ? c.price : null, custom: !c, ai: !!x.ai }; }),
       dirty: $('lb-dirty').checked, freq: LB_LABEL.freq[lb.freq], pay: LB_LABEL.pay[lb.pay],
-      perVisit: Math.round(k.per), monthly: Math.round(k.monthly), pcs: k.pcs, verdict: k.verdict, reasons: k.reasons };
+      perVisit: Math.round(k.per), monthly: Math.round(k.monthly), pcs: k.pcs, verdict: k.verdict, reasons: k.reasons,
+      sub: (function (b) { return b ? { plan: b.plan, monthly: Math.round(b.total), save: Math.round(b.save) } : null; })(lbSub()) };
   }
   function lbSummary(p) {
-    return ('사업장 ' + p.site + ' · ' + p.freq + ' · 1회 약 ' + p.pcs + '벌 · 예상 월 ' + lbWon(p.monthly)).slice(0, 100);
+    return ('사업장 ' + p.site + ' · ' + p.freq + ' · 1회 약 ' + p.pcs + '벌 · 예상 4주 ' + lbWon(p.monthly)).slice(0, 100);
   }
 
   // 사진으로 품목 찾기: AI 세탁비 계산기 (비로그인 · 자유이용 정가)
@@ -2926,7 +3093,8 @@ const ASSET = window.ADC_ASSET_BASE || "";
     return '<section class="rq-lines rq-lb"><h4>세탁 조건 · 판정</h4><div class="lb-tags">' + v + (L.reasons || []).map(function (x) { return '<span class="lb-tag no">' + esc(x) + '</span>'; }).join('') + '</div><dl>' +
       row('사업장', esc(L.site || '-')) + row('주소', esc([L.address, L.address2].filter(Boolean).join(' ') || '미입력') + esc(area)) +
       row('빈도', esc(L.freq || '-')) + (L.pick ? row('수거', esc(L.pick)) : '') + row('결제', esc(L.pay || '-')) + (L.dirty ? row('오염', '심한 오염 있음') : '') +
-      row('예상 견적', '1회 ' + wonA(L.perVisit) + ' · 월 ' + wonA(L.monthly) + ' · 1회 약 ' + (Number(L.pcs) || 0) + '벌') + '</dl>' +
+      row('예상 견적', '1회 ' + wonA(L.perVisit) + ' · 4주(월) ' + wonA(L.monthly) + ' · 1회 약 ' + (Number(L.pcs) || 0) + '벌') +
+      (L.sub && L.sub.plan ? row('구독 시', '런드리고X ' + esc(L.sub.plan) + ' · 4주 ' + wonA(L.sub.monthly) + ' (' + wonA(L.sub.save) + ' 절감)') : '') + '</dl>' +
       (L.items && L.items.length ? '<ul>' + L.items.map(function (x) { return '<li>' + esc(x.name) + ' × ' + (Number(x.qty) || 0) + (x.price ? ' (' + wonA(x.price) + ')' : ' (직접 입력)') + (x.ai ? ' · 사진' : '') + '</li>'; }).join('') + '</ul>' : '') + '</section>';
   }
   function renderAdmin(list) {
