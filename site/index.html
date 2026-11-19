@@ -922,6 +922,7 @@ body:not([data-center="ad"]) #tab-intro,body:not([data-center="ad"]) #tab-calc{d
 .lb-back{align-self:flex-start;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
 .lb-page-h{padding:18px;border-radius:14px;background:var(--accent-soft);display:flex;flex-direction:column;gap:8px}
 .lb-page-h .eyebrow{margin:0}.lb-page-h p{margin:0;font-size:15px;font-weight:600}
+.lb-page .lb-page-t{margin:0}.lb-page .lb-guide>h3{display:none}
 .lb-addr{display:flex;gap:6px}.lb-addr input{flex:1;min-width:0}
 .lb-row{display:grid;grid-template-columns:minmax(0,1fr) 78px 112px 28px;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
 .lb-row.h{border:0;padding:0;font-size:12px;color:var(--faint)}
@@ -2823,15 +2824,17 @@ const ASSET = window.ADC_ASSET_BASE || "";
     var pg = $('lb-page');
     if (!pg) { $('pc-f').insertAdjacentHTML('afterend', '<div id="lb-page" class="lb-page" hidden></div>'); pg = $('lb-page'); }
     pg.innerHTML = '<button type="button" class="lb-back" data-lbback>← ' + (opt.saved ? '입력 화면으로' : '입력 내용 고치기') + '</button>' +
-      '<div class="lb-page-h"><span class="eyebrow">런드리고 앱으로 바로 이용할 수 있어요</span><p>앱을 설치하고 아래 순서대로 신청하면 바로 시작해요.</p>' + lbStoreLinks() + '</div>' +
+      '<div class="pc-form-h lb-page-t"><h2>런드리고 이용 가이드 · 예상 견적</h2></div>' +
       '<div class="lb-guide">' + body + '</div>' + LB_SAVE_BTNS +
       '<p class="fine" style="margin:0">이 가이드는 이 브라우저에도 저장돼서 제휴센터에 다시 오면 열어 볼 수 있어요. 남겨 주신 연락처로 앱 이용을 확인하고, 필요하면 담당 팀이 도와드려요.</p>';
+    var fh = document.querySelector('#pc-form .pc-form-h:not(.lb-page-t)'); if (fh) fh.hidden = true;   // '제휴 문의' 머리말 숨김
     $('pc-f').hidden = true; pg.hidden = false;
     try { pg.scrollIntoView({ block: 'start' }); } catch (_) { window.scrollTo(0, 0); }
   }
   document.addEventListener('click', function (e) {
     if (e.target.closest('[data-lbback]')) {
       var pg = $('lb-page'); if (pg) pg.hidden = true; $('pc-f').hidden = false; lbRender();
+      var fh = document.querySelector('#pc-form .pc-form-h:not(.lb-page-t)'); if (fh) fh.hidden = false;
       try { $('lb-res').scrollIntoView({ block: 'center' }); } catch (_) {}
       return;
     }
